@@ -154,23 +154,15 @@
         .benefits-list {
             list-style: none;
             display: grid;
-            grid-template-columns: repeat(6, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 20px;
             max-width: 1000px;
             margin: 0 auto;
             text-align: right;
         }
 
-        .benefits-list li {
-            grid-column: span 2;
-        }
-
-        .benefits-list li:nth-last-child(2) {
-            grid-column: 2 / 4;
-        }
-
-        .benefits-list li:nth-last-child(1) {
-            grid-column: 4 / 6;
+        .benefits-list li:last-child {
+            grid-column: 2 / 3;
         }
 
         .benefits-list li {
