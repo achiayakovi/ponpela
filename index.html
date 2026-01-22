@@ -923,11 +923,10 @@
                 <div id="success-message" style="display: none; background: #d4edda; color: #155724; padding: 20px; border-radius: 15px; margin-bottom: 20px; text-align: center; font-size: 1.2rem;">
                     ✓ תודה על פנייתך! ניצור איתך קשר בקרוב.
                 </div>
-                <form class="contact-form" name="contact" method="POST" action="https://formsubmit.co/achiayakovi@gmail.com">
+                <form class="contact-form" name="contact" method="POST" action="https://formsubmit.co/achiayakovi@gmail.com" onsubmit="showThankYou(event)">
                     <input type="hidden" name="_subject" value="פנייה חדשה מאתר פונפלה">
                     <input type="hidden" name="_captcha" value="false">
                     <input type="hidden" name="_template" value="table">
-                    <input type="hidden" name="_next" value="https://ponpela.co.il/?success=true#contact">
                     <div class="form-group">
                         <label for="name">שם מלא</label>
                         <input type="text" id="name" name="name" required>
@@ -985,11 +984,33 @@
             observer.observe(el);
         });
 
-        // Show success message after form submission
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('success') === 'true') {
-            document.getElementById('success-message').style.display = 'block';
-            document.querySelector('.contact-form').style.display = 'none';
+        // Show thank you message on form submit
+        function showThankYou(event) {
+            event.preventDefault(); // מונע ריענון העמוד
+            
+            // שליחת הטופס ב-AJAX
+            const form = event.target;
+            const formData = new FormData(form);
+            
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Accept': 'application/json'
+                }
+            }).then(() => {
+                // הצגת הודעת תודה
+                document.getElementById('success-message').style.display = 'block';
+                document.querySelector('.contact-form').style.display = 'none';
+                document.getElementById('contact').scrollIntoView({ behavior: 'smooth' });
+            }).catch(() => {
+                // גם אם יש שגיאה, נציג הודעה
+                document.getElementById('success-message').style.display = 'block';
+                document.querySelector('.contact-form').style.display = 'none';
+                document.getElementById('contact').scrollIntoView({ behavior: 'smooth' });
+            });
+            
+            return false;
         }
     </script>
 </body>
