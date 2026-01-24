@@ -207,7 +207,7 @@
 
         .phone-group {
             display: grid;
-            grid-template-columns: 150px 1fr;
+            grid-template-columns: 1fr 150px;
             gap: 10px;
         }
 
@@ -422,6 +422,7 @@
                         <div class="form-group">
                             <label>טלפון נייד *</label>
                             <div class="phone-group">
+                                <input type="text" id="phone-number" required placeholder="1234567" maxlength="7" pattern="[0-9]{7}">
                                 <select id="phone-prefix" required>
                                     <option value="">בחר קידומת</option>
                                     <option value="050">050</option>
@@ -432,7 +433,6 @@
                                     <option value="055">055</option>
                                     <option value="058">058</option>
                                 </select>
-                                <input type="text" id="phone-number" required placeholder="1234567" maxlength="7" pattern="[0-9]{7}">
                             </div>
                         </div>
 
@@ -590,20 +590,23 @@
                 const fullPhone = `${phonePrefix}${phoneNumber}`;
                 const website = document.getElementById('website').value; // honeypot
 
-                const formData = new FormData();
-                formData.append('action', 'register');
-                formData.append('fullName', fullName);
-                formData.append('phone', fullPhone);
-                formData.append('machineNumber', machineNumber);
-                formData.append('purchaseDate', purchaseDate);
-                formData.append('receipt', receiptBase64);
-                formData.append('receiptName', receipt.name);
-                formData.append('receiptType', receipt.type);
-                formData.append('website', website); // honeypot
+                const params = new URLSearchParams();
+                params.append('action', 'register');
+                params.append('fullName', fullName);
+                params.append('phone', fullPhone);
+                params.append('machineNumber', machineNumber);
+                params.append('purchaseDate', purchaseDate);
+                params.append('receipt', receiptBase64);
+                params.append('receiptName', receipt.name);
+                params.append('receiptType', receipt.type);
+                params.append('website', website); // honeypot
 
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
-                    body: formData
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: params.toString()
                 });
 
                 const data = await response.json();
