@@ -79,6 +79,75 @@
             transform: scale(1.05);
         }
 
+        /* Navigation Menu */
+        nav {
+            background: white;
+            padding: 15px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .nav-menu {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 40px;
+            list-style: none;
+        }
+
+        .nav-menu a {
+            text-decoration: none;
+            color: #2d7a8e;
+            font-size: 1.1rem;
+            font-weight: 600;
+            padding: 10px 20px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-menu a:hover {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            transform: translateY(-2px);
+        }
+
+        .nav-menu a.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        /* Mobile Menu Toggle */
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            color: #2d7a8e;
+            cursor: pointer;
+            padding: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .menu-toggle {
+                display: block;
+                margin: 0 auto;
+            }
+
+            .nav-menu {
+                display: none;
+                flex-direction: column;
+                gap: 10px;
+                padding: 20px 0;
+            }
+
+            .nav-menu.active {
+                display: flex;
+            }
+
+            .nav-menu a {
+                width: 100%;
+                text-align: center;
+            }
+        }
+
         /* Hero Section */
         .hero {
             padding: 80px 0;
@@ -829,6 +898,17 @@
         </div>
     </header>
 
+    <nav>
+        <div class="container">
+            <button class="menu-toggle" onclick="toggleMenu()" aria-label="תפריט">☰</button>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="/" class="active">בית</a></li>
+                <li><a href="warranty.html">אחריות</a></li>
+                <li><a href="#contact">צור קשר</a></li>
+            </ul>
+        </div>
+    </nav>
+
     <main>
         <div class="container">
             <section class="hero">
@@ -1011,6 +1091,19 @@
             
             return false;
         }
+
+        // Toggle mobile menu
+        function toggleMenu() {
+            const navMenu = document.getElementById('navMenu');
+            navMenu.classList.toggle('active');
+        }
+
+        // Close menu when clicking on a link
+        document.querySelectorAll('.nav-menu a').forEach(link => {
+            link.addEventListener('click', () => {
+                document.getElementById('navMenu').classList.remove('active');
+            });
+        });
     </script>
 </body>
 </html>
