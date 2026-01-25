@@ -274,15 +274,23 @@
         .benefits-list {
             list-style: none;
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(6, 1fr);
             gap: 20px;
             max-width: 1000px;
             margin: 0 auto;
             text-align: right;
         }
 
-        .benefits-list li:last-child {
-            grid-column: 2 / 3;
+        .benefits-list li {
+            grid-column: span 2;
+        }
+
+        .benefits-list li:nth-last-child(2) {
+            grid-column: 2 / 4;
+        }
+
+        .benefits-list li:nth-last-child(1) {
+            grid-column: 4 / 6;
         }
 
         .benefits-list li {
@@ -1016,7 +1024,8 @@
                     <h2>למה לבחור בפונפלה?</h2>
                     <ul class="benefits-list">
                         <li>4 מצבי יניקה</li>
-                        <li>12 רמות לכל מצב</li>
+                        <li>9 רמות לכל מצב</li>
+                        <li>תאורת לילה 3 רמות</li>
                         <li>זיכרון להגדרות אחרונות</li>
                         <li>ניקיון קל ופשוט</li>
                         <li>סט אביזרים מלא</li>
@@ -1046,8 +1055,8 @@
                     </div>
                     <div class="modes-text">
                         <h2>מצבי יניקה שמתאימים לך</h2>
-                        <p class="modes-highlight">4 מצבים, 12 רמות - התאמה מושלמת</p>
-                        <p>כל אמא שונה, וגם כל יום שונה. לכן פונפלה מציעה 4 מצבי יניקה עם 12 רמות עוצמה לכל מצב:</p>
+                        <p class="modes-highlight">4 מצבים, 9 רמות - התאמה מושלמת</p>
+                        <p>כל אמא שונה, וגם כל יום שונה. לכן פונפלה מציעה 4 מצבי יניקה עם 9 רמות עוצמה לכל מצב:</p>
                         <p><strong>מצב גירוי</strong> - לתחילת התקופה אחרי הלידה. יניקה מהירה וקצרה שמעודדת את בלוטות החלב ומגבירה את ייצור החלב.</p>
                         <p><strong>מצב שאיבה</strong> - מחקה את יניקת התינוק הטבעית. מעודד זרימה חלקה ויעילה של החלב.</p>
                         <p><strong>מצב עיסוי</strong> - יניקה איטית ועדינה שמקלה על נפיחות, כאבים וגושים. מושלם כשיש תחושת מתיחות.</p>
