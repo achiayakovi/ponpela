@@ -922,6 +922,45 @@
             opacity: 1;
             transform: translateY(0);
         }
+
+        /* Scroll to Top Button */
+        .scroll-top-btn {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 999;
+        }
+
+        .scroll-top-btn.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .scroll-top-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        @media (max-width: 768px) {
+            .scroll-top-btn {
+                bottom: 90px;
+                right: 15px;
+                width: 45px;
+                height: 45px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1168,6 +1207,52 @@
                     });
                 }
             });
+        });
+
+        // פונקציה עזר לעדכון active
+        function setActive(href) {
+            document.querySelectorAll('.nav-menu a, .bottom-nav a').forEach(l => {
+                l.classList.remove('active');
+            });
+            document.querySelectorAll(`.nav-menu a[href="${href}"], .bottom-nav a[href="${href}"]`).forEach(l => {
+                l.classList.add('active');
+            });
+        }
+
+        // Scroll Spy - עדכון active לפי גלילה
+        window.addEventListener('scroll', function() {
+            const scrollPos = window.scrollY + 100;
+            const contactSection = document.getElementById('contact');
+            
+            if (contactSection && scrollPos >= contactSection.offsetTop) {
+                // אנחנו בסקשן צור קשר
+                setActive('#contact');
+            } else {
+                // אנחנו בראש הדף
+                setActive('/');
+            }
+        });
+
+        // כפתור חזרה למעלה
+        const scrollTopBtn = document.createElement('button');
+        scrollTopBtn.innerHTML = '↑';
+        scrollTopBtn.className = 'scroll-top-btn';
+        scrollTopBtn.setAttribute('aria-label', 'חזרה למעלה');
+        document.body.appendChild(scrollTopBtn);
+
+        // הצגת/הסתרת הכפתור
+        window.addEventListener('scroll', function() {
+            if (window.scrollY > 300) {
+                scrollTopBtn.classList.add('visible');
+            } else {
+                scrollTopBtn.classList.remove('visible');
+            }
+        });
+
+        // לחיצה על הכפתור
+        scrollTopBtn.addEventListener('click', function() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            setActive('/');
         });
     </script>
 </body>
