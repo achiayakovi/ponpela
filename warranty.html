@@ -518,11 +518,12 @@
                 loadingDiv.style.display = 'none';
                 resultDiv.style.display = 'block';
 
-                if (data.success) {
+                if (data.success && data.status === 'בתוקף') {
+                    // בתוקף - ירוק
                     resultDiv.className = 'result success';
                     resultDiv.innerHTML = `
                         <div class="warranty-info">
-                            ✓ מכשיר רשום במערכת
+                            ✓ אחריות בתוקף
                             <br><br>
                             <strong>שם הלקוח:</strong> ${data.customerName}
                             <br><br>
@@ -530,7 +531,38 @@
                             <div class="warranty-date">${data.warrantyDate}</div>
                         </div>
                     `;
+                } else if (data.status === 'ממתין לאישור') {
+                    // ממתין לאישור - כחול
+                    resultDiv.className = 'result info';
+                    resultDiv.innerHTML = `
+                        <div class="warranty-info">
+                            ⏳ ממתין לאישור
+                            <br><br>
+                            ${data.message}
+                        </div>
+                    `;
+                } else if (data.status === 'נדחה') {
+                    // נדחה - אדום
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `
+                        <div class="warranty-info">
+                            ✗ הרישום נדחה
+                            <br><br>
+                            ${data.message}
+                        </div>
+                    `;
+                } else if (data.status === 'פג תוקף') {
+                    // פג תוקף - אדום
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `
+                        <div class="warranty-info">
+                            ⚠️ פג תוקף האחריות
+                            <br><br>
+                            ${data.message}
+                        </div>
+                    `;
                 } else {
+                    // לא נמצא או שגיאה אחרת - אדום
                     resultDiv.className = 'result error';
                     resultDiv.innerHTML = `✗ ${data.message}`;
                 }
@@ -620,7 +652,7 @@
                     resultDiv.innerHTML = `
                         ✓ המכשיר נרשם בהצלחה!
                         <br><br>
-                        הרישום נשלח לבדיקה. נאשר את הפרטים ונעדכן אותך בהקדם.
+                        הרישום נמצא בבדיקה ויעודכן תוך 24 שעות.
                     `;
                     document.getElementById('register-form').reset();
                 } else {
