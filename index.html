@@ -126,25 +126,63 @@
         }
 
         @media (max-width: 768px) {
-            .menu-toggle {
-                display: block;
-                margin: 0 auto;
-            }
-
-            .nav-menu {
+            /* הסתרת התפריט הרגיל במובייל */
+            nav {
                 display: none;
-                flex-direction: column;
-                gap: 10px;
-                padding: 20px 0;
             }
-
-            .nav-menu.active {
+            
+            /* תפריט תחתון קבוע */
+            .bottom-nav {
                 display: flex;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background: white;
+                box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+                padding: 15px 0;
+                z-index: 1000;
+                justify-content: space-around;
             }
+            
+            .bottom-nav a {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                text-decoration: none;
+                color: #2d7a8e;
+                font-size: 1.1rem;
+                font-weight: 600;
+                padding: 10px 20px;
+                transition: all 0.3s ease;
+                flex: 1;
+                border-top: 3px solid transparent;
+            }
+            
+            .bottom-nav a.active {
+                color: #667eea;
+                border-top: 3px solid #667eea;
+            }
+            
+            .bottom-nav-icon {
+                display: none;
+            }
+            
+            /* הוספת padding למטה כדי שהתוכן לא יוסתר */
+            main {
+                padding-bottom: 80px;
+            }
+        }
 
-            .nav-menu a {
-                width: 100%;
-                text-align: center;
+        @media (min-width: 769px) {
+            .bottom-nav {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) and (min-width: 1px) {
+            .menu-toggle {
+                display: none;
             }
         }
 
@@ -1037,6 +1075,13 @@
             </section>
         </div>
     </main>
+
+    <!-- Bottom Navigation for Mobile -->
+    <div class="bottom-nav">
+        <a href="/" class="active">בית</a>
+        <a href="warranty.html">אחריות</a>
+        <a href="#contact">צור קשר</a>
+    </div>
 
     <footer>
         <div class="container">
