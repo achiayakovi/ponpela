@@ -329,6 +329,12 @@
                 padding: 15px 0;
                 z-index: 1000;
                 justify-content: space-around;
+                transition: transform 0.3s ease, opacity 0.3s ease;
+            }
+
+            .bottom-nav.hidden {
+                transform: translateY(100%);
+                opacity: 0;
             }
             
             .bottom-nav a {
@@ -364,7 +370,9 @@
             }
 
             .warranty-card {
-                padding: 30px 20px;
+                padding: 30px 15px;
+                max-width: 100%;
+                overflow: hidden;
             }
 
             h1 {
@@ -377,11 +385,36 @@
 
             .tab-button {
                 width: 100%;
+                padding: 15px 20px;
+                font-size: 1.1rem;
             }
 
-            .phone-group,
             .name-group {
                 grid-template-columns: 1fr;
+            }
+
+            .phone-group {
+                display: grid;
+                grid-template-columns: 1fr 120px;
+                gap: 10px;
+            }
+
+            .phone-group input,
+            .phone-group select {
+                width: 100%;
+                box-sizing: border-box;
+            }
+
+            .form-group input,
+            .form-group select {
+                max-width: 100%;
+                box-sizing: border-box;
+            }
+
+            .btn-primary {
+                width: 100%;
+                padding: 15px;
+                font-size: 1rem;
             }
         }
 
@@ -722,6 +755,24 @@
             link.addEventListener('click', () => {
                 document.getElementById('navMenu').classList.remove('active');
             });
+        });
+
+        // הסתרת תפריט תחתון כשמגיעים ל-footer
+        window.addEventListener('scroll', function() {
+            const bottomNav = document.querySelector('.bottom-nav');
+            const footer = document.querySelector('footer');
+            
+            if (bottomNav && footer) {
+                const footerTop = footer.getBoundingClientRect().top;
+                const windowHeight = window.innerHeight;
+                
+                // אם ה-footer נראה במסך, הסתר את התפריט
+                if (footerTop <= windowHeight) {
+                    bottomNav.classList.add('hidden');
+                } else {
+                    bottomNav.classList.remove('hidden');
+                }
+            }
         });
     </script>
 </body>
