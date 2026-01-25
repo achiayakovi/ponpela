@@ -1149,6 +1149,26 @@
                 document.getElementById('navMenu').classList.remove('active');
             });
         });
+
+        // עדכון active כשלוחצים על קישורים פנימיים (#contact)
+        document.querySelectorAll('.nav-menu a, .bottom-nav a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                const href = this.getAttribute('href');
+                
+                // אם זה קישור פנימי (מתחיל ב-#)
+                if (href && href.startsWith('#')) {
+                    // הסר active מכל הקישורים בשני התפריטים
+                    document.querySelectorAll('.nav-menu a, .bottom-nav a').forEach(l => {
+                        l.classList.remove('active');
+                    });
+                    
+                    // הוסף active לקישורים עם אותו href בשני התפריטים
+                    document.querySelectorAll(`.nav-menu a[href="${href}"], .bottom-nav a[href="${href}"]`).forEach(l => {
+                        l.classList.add('active');
+                    });
+                }
+            });
+        });
     </script>
 </body>
 </html>
