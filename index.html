@@ -143,12 +143,7 @@
                 padding: 15px 0;
                 z-index: 1000;
                 justify-content: space-around;
-                transition: transform 0.3s ease, opacity 0.3s ease;
-            }
-
-            .bottom-nav.hidden {
-                transform: translateY(100%);
-                opacity: 0;
+                transition: bottom 0.3s ease;
             }
             
             .bottom-nav a {
@@ -1261,20 +1256,25 @@
             setActive('/');
         });
 
-        // הסתרת תפריט תחתון כשמגיעים ל-footer
+        // התאמת מיקום תפריט תחתון כשמגיעים ל-footer
         window.addEventListener('scroll', function() {
             const bottomNav = document.querySelector('.bottom-nav');
             const footer = document.querySelector('footer');
             
-            if (bottomNav && footer) {
-                const footerTop = footer.getBoundingClientRect().top;
+            if (bottomNav && footer && window.innerWidth <= 768) {
+                const footerRect = footer.getBoundingClientRect();
                 const windowHeight = window.innerHeight;
+                const navHeight = bottomNav.offsetHeight;
                 
-                // אם ה-footer נראה במסך, הסתר את התפריט
-                if (footerTop <= windowHeight) {
-                    bottomNav.classList.add('hidden');
+                // אם ה-footer נכנס למסך מלמטה
+                if (footerRect.top < windowHeight) {
+                    // מחשבים כמה ה-footer "נכנס" למסך
+                    const overlap = windowHeight - footerRect.top;
+                    // מעלים את התפריט בהתאם
+                    bottomNav.style.bottom = overlap + 'px';
                 } else {
-                    bottomNav.classList.remove('hidden');
+                    // חוזר למצב רגיל
+                    bottomNav.style.bottom = '0';
                 }
             }
         });
