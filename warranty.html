@@ -329,7 +329,6 @@
                 padding: 15px 0;
                 z-index: 1000;
                 justify-content: space-around;
-                transition: bottom 0.3s ease;
             }
             
             .bottom-nav a {
@@ -410,6 +409,10 @@
                 width: 100%;
                 padding: 15px;
                 font-size: 1rem;
+            }
+
+            footer {
+                padding-bottom: 70px;
             }
         }
 
@@ -750,29 +753,6 @@
             link.addEventListener('click', () => {
                 document.getElementById('navMenu').classList.remove('active');
             });
-        });
-
-        // התאמת מיקום תפריט תחתון כשמגיעים ל-footer
-        window.addEventListener('scroll', function() {
-            const bottomNav = document.querySelector('.bottom-nav');
-            const footer = document.querySelector('footer');
-            
-            if (bottomNav && footer && window.innerWidth <= 768) {
-                const footerRect = footer.getBoundingClientRect();
-                const windowHeight = window.innerHeight;
-                const navHeight = bottomNav.offsetHeight;
-                
-                // אם ה-footer נכנס למסך מלמטה
-                if (footerRect.top < windowHeight) {
-                    // מחשבים כמה ה-footer "נכנס" למסך
-                    const overlap = windowHeight - footerRect.top;
-                    // מעלים את התפריט בהתאם
-                    bottomNav.style.bottom = overlap + 'px';
-                } else {
-                    // חוזר למצב רגיל
-                    bottomNav.style.bottom = '0';
-                }
-            }
         });
     </script>
 </body>
