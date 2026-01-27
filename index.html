@@ -250,6 +250,38 @@
             animation: fadeIn 1.5s ease-out;
         }
 
+        .hero-images {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+            margin: 40px 0;
+            flex-wrap: wrap;
+        }
+
+        .hero-images img {
+            max-width: 400px;
+            width: 100%;
+            height: auto;
+            transition: transform 0.3s ease;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+        }
+
+        .hero-images img:hover {
+            transform: scale(1.05);
+        }
+
+        @media (max-width: 768px) {
+            .hero-images {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .hero-images img {
+                max-width: 300px;
+            }
+        }
+
         /* Benefits Section */
         .benefits {
             padding: 60px 0;
@@ -1017,6 +1049,11 @@
             <section class="hero">
                 <h1>משאבת פונפלה</h1>
                 <p class="hero-subtitle">קלה ונוחה לתפעול, איכות ללא פשרות, מחיר שווה לכל כיס</p>
+                
+                <div class="hero-images">
+                    <img src="pump-side.png" alt="משאבת פונפלה - מבט צד" loading="lazy">
+                    <img src="pump-front.png" alt="משאבת פונפלה - מסך דיגיטלי" loading="lazy">
+                </div>
             </section>
 
             <section class="benefits scroll-reveal">
