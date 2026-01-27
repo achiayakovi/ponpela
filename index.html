@@ -992,7 +992,6 @@
 
             footer {
                 padding: 15px 0;
-                margin-bottom: 100px;
             }
         }
 
@@ -1358,6 +1357,23 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
             setActive('/');
         });
+
+        // עדכון דינמי של margin-bottom של הפוטר לפי גובה התפריט
+        function updateFooterMargin() {
+            const bottomNav = document.querySelector('.bottom-nav');
+            const footer = document.querySelector('footer');
+            
+            if (window.innerWidth <= 768 && bottomNav && footer) {
+                const navHeight = bottomNav.offsetHeight;
+                footer.style.marginBottom = navHeight + 'px';
+            } else if (footer) {
+                footer.style.marginBottom = '';
+            }
+        }
+
+        // הפעלה בטעינה ובשינוי גודל מסך
+        updateFooterMargin();
+        window.addEventListener('resize', updateFooterMargin);
     </script>
 </body>
 </html>
