@@ -156,19 +156,27 @@
                 padding: 15px 0;
                 z-index: 1000;
                 justify-content: space-around;
+                flex-wrap: wrap;
             }
             
             .bottom-nav a {
                 display: flex;
                 flex-direction: column;
                 align-items: center;
+                justify-content: center;
                 text-decoration: none;
                 color: #2d7a8e;
                 font-size: 1.1rem;
                 font-weight: 600;
                 padding: 10px 20px;
                 transition: all 0.3s ease;
-                flex: 1;
+                flex: 1 1 auto;
+                min-width: 75px;
+                max-width: 110px;
+                text-align: center;
+                white-space: normal;
+                overflow-wrap: break-word;
+                word-wrap: break-word;
                 border-top: 3px solid transparent;
             }
             
@@ -1058,6 +1066,7 @@
             <button class="menu-toggle" onclick="toggleMenu()" aria-label="תפריט">☰</button>
             <ul class="nav-menu" id="navMenu">
                 <li><a href="/" class="active">בית</a></li>
+                <li><a href="businesses.html">עסקים</a></li>
                 <li><a href="warranty.html">אחריות</a></li>
                 <li><a href="#contact">צור קשר</a></li>
             </ul>
@@ -1163,7 +1172,7 @@
                 <div id="success-message" style="display: none; background: #d4edda; color: #155724; padding: 20px; border-radius: 15px; margin-bottom: 20px; text-align: center; font-size: 1.2rem;">
                     ✓ תודה על פנייתך! ניצור איתך קשר בקרוב.
                 </div>
-                <form class="contact-form" name="contact" method="POST" action="https://formsubmit.co/achiayakovi@gmail.com" onsubmit="showThankYou(event)">
+                <form class="contact-form" name="contact" method="POST" action="https://formsubmit.co/info@ponpela.co.il" onsubmit="showThankYou(event)">
                     <input type="hidden" name="_subject" value="פנייה חדשה מאתר פונפלה">
                     <input type="hidden" name="_captcha" value="false">
                     <input type="hidden" name="_template" value="table">
@@ -1213,6 +1222,7 @@
     <!-- Bottom Navigation for Mobile -->
     <div class="bottom-nav">
         <a href="/" class="active">בית</a>
+        <a href="businesses.html">עסקים</a>
         <a href="warranty.html">אחריות</a>
         <a href="#contact">צור קשר</a>
     </div>

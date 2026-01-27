@@ -343,19 +343,27 @@
                 padding: 15px 0;
                 z-index: 1000;
                 justify-content: space-around;
+                flex-wrap: wrap;
             }
             
             .bottom-nav a {
                 display: flex;
                 flex-direction: column;
                 align-items: center;
+                justify-content: center;
                 text-decoration: none;
                 color: #2d7a8e;
                 font-size: 1.1rem;
                 font-weight: 600;
                 padding: 10px 20px;
                 transition: all 0.3s ease;
-                flex: 1;
+                flex: 1 1 auto;
+                min-width: 75px;
+                max-width: 110px;
+                text-align: center;
+                white-space: normal;
+                overflow-wrap: break-word;
+                word-wrap: break-word;
                 border-top: 3px solid transparent;
             }
             
@@ -466,6 +474,7 @@
             <button class="menu-toggle" onclick="toggleMenu()" aria-label="תפריט">☰</button>
             <ul class="nav-menu" id="navMenu">
                 <li><a href="/">בית</a></li>
+                <li><a href="businesses.html">עסקים</a></li>
                 <li><a href="warranty.html" class="active">אחריות</a></li>
                 <li><a href="/#contact">צור קשר</a></li>
             </ul>
@@ -517,7 +526,7 @@
                             <div class="phone-group">
                                 <input type="text" id="phone-number" required placeholder="1234567" maxlength="7" pattern="[0-9]{7}">
                                 <select id="phone-prefix" required>
-                                    <option value="">בחר</option>
+                                    <option value="">בחר קידומת</option>
                                     <option value="050">050</option>
                                     <option value="051">051</option>
                                     <option value="052">052</option>
@@ -564,6 +573,7 @@
     <!-- Bottom Navigation for Mobile -->
     <div class="bottom-nav">
         <a href="/">בית</a>
+        <a href="businesses.html">עסקים</a>
         <a href="warranty.html" class="active">אחריות</a>
         <a href="/#contact">צור קשר</a>
     </div>

@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>לעסקים - משאבת חלב פונפלה</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="apple-touch-icon" href="logo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;600;700&family=Varela+Round&display=swap" rel="stylesheet">
+    
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-GKYRPQNEPP"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-GKYRPQNEPP');
+    </script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Varela Round', 'Comfortaa', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #2c3e50;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            background: #EED9C5;
+            padding: 20px 0;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            animation: slideDown 0.6s ease-out;
+            position: relative;
+        }
+
+        .bsd {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 0.9rem;
+            color: #5a6c7d;
+            font-weight: 500;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .logo-container {
+            text-align: center;
+        }
+
+        .logo-container a {
+            display: inline-block;
+            text-decoration: none;
+            -webkit-tap-highlight-color: transparent;
+            outline: none;
+        }
+
+        .logo {
+            max-width: 500px;
+            max-height: 100px;
+            height: auto;
+            width: auto;
+            transition: transform 0.3s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .logo:hover {
+            transform: scale(1.05);
+        }
+
+        /* Navigation Menu */
+        nav {
+            background: white;
+            padding: 15px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .nav-menu {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 40px;
+            list-style: none;
+        }
+
+        .nav-menu a {
+            text-decoration: none;
+            color: #2d7a8e;
+            font-size: 1.1rem;
+            font-weight: 600;
+            padding: 10px 20px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-menu a:hover {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            transform: translateY(-2px);
+        }
+
+        .nav-menu a.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            nav {
+                display: none;
+            }
+            
+            .bottom-nav {
+                display: flex;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background: white;
+                box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+                padding: 15px 0;
+                z-index: 1000;
+                justify-content: space-around;
+                flex-wrap: wrap;
+            }
+            
+            .bottom-nav a {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                text-decoration: none;
+                color: #2d7a8e;
+                font-size: 0.9rem;
+                font-weight: 600;
+                padding: 10px 15px;
+                transition: all 0.3s ease;
+                flex: 1 1 auto;
+                min-width: 75px;
+                max-width: 110px;
+                text-align: center;
+                white-space: normal;
+                overflow-wrap: break-word;
+                word-wrap: break-word;
+                border-top: 3px solid transparent;
+            }
+            
+            .bottom-nav a.active {
+                color: #667eea;
+                border-top: 3px solid #667eea;
+            }
+            
+            main {
+                padding-bottom: 80px;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .bottom-nav {
+                display: none;
+            }
+        }
+
+        /* Main Content */
+        main {
+            padding: 60px 0;
+            animation: fadeIn 1s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .business-hero {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .business-hero h1 {
+            font-size: 3rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+        }
+
+        .business-hero p {
+            font-size: 1.3rem;
+            color: #5a6c7d;
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.8;
+        }
+
+        /* Benefits Section */
+        .benefits {
+            background: white;
+            border-radius: 20px;
+            padding: 50px;
+            margin-bottom: 50px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .benefits h2 {
+            font-size: 2.2rem;
+            color: #2d7a8e;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+
+        .benefit-item {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .benefit-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .benefit-item h3 {
+            font-size: 1.4rem;
+            color: #2d7a8e;
+            margin-bottom: 10px;
+        }
+
+        .benefit-item p {
+            color: #5a6c7d;
+            line-height: 1.6;
+        }
+
+        /* Download Section */
+        .download-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 50px;
+            text-align: center;
+            margin-bottom: 50px;
+            box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
+        }
+
+        .download-section h2 {
+            color: white;
+            font-size: 2.2rem;
+            margin-bottom: 20px;
+        }
+
+        .download-section p {
+            color: white;
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+
+        .download-btn {
+            display: inline-block;
+            background: white;
+            color: #667eea;
+            padding: 18px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-size: 1.2rem;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+
+        .download-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+        }
+
+        .download-btn svg {
+            vertical-align: middle;
+            margin-left: 10px;
+        }
+
+        /* Contact Form */
+        .contact-section {
+            background: white;
+            border-radius: 20px;
+            padding: 50px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .contact-section h2 {
+            font-size: 2.2rem;
+            color: #2d7a8e;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .contact-section > p {
+            text-align: center;
+            color: #5a6c7d;
+            font-size: 1.1rem;
+            margin-bottom: 40px;
+        }
+
+        #success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.2rem;
+        }
+
+        .contact-form {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2d7a8e;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-family: 'Varela Round', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.5);
+        }
+
+        /* Footer */
+        footer {
+            background: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 20px 0;
+            margin-top: 60px;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .business-hero h1 {
+                font-size: 2rem;
+            }
+
+            .business-hero p {
+                font-size: 1.1rem;
+            }
+
+            .benefits,
+            .download-section,
+            .contact-section {
+                padding: 30px 20px;
+            }
+
+            .benefits h2,
+            .download-section h2,
+            .contact-section h2 {
+                font-size: 1.8rem;
+            }
+
+            footer {
+                padding-bottom: 85px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="bsd">"בס"ד</div>
+        <div class="container">
+            <div class="logo-container">
+                <a href="/">
+                    <img src="logo.png" alt="פונפלה - כל אמא יכולה" class="logo">
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <nav>
+        <ul class="nav-menu">
+            <li><a href="/">בית</a></li>
+            <li><a href="businesses.html" class="active">עסקים</a></li>
+            <li><a href="warranty.html">אחריות</a></li>
+            <li><a href="/#contact">צור קשר</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <div class="container">
+            <div class="business-hero">
+                <h1>משאבת חלב חשמלית פונפלה</h1>
+                <p>מחירים מיוחדים לעסקים ובכמויות</p>
+            </div>
+
+            <section class="download-section">
+                <h2>הורידו את עלון המוצר</h2>
+                <p>מפרט מלא ופרטים טכניים</p>
+                <a href="Ponpela_brochure.pdf" download class="download-btn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+                    </svg>
+                    הורד עלון PDF
+                </a>
+            </section>
+
+            <section class="contact-section">
+                <h2>צרו קשר</h2>
+                <p>מלאו את הפרטים ונחזור אליכם בהקדם</p>
+                <div id="success-message" style="display: none;">
+                    ✓ תודה על פנייתך! ניצור איתך קשר בקרוב.
+                </div>
+                <form class="contact-form" method="POST" action="https://formsubmit.co/info@ponpela.co.il" onsubmit="showThankYou(event)">
+                    <input type="hidden" name="_subject" value="פנייה עסקית מאתר פונפלה">
+                    <input type="hidden" name="_captcha" value="false">
+                    <input type="hidden" name="_template" value="table">
+                    <div class="form-group">
+                        <label for="name">שם מלא</label>
+                        <input type="text" id="name" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">אימייל</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">טלפון</label>
+                        <input type="tel" id="phone" name="phone" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="message">הודעה</label>
+                        <textarea id="message" name="message" rows="5" placeholder="ספרו לנו על הצורך שלכם..."></textarea>
+                    </div>
+                    <button type="submit" class="btn-submit">שלח</button>
+                </form>
+            </section>
+        </div>
+    </main>
+
+    <!-- Bottom Navigation for Mobile -->
+    <div class="bottom-nav">
+        <a href="/">בית</a>
+        <a href="businesses.html" class="active">עסקים</a>
+        <a href="warranty.html">אחריות</a>
+        <a href="/#contact">צור קשר</a>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 פונפלה - כל הזכויות שמורות</p>
+        </div>
+    </footer>
+
+    <script>
+        function showThankYou(event) {
+            event.preventDefault();
+            
+            const form = event.target;
+            const formData = new FormData(form);
+            
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Accept': 'application/json'
+                }
+            }).then(() => {
+                document.getElementById('success-message').style.display = 'block';
+                document.querySelector('.contact-form').style.display = 'none';
+                window.scrollTo({ top: document.querySelector('.contact-section').offsetTop - 100, behavior: 'smooth' });
+            }).catch(() => {
+                document.getElementById('success-message').style.display = 'block';
+                document.querySelector('.contact-form').style.display = 'none';
+            });
+            
+            return false;
+        }
+    </script>
+</body>
+</html>
