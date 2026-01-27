@@ -201,6 +201,7 @@
         }
 
         .form-group input[type="text"],
+        .form-group input[type="tel"],
         .form-group input[type="date"],
         .form-group input[type="file"],
         .form-group select {
@@ -217,12 +218,6 @@
         .form-group select:focus {
             outline: none;
             border-color: #2d7a8e;
-        }
-
-        .phone-group {
-            display: grid;
-            grid-template-columns: 1fr 150px;
-            gap: 10px;
         }
 
         .name-group {
@@ -413,17 +408,6 @@
                 grid-template-columns: 1fr;
             }
 
-            .phone-group {
-                display: grid;
-                grid-template-columns: 1fr 100px;
-                gap: 8px;
-            }
-
-            .phone-group input,
-            .phone-group select {
-                width: 100%;
-                box-sizing: border-box;
-            }
 
             .form-group input,
             .form-group select {
@@ -521,20 +505,8 @@
                         </div>
 
                         <div class="form-group">
-                            <label>טלפון נייד *</label>
-                            <div class="phone-group">
-                                <input type="text" id="phone-number" required placeholder="1234567" maxlength="7" pattern="[0-9]{7}">
-                                <select id="phone-prefix" required>
-                                    <option value="">בחר קידומת</option>
-                                    <option value="050">050</option>
-                                    <option value="051">051</option>
-                                    <option value="052">052</option>
-                                    <option value="053">053</option>
-                                    <option value="054">054</option>
-                                    <option value="055">055</option>
-                                    <option value="058">058</option>
-                                </select>
-                            </div>
+                            <label for="phone">טלפון נייד *</label>
+                            <input type="tel" id="phone" name="phone" required placeholder="0501234567" maxlength="10" pattern="[0-9]{10}" title="יש להזין 10 ספרות בדיוק">
                         </div>
 
                         <div class="form-group">
@@ -688,8 +660,7 @@
 
             const firstName = document.getElementById('first-name').value.trim();
             const lastName = document.getElementById('last-name').value.trim();
-            const phonePrefix = document.getElementById('phone-prefix').value;
-            const phoneNumber = document.getElementById('phone-number').value.trim();
+            const phone = document.getElementById('phone').value.trim();
             const machineNumber = document.getElementById('machine-number').value.trim();
             const purchaseDate = document.getElementById('purchase-date').value;
             const receipt = document.getElementById('receipt').files[0];
@@ -699,10 +670,10 @@
             const submitBtn = document.getElementById('register-btn');
 
             // Validation
-            if (!phonePrefix || phoneNumber.length !== 7) {
+            if (phone.length !== 10 || !/^[0-9]{10}$/.test(phone)) {
                 resultDiv.style.display = 'block';
                 resultDiv.className = 'result error';
-                resultDiv.innerHTML = '✗ יש להזין מספר טלפון תקין (קידומת + 7 ספרות)';
+                resultDiv.innerHTML = '✗ יש להזין מספר טלפון תקין (10 ספרות)';
                 return;
             }
 
@@ -728,13 +699,12 @@
                 });
 
                 const fullName = `${firstName} ${lastName}`;
-                const fullPhone = `${phonePrefix}${phoneNumber}`;
                 const website = document.getElementById('website').value; // honeypot
 
                 const params = new URLSearchParams();
                 params.append('action', 'register');
                 params.append('fullName', fullName);
-                params.append('phone', fullPhone);
+                params.append('phone', phone);
                 params.append('machineNumber', machineNumber);
                 params.append('purchaseDate', purchaseDate);
                 params.append('receipt', receiptBase64);
