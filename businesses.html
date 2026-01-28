@@ -557,7 +557,7 @@
             <section class="download-section">
                 <h2>הורידו את עלון המוצר</h2>
                 <p>מפרט מלא ופרטים טכניים</p>
-                <a href="Ponpela_brochure.pdf" download class="download-btn">
+                <a href="Ponpela_brochure.pdf" download class="download-btn" id="brochure-download" onclick="trackDownload(event)">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
                     </svg>
@@ -608,11 +608,11 @@
                         </svg>
                         וואטסאפ
                     </a>
-                    <a href="mailto:info@ponpela.co.il" class="email">
+                    <a href="/cdn-cgi/l/email-protection#eb82858d84ab9b84859b8e878ac58884c58287" class="email">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="white" style="vertical-align: middle; margin-left: 5px;">
                             <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
                         </svg>
-                        info@ponpela.co.il
+                        <span class="__cf_email__" data-cfemail="cda4a3aba28dbda2a3bda8a1ace3aea2e3a4a1">[email&#160;protected]</span>
                     </a>
                 </div>
             </section>
@@ -633,7 +633,7 @@
         </div>
     </footer>
 
-    <script>
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
         function showThankYou(event) {
             event.preventDefault();
             
@@ -674,6 +674,36 @@
         // הפעלה בטעינה ובשינוי גודל מסך
         updateFooterMargin();
         window.addEventListener('resize', updateFooterMargin);
+
+        // מעקב אחר הורדת עלון
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxav9fq5jgGnabT_Nfa1jKoBaLefuGx7f3b3feQ5VhcwZ25cnbtMslIblqwQankXmiG/exec';
+        
+        async function trackDownload(event) {
+            const downloadSuccess = true; // נתחיל בהנחה שההורדה תצליח
+            
+            try {
+                // שליחת התראה לסקריפט
+                const params = new URLSearchParams();
+                params.append('action', 'brochure_download');
+                params.append('timestamp', new Date().toISOString());
+                params.append('success', downloadSuccess);
+                
+                // שליחה אסינכרונית - לא נעצור את ההורדה
+                fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: params.toString()
+                }).catch(err => console.log('Failed to track download:', err));
+                
+            } catch (error) {
+                console.log('Error tracking download:', error);
+            }
+            
+            // נותנים להורדה להמשיך כרגיל
+            return true;
+        }
     </script>
 </body>
 </html>
