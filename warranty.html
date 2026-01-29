@@ -464,6 +464,45 @@
             }
         }
 
+        /* Scroll Top Button */
+        .scroll-top-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 999;
+        }
+
+        .scroll-top-btn.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .scroll-top-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        @media (max-width: 768px) {
+            .scroll-top-btn {
+                bottom: 90px;
+                right: 15px;
+                width: 45px;
+                height: 45px;
+            }
+        }
+
         @media (min-width: 769px) {
             .bottom-nav {
                 display: none;
@@ -811,6 +850,27 @@
         // הפעלה בטעינה ובשינוי גודל מסך
         updateFooterMargin();
         window.addEventListener('resize', updateFooterMargin);
+
+        // כפתור חזרה למעלה
+        const scrollTopBtn = document.createElement('button');
+        scrollTopBtn.innerHTML = '↑';
+        scrollTopBtn.className = 'scroll-top-btn';
+        scrollTopBtn.setAttribute('aria-label', 'חזרה למעלה');
+        document.body.appendChild(scrollTopBtn);
+
+        // הצגת/הסתרת הכפתור
+        window.addEventListener('scroll', function() {
+            if (window.scrollY > 300) {
+                scrollTopBtn.classList.add('visible');
+            } else {
+                scrollTopBtn.classList.remove('visible');
+            }
+        });
+
+        // לחיצה על הכפתור
+        scrollTopBtn.addEventListener('click', function() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
     </script>
 </body>
 </html>

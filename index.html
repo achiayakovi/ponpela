@@ -224,7 +224,7 @@
             
             /* הוספת padding למטה כדי שהתוכן לא יוסתר */
             main {
-                padding-bottom: 20px;
+                padding-bottom: 80px;
             }
         }
 
@@ -1046,15 +1046,15 @@
         /* Scroll to Top Button */
         .scroll-top-btn {
             position: fixed;
-            bottom: 80px;
-            right: 20px;
+            bottom: 30px;
+            right: 30px;
             width: 50px;
             height: 50px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
             border-radius: 50%;
-            font-size: 1.5rem;
+            font-size: 24px;
             cursor: pointer;
             box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
             opacity: 0;
@@ -1244,11 +1244,11 @@
                         </svg>
                         וואטסאפ
                     </a>
-                    <a href="mailto:info@ponpela.co.il" class="email">
+                    <a href="/cdn-cgi/l/email-protection#660f0800092616090816030a07480509480f0a" class="email">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="white" style="vertical-align: middle; margin-left: 5px;">
                             <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
                         </svg>
-                        info@ponpela.co.il
+                        <span class="__cf_email__" data-cfemail="8fe6e1e9e0cfffe0e1ffeae3eea1ece0a1e6e3">[email&#160;protected]</span>
                     </a>
                 </div>
             </section>
@@ -1271,7 +1271,7 @@
         </div>
     </footer>
 
-    <script>
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
         // Scroll reveal animation
         const observerOptions = {
             threshold: 0.1,
@@ -1407,4 +1407,13 @@
                 const navHeight = bottomNav.offsetHeight;
                 footer.style.marginBottom = navHeight + 'px';
             } else if (footer) {
-                foote
+                footer.style.marginBottom = '0';
+            }
+        }
+
+        // קריאה לפונקציה בטעינה ובשינוי גודל
+        updateFooterMargin();
+        window.addEventListener('resize', updateFooterMargin);
+    </script>
+</body>
+</html>

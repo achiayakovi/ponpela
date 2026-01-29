@@ -527,6 +527,45 @@
             }
 
         }
+
+        /* Scroll Top Button */
+        .scroll-top-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 999;
+        }
+
+        .scroll-top-btn.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .scroll-top-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        @media (max-width: 768px) {
+            .scroll-top-btn {
+                bottom: 90px;
+                right: 15px;
+                width: 45px;
+                height: 45px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -613,11 +652,11 @@
                         </svg>
                         וואטסאפ
                     </a>
-                    <a href="mailto:info@ponpela.co.il" class="email">
+                    <a href="/cdn-cgi/l/email-protection#4920272f2609392627392c2528672a26672025" class="email">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="white" style="vertical-align: middle; margin-left: 5px;">
                             <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
                         </svg>
-                        info@ponpela.co.il
+                        <span class="__cf_email__" data-cfemail="a7cec9c1c8e7d7c8c9d7c2cbc689c4c889cecb">[email&#160;protected]</span>
                     </a>
                 </div>
             </section>
@@ -640,7 +679,7 @@
         </div>
     </footer>
 
-    <script>
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
         function showThankYou(event) {
             event.preventDefault();
             
@@ -704,13 +743,31 @@
                     body: params.toString()
                 }).catch(err => console.log('Failed to track download:', err));
                 
-            } catch (error) {
-                console.log('Error tracking download:', error);
+                     } catch (error) {
+                console.error('Error tracking download:', error);
             }
-            
-            // נותנים להורדה להמשיך כרגיל
-            return true;
         }
+
+        // כפתור חזרה למעלה
+        const scrollTopBtn = document.createElement('button');
+        scrollTopBtn.innerHTML = '↑';
+        scrollTopBtn.className = 'scroll-top-btn';
+        scrollTopBtn.setAttribute('aria-label', 'חזרה למעלה');
+        document.body.appendChild(scrollTopBtn);
+
+        // הצגת/הסתרת הכפתור
+        window.addEventListener('scroll', function() {
+            if (window.scrollY > 300) {
+                scrollTopBtn.classList.add('visible');
+            } else {
+                scrollTopBtn.classList.remove('visible');
+            }
+        });
+
+        // לחיצה על הכפתור
+        scrollTopBtn.addEventListener('click', function() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
     </script>
 </body>
 </html>
