@@ -733,6 +733,16 @@
             margin-bottom: 40px;
         }
 
+        #success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.2rem;
+        }
+
         .contact-form {
             max-width: 600px;
             margin: 0 auto;
@@ -1204,7 +1214,7 @@
 
             <section class="contact scroll-reveal" id="contact">
                 <h2>צרו קשר</h2>
-                <div id="success-message" style="display: none; background: #d4edda; color: #155724; padding: 20px; border-radius: 15px; margin-bottom: 20px; text-align: center; font-size: 1.2rem;">
+                <div id="success-message" style="display: none;">
                     ✓ תודה על פנייתך! ניצור איתך קשר בקרוב.
                 </div>
                 <form class="contact-form" name="contact" method="POST" action="https://formsubmit.co/info@ponpela.co.il" onsubmit="showThankYou(event)">
@@ -1243,11 +1253,11 @@
                         </svg>
                         וואטסאפ
                     </a>
-                    <a href="/cdn-cgi/l/email-protection#660f0800092616090816030a07480509480f0a" class="email">
+                    <a href="mailto:info@ponpela.co.il" class="email">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="white" style="vertical-align: middle; margin-left: 5px;">
                             <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
                         </svg>
-                        <span class="__cf_email__" data-cfemail="8fe6e1e9e0cfffe0e1ffeae3eea1ece0a1e6e3">[email&#160;protected]</span>
+                        info@ponpela.co.il
                     </a>
                 </div>
             </section>
@@ -1269,7 +1279,7 @@
         </div>
     </footer>
 
-    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+    <script>
         // Scroll reveal animation
         const observerOptions = {
             threshold: 0.1,
