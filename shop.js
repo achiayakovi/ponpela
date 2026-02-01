@@ -4,6 +4,7 @@
  */
 
 const SHOP_API = 'https://shop.ponpela.co.il/wp-content/api-proxy.php?action=get_products';
+
 // משתני גלובליים
 let cart = [];
 let products = [];
@@ -13,10 +14,14 @@ let products = [];
  */
 async function fetchProducts() {
     try {
-        console.log('Fetching products from:', `${SHOP_API}/products`);
-        const response = await fetch(`${SHOP_API}/products`);
+        console.log('Fetching products from:', SHOP_API);
+        const response = await fetch(SHOP_API);
         console.log('Response status:', response.status);
-        if (!response.ok) throw new Error('Failed to fetch products');
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         products = await response.json();
         console.log('Products received:', products);
         return products;
@@ -29,18 +34,14 @@ async function fetchProducts() {
 /**
  * משיכת מוצר בודד
  */
-async function fetchProducts() {
+async function fetchProduct(productId) {
     try {
-        console.log('Fetching products...');
-        const response = await fetch(SHOP_API);
-        console.log('Response status:', response.status);
-        if (!response.ok) throw new Error('Failed to fetch products');
-        products = await response.json();
-        console.log('Products received:', products);
-        return products;
+        const response = await fetch(`${SHOP_API}/product/${productId}`);
+        if (!response.ok) throw new Error('Failed to fetch product');
+        return await response.json();
     } catch (error) {
-        console.error('Error:', error);
-        return [];
+        console.error('Error fetching product:', error);
+        return null;
     }
 }
 
