@@ -3,7 +3,7 @@
  * משיכת והצגת מוצרים מ-WooCommerce
  */
 
-const SHOP_API = 'https://shop.ponpela.co.il/wp-json/ponpela/v1/products';
+const SHOP_API = 'https://shop.ponpela.co.il/get-products.php';
 
 // משתני גלובליים
 let cart = [];
