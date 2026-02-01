@@ -14,9 +14,12 @@ let products = [];
  */
 async function fetchProducts() {
     try {
+        console.log('Fetching products from:', `${SHOP_API}/products`);
         const response = await fetch(`${SHOP_API}/products`);
+        console.log('Response status:', response.status);
         if (!response.ok) throw new Error('Failed to fetch products');
         products = await response.json();
+        console.log('Products received:', products);
         return products;
     } catch (error) {
         console.error('Error fetching products:', error);
@@ -43,19 +46,26 @@ async function fetchProduct(productId) {
  */
 function displayProducts(productsToDisplay = products) {
     const container = document.getElementById('products-container');
-    if (!container) return;
+    if (!container) {
+        console.error('Products container not found!');
+        return;
+    }
     
+    console.log('Displaying products in container:', productsToDisplay);
     container.innerHTML = '';
     
-    if (productsToDisplay.length === 0) {
+    if (!productsToDisplay || productsToDisplay.length === 0) {
         container.innerHTML = '<p class="no-products">אין מוצרים זמינים כרגע</p>';
         return;
     }
     
     productsToDisplay.forEach(product => {
+        console.log('Creating card for product:', product.name);
         const productCard = createProductCard(product);
         container.appendChild(productCard);
     });
+    
+    console.log('Total product cards added:', productsToDisplay.length);
 }
 
 /**
@@ -316,9 +326,13 @@ function loadCart() {
  * אתחול
  */
 async function initShop() {
+    console.log('Initializing shop...');
     loadCart();
     const productsData = await fetchProducts();
+    console.log('Products fetched:', productsData);
+    console.log('Number of products:', productsData.length);
     displayProducts(productsData);
+    console.log('Products displayed');
 }
 
 // טעינה אוטומטית כשהדף נטען
