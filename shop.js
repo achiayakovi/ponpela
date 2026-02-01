@@ -3,8 +3,7 @@
  * משיכת והצגת מוצרים מ-WooCommerce
  */
 
-const SHOP_API = 'https://shop.ponpela.co.il/wp-json/ponpela/v1';
-
+const SHOP_API = 'https://shop.ponpela.co.il/wp-content/api-proxy.php?action=get_products';
 // משתני גלובליים
 let cart = [];
 let products = [];
@@ -30,14 +29,18 @@ async function fetchProducts() {
 /**
  * משיכת מוצר בודד
  */
-async function fetchProduct(productId) {
+async function fetchProducts() {
     try {
-        const response = await fetch(`${SHOP_API}/product/${productId}`);
-        if (!response.ok) throw new Error('Failed to fetch product');
-        return await response.json();
+        console.log('Fetching products...');
+        const response = await fetch(SHOP_API);
+        console.log('Response status:', response.status);
+        if (!response.ok) throw new Error('Failed to fetch products');
+        products = await response.json();
+        console.log('Products received:', products);
+        return products;
     } catch (error) {
-        console.error('Error fetching product:', error);
-        return null;
+        console.error('Error:', error);
+        return [];
     }
 }
 
