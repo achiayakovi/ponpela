@@ -3,16 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>חנות - פונפלה</title>
+    <title>עגלת קניות - פונפלה</title>
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="apple-touch-icon" href="logo.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;600;700&family=Varela+Round&display=swap" rel="stylesheet">
     
-    <meta name="description" content="חנות פונפלה - משאבות חלב איכותיות במחיר הוגן">
+    <meta name="description" content="עגלת הקניות שלך - פונפלה">
     
-    <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-GKYRPQNEPP"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -41,7 +40,6 @@
             padding: 0 20px;
         }
 
-        /* Header */
         header {
             background: #EED9C5;
             padding: 20px 0;
@@ -79,7 +77,6 @@
             transform: scale(1.05);
         }
 
-        /* Navigation */
         nav {
             background: white;
             padding: 15px 0;
@@ -130,7 +127,6 @@
                 padding: 15px 0;
                 z-index: 1000;
                 justify-content: space-around;
-                flex-wrap: wrap;
             }
             
             .bottom-nav a {
@@ -163,128 +159,170 @@
             }
         }
 
-        /* Shop Section */
-        .shop-section {
+        .cart-section {
             padding: 40px 0;
         }
 
-        .shop-header {
+        .cart-header {
             text-align: center;
             margin-bottom: 40px;
         }
 
-        .shop-header h1 {
+        .cart-header h1 {
             font-size: 3rem;
             color: #2d7a8e;
-            margin-bottom: 10px;
         }
 
-        .shop-header p {
-            font-size: 1.2rem;
-            color: #5a6c7d;
-        }
-
-        /* Products Grid */
-        .products-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 30px;
-            margin-top: 30px;
-        }
-
-        .product-card {
+        .cart-content {
             background: white;
             border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
-            animation: fadeIn 0.5s ease-out;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            max-width: 900px;
+            margin: 0 auto;
         }
 
-        .product-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            gap: 20px;
         }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .cart-item:last-child {
+            border-bottom: none;
         }
 
-        .product-image {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-            border-radius: 15px;
-            margin-bottom: 20px;
+        .item-details {
+            flex: 1;
         }
 
-        .product-name {
-            font-size: 1.5rem;
+        .item-name {
+            font-size: 1.3rem;
             font-weight: 700;
             color: #2d7a8e;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
         }
 
-        .product-description {
-            font-size: 1rem;
-            color: #5a6c7d;
-            margin-bottom: 20px;
-            line-height: 1.6;
-        }
-
-        .product-price {
-            font-size: 2rem;
-            font-weight: 700;
+        .item-price {
+            font-size: 1.1rem;
             color: #667eea;
-            margin-bottom: 20px;
         }
 
-        .add-to-cart-btn {
-            width: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .quantity-btn {
+            background: #667eea;
             color: white;
             border: none;
-            padding: 15px;
-            border-radius: 10px;
-            font-size: 1.1rem;
-            font-weight: 700;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            font-size: 1.2rem;
             cursor: pointer;
             transition: all 0.3s ease;
         }
 
-        .add-to-cart-btn:hover {
+        .quantity-btn:hover {
+            background: #764ba2;
+            transform: scale(1.1);
+        }
+
+        .quantity-display {
+            font-size: 1.2rem;
+            font-weight: 700;
+            min-width: 30px;
+            text-align: center;
+        }
+
+        .remove-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .remove-btn:hover {
+            background: #c0392b;
+            transform: scale(1.05);
+        }
+
+        .cart-summary {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 2px solid #667eea;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .summary-row.total {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .checkout-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 20px;
+            border-radius: 10px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .checkout-btn:hover {
             transform: translateY(-3px);
             box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
         }
 
-        .add-to-cart-btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-
-        /* Loading */
-        .loading {
+        .empty-cart {
             text-align: center;
-            padding: 60px;
-            font-size: 1.5rem;
-            color: #667eea;
+            padding: 60px 20px;
         }
 
-        .error {
-            text-align: center;
-            padding: 60px;
-            font-size: 1.3rem;
-            color: #e74c3c;
+        .empty-cart h2 {
+            font-size: 2rem;
+            color: #5a6c7d;
+            margin-bottom: 20px;
         }
 
-        /* Footer */
+        .continue-shopping-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-size: 1.2rem;
+            font-weight: 700;
+            transition: all 0.3s ease;
+        }
+
+        .continue-shopping-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
         footer {
             background: #2c3e50;
             color: white;
@@ -293,7 +331,6 @@
             margin-top: 60px;
         }
 
-        /* Floating Buttons */
         .floating-btn {
             position: fixed;
             width: 60px;
@@ -321,35 +358,22 @@
             visibility: visible;
         }
 
-        .cart-btn {
-            bottom: 30px;
-            left: 30px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .cart-btn .badge {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            background: #e74c3c;
-            color: white;
-            border-radius: 50%;
-            width: 25px;
-            height: 25px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: bold;
-        }
-
         .floating-btn:hover {
             transform: translateY(-5px);
             box-shadow: 0 6px 20px rgba(0,0,0,0.4);
         }
 
         @media (max-width: 768px) {
+            .cart-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .quantity-controls {
+                width: 100%;
+                justify-content: space-between;
+            }
+
             .floating-btn {
                 width: 50px;
                 height: 50px;
@@ -361,17 +385,12 @@
                 right: 15px;
             }
 
-            .cart-btn {
-                bottom: 90px;
-                left: 15px;
-            }
-
-            .products-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .shop-header h1 {
+            .cart-header h1 {
                 font-size: 2rem;
+            }
+
+            .cart-content {
+                padding: 20px;
             }
         }
     </style>
@@ -392,7 +411,7 @@
         <div class="container">
             <ul class="nav-menu">
                 <li><a href="/">בית</a></li>
-                <li><a href="shop.html" class="active">חנות</a></li>
+                <li><a href="shop.html">חנות</a></li>
                 <li><a href="businesses.html">עסקים</a></li>
                 <li><a href="warranty.html">אחריות</a></li>
                 <li><a href="about.html">אודות</a></li>
@@ -403,14 +422,13 @@
 
     <main>
         <div class="container">
-            <section class="shop-section">
-                <div class="shop-header">
-                    <h1>החנות שלנו</h1>
-                    <p>מוצרים איכותיים במחיר הוגן</p>
+            <section class="cart-section">
+                <div class="cart-header">
+                    <h1>עגלת הקניות שלי</h1>
                 </div>
 
-                <div id="productsContainer" class="products-grid">
-                    <div class="loading">טוען מוצרים...</div>
+                <div class="cart-content" id="cartContent">
+                    <!-- יוצג דינמית -->
                 </div>
             </section>
         </div>
@@ -418,7 +436,7 @@
 
     <div class="bottom-nav">
         <a href="/">בית</a>
-        <a href="shop.html" class="active">חנות</a>
+        <a href="shop.html">חנות</a>
         <a href="businesses.html">עסקים</a>
         <a href="warranty.html">אחריות</a>
         <a href="about.html">אודות</a>
@@ -432,76 +450,90 @@
     </footer>
 
     <button class="floating-btn scroll-top-btn" aria-label="חזרה למעלה">↑</button>
-    <button class="floating-btn cart-btn" onclick="window.location.href='cart.html'" aria-label="עגלת קניות">
-        🛒
-        <span class="badge" id="cartBadge">0</span>
-    </button>
 
     <script>
-        const API_URL = 'https://ponpela-backend-production.up.railway.app';
+        function loadCart() {
+            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            const container = document.getElementById('cartContent');
 
-        // טעינת מוצרים
-        async function loadProducts() {
-            try {
-                const response = await fetch(`${API_URL}/api/products`);
-                if (!response.ok) throw new Error('שגיאה בטעינת מוצרים');
-                
-                const products = await response.json();
-                displayProducts(products);
-            } catch (error) {
-                console.error('Error:', error);
-                document.getElementById('productsContainer').innerHTML = 
-                    '<div class="error">שגיאה בטעינת מוצרים. נסה שוב מאוחר יותר.</div>';
-            }
-        }
-
-        // הצגת מוצרים
-        function displayProducts(products) {
-            const container = document.getElementById('productsContainer');
-            
-            if (products.length === 0) {
-                container.innerHTML = '<div class="error">אין מוצרים זמינים כרגע</div>';
+            if (cart.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-cart">
+                        <h2>העגלה שלך ריקה</h2>
+                        <p>הוסף מוצרים כדי להתחיל</p>
+                        <a href="shop.html" class="continue-shopping-btn">המשך קניות</a>
+                    </div>
+                `;
                 return;
             }
 
-            container.innerHTML = products.map(product => `
-                <div class="product-card">
-                    ${product.image_url ? `<img src="${product.image_url}" alt="${product.name}" class="product-image">` : ''}
-                    <h3 class="product-name">${product.name}</h3>
-                    <p class="product-description">${product.description || ''}</p>
-                    <div class="product-price">₪${product.price}</div>
-                    <button class="add-to-cart-btn" onclick="addToCart(${product.id}, '${product.name}', ${product.price})">
-                        הוסף לעגלה
-                    </button>
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+            container.innerHTML = `
+                ${cart.map((item, index) => `
+                    <div class="cart-item">
+                        <div class="item-details">
+                            <div class="item-name">${item.name}</div>
+                            <div class="item-price">₪${item.price}</div>
+                        </div>
+                        <div class="quantity-controls">
+                            <button class="quantity-btn" onclick="updateQuantity(${index}, -1)">-</button>
+                            <span class="quantity-display">${item.quantity}</span>
+                            <button class="quantity-btn" onclick="updateQuantity(${index}, 1)">+</button>
+                        </div>
+                        <button class="remove-btn" onclick="removeItem(${index})">הסר</button>
+                    </div>
+                `).join('')}
+                
+                <div class="cart-summary">
+                    <div class="summary-row">
+                        <span>ביניים:</span>
+                        <span>₪${total.toFixed(2)}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>משלוח:</span>
+                        <span>חינם</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>סה"כ:</span>
+                        <span>₪${total.toFixed(2)}</span>
+                    </div>
+                    <button class="checkout-btn" onclick="goToCheckout()">המשך לתשלום</button>
                 </div>
-            `).join('');
+            `;
         }
 
-        // הוספה לעגלה
-        function addToCart(productId, productName, price) {
-            let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+        function updateQuantity(index, change) {
+            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            cart[index].quantity += change;
             
-            const existingItem = cart.find(item => item.id === productId);
-            if (existingItem) {
-                existingItem.quantity++;
-            } else {
-                cart.push({ id: productId, name: productName, price: price, quantity: 1 });
+            if (cart[index].quantity <= 0) {
+                cart.splice(index, 1);
             }
             
             localStorage.setItem('cart', JSON.stringify(cart));
-            updateCartBadge();
-            
-            alert('המוצר נוסף לעגלה!');
+            loadCart();
         }
 
-        // עדכון תג עגלה
-        function updateCartBadge() {
-            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-            const total = cart.reduce((sum, item) => sum + item.quantity, 0);
-            document.getElementById('cartBadge').textContent = total;
+        function removeItem(index) {
+            if (confirm('האם אתה בטוח שברצונך להסיר פריט זה?')) {
+                const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+                cart.splice(index, 1);
+                localStorage.setItem('cart', JSON.stringify(cart));
+                loadCart();
+            }
         }
 
-        // חזרה למעלה
+        function goToCheckout() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('יש להתחבר כדי להשלים הזמנה');
+                window.location.href = 'account.html';
+                return;
+            }
+            window.location.href = 'checkout.html';
+        }
+
         const scrollTopBtn = document.querySelector('.scroll-top-btn');
         window.addEventListener('scroll', () => {
             if (window.scrollY > 300) {
@@ -515,9 +547,7 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
 
-        // אתחול
-        loadProducts();
-        updateCartBadge();
+        loadCart();
     </script>
 </body>
 </html>

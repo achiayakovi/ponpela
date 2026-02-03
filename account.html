@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>איזור אישי - פונפלה</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="apple-touch-icon" href="logo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;600;700&family=Varela+Round&display=swap" rel="stylesheet">
+    
+    <meta name="description" content="איזור אישי - פונפלה">
+    
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-GKYRPQNEPP"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-GKYRPQNEPP');
+    </script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Varela Round', 'Comfortaa', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #2c3e50;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        header {
+            background: #EED9C5;
+            padding: 20px 0;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .bsd {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 0.9rem;
+            color: #5a6c7d;
+            font-weight: 500;
+        }
+
+        .logo-container {
+            text-align: center;
+        }
+
+        .logo {
+            max-width: 500px;
+            max-height: 100px;
+            height: auto;
+        }
+
+        nav {
+            background: white;
+            padding: 15px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .nav-menu {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 40px;
+            list-style: none;
+        }
+
+        .nav-menu a {
+            text-decoration: none;
+            color: #2d7a8e;
+            font-size: 1.1rem;
+            font-weight: 600;
+            padding: 10px 20px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-menu a:hover {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            transform: translateY(-2px);
+        }
+
+        .nav-menu a.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            nav {
+                display: none;
+            }
+            
+            .bottom-nav {
+                display: flex;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background: white;
+                box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+                padding: 15px 0;
+                z-index: 1000;
+                justify-content: space-around;
+            }
+            
+            .bottom-nav a {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                text-decoration: none;
+                color: #2d7a8e;
+                font-size: 1.1rem;
+                font-weight: 600;
+                padding: 10px 20px;
+                flex: 1 1 0;
+                text-align: center;
+                border-top: 3px solid transparent;
+            }
+            
+            .bottom-nav a.active {
+                color: #667eea;
+                border-top: 3px solid #667eea;
+            }
+            
+            main {
+                padding-bottom: 80px;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .bottom-nav {
+                display: none;
+            }
+        }
+
+        .account-section {
+            padding: 40px 0;
+            min-height: 70vh;
+        }
+
+        .auth-container, .dashboard-container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .dashboard-container {
+            max-width: 1000px;
+        }
+
+        h2 {
+            font-size: 2rem;
+            color: #2d7a8e;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-logout {
+            background: #e74c3c;
+            margin-top: 20px;
+        }
+
+        .toggle-form {
+            text-align: center;
+            margin-top: 20px;
+            color: #5a6c7d;
+        }
+
+        .toggle-form a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .toggle-form a:hover {
+            text-decoration: underline;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .tab {
+            padding: 15px 25px;
+            background: none;
+            border: none;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #5a6c7d;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .order-card, .warranty-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border-right: 5px solid #667eea;
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .order-id {
+            color: #667eea;
+        }
+
+        .order-status {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .status-pending {
+            background: #ffeaa7;
+            color: #d63031;
+        }
+
+        .status-confirmed {
+            background: #55efc4;
+            color: #00b894;
+        }
+
+        .order-items {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #ddd;
+        }
+
+        .order-item {
+            padding: 8px 0;
+        }
+
+        .warranty-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .warranty-field {
+            font-size: 0.95rem;
+        }
+
+        .warranty-field strong {
+            display: block;
+            color: #2d7a8e;
+            margin-bottom: 5px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #5a6c7d;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        footer {
+            background: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 15px 0;
+            margin-top: 60px;
+        }
+
+        .floating-btn {
+            position: fixed;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+            z-index: 999;
+        }
+
+        .scroll-top-btn {
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .scroll-top-btn.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .cart-btn {
+            bottom: 30px;
+            left: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .cart-btn .badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #e74c3c;
+            color: white;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .floating-btn:hover {
+            transform: translateY(-5px);
+        }
+
+        @media (max-width: 768px) {
+            .auth-container, .dashboard-container {
+                padding: 30px 20px;
+            }
+
+            .tabs {
+                flex-wrap: wrap;
+            }
+
+            .tab {
+                flex: 1;
+                padding: 12px 15px;
+                font-size: 1rem;
+            }
+
+            .warranty-info {
+                grid-template-columns: 1fr;
+            }
+
+            .floating-btn {
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+            }
+
+            .scroll-top-btn {
+                bottom: 90px;
+                right: 15px;
+            }
+
+            .cart-btn {
+                bottom: 90px;
+                left: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="bsd">בס"ד</div>
+        <div class="container">
+            <div class="logo-container">
+                <a href="/">
+                    <img src="logo.png" alt="פונפלה" class="logo">
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <nav>
+        <div class="container">
+            <ul class="nav-menu">
+                <li><a href="/">בית</a></li>
+                <li><a href="shop.html">חנות</a></li>
+                <li><a href="businesses.html">עסקים</a></li>
+                <li><a href="warranty.html">אחריות</a></li>
+                <li><a href="about.html">אודות</a></li>
+                <li><a href="/#contact">צור קשר</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main>
+        <div class="container">
+            <section class="account-section">
+                <!-- Auth Forms -->
+                <div id="authContainer" class="auth-container" style="display: none;">
+                    <!-- Login Form -->
+                    <div id="loginForm">
+                        <h2>התחברות</h2>
+                        <form onsubmit="login(event)">
+                            <div class="form-group">
+                                <label for="loginEmail">אימייל</label>
+                                <input type="email" id="loginEmail" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="loginPassword">סיסמה</label>
+                                <input type="password" id="loginPassword" required>
+                            </div>
+                            <button type="submit" class="btn">התחבר</button>
+                        </form>
+                        <div class="toggle-form">
+                            עדיין אין לך חשבון? <a href="#" onclick="toggleForm('register')">הירשם כאן</a>
+                        </div>
+                    </div>
+
+                    <!-- Register Form -->
+                    <div id="registerForm" style="display: none;">
+                        <h2>הרשמה</h2>
+                        <form onsubmit="register(event)">
+                            <div class="form-group">
+                                <label for="regEmail">אימייל</label>
+                                <input type="email" id="regEmail" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="regPassword">סיסמה</label>
+                                <input type="password" id="regPassword" required minlength="6">
+                            </div>
+                            <div class="form-group">
+                                <label for="regFullName">שם מלא</label>
+                                <input type="text" id="regFullName" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="regPhone">טלפון</label>
+                                <input type="tel" id="regPhone" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="regAddress">כתובת</label>
+                                <input type="text" id="regAddress">
+                            </div>
+                            <button type="submit" class="btn">הירשם</button>
+                        </form>
+                        <div class="toggle-form">
+                            יש לך כבר חשבון? <a href="#" onclick="toggleForm('login')">התחבר כאן</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dashboard -->
+                <div id="dashboardContainer" class="dashboard-container" style="display: none;">
+                    <h2>שלום, <span id="userName"></span>!</h2>
+                    
+                    <div class="tabs">
+                        <button class="tab active" onclick="switchTab('orders')">ההזמנות שלי</button>
+                        <button class="tab" onclick="switchTab('warranties')">אחריות</button>
+                        <button class="tab" onclick="switchTab('profile')">פרטים אישיים</button>
+                    </div>
+
+                    <!-- Orders Tab -->
+                    <div id="ordersTab" class="tab-content active">
+                        <div id="ordersList"></div>
+                    </div>
+
+                    <!-- Warranties Tab -->
+                    <div id="warrantiesTab" class="tab-content">
+                        <div id="warrantiesList"></div>
+                    </div>
+
+                    <!-- Profile Tab -->
+                    <div id="profileTab" class="tab-content">
+                        <form onsubmit="updateProfile(event)">
+                            <div class="form-group">
+                                <label for="profileFullName">שם מלא</label>
+                                <input type="text" id="profileFullName" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="profilePhone">טלפון</label>
+                                <input type="tel" id="profilePhone">
+                            </div>
+                            <div class="form-group">
+                                <label for="profileAddress">כתובת</label>
+                                <input type="text" id="profileAddress">
+                            </div>
+                            <button type="submit" class="btn">עדכן פרטים</button>
+                        </form>
+                    </div>
+
+                    <button class="btn btn-logout" onclick="logout()">התנתק</button>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <div class="bottom-nav">
+        <a href="/">בית</a>
+        <a href="shop.html">חנות</a>
+        <a href="businesses.html">עסקים</a>
+        <a href="warranty.html">אחריות</a>
+        <a href="about.html">אודות</a>
+        <a href="/#contact">צור קשר</a>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 פונפלה - כל הזכויות שמורות</p>
+        </div>
+    </footer>
+
+    <button class="floating-btn scroll-top-btn" aria-label="חזרה למעלה">↑</button>
+    <button class="floating-btn cart-btn" onclick="window.location.href='cart.html'" aria-label="עגלת קניות">
+        🛒
+        <span class="badge" id="cartBadge">0</span>
+    </button>
+
+    <script>
+        const API_URL = 'https://ponpela-backend-production.up.railway.app';
+
+        function checkAuth() {
+            const token = localStorage.getItem('token');
+            if (token) {
+                document.getElementById('authContainer').style.display = 'none';
+                document.getElementById('dashboardContainer').style.display = 'block';
+                loadDashboard();
+            } else {
+                document.getElementById('authContainer').style.display = 'block';
+                document.getElementById('dashboardContainer').style.display = 'none';
+            }
+        }
+
+        function toggleForm(form) {
+            if (form === 'register') {
+                document.getElementById('loginForm').style.display = 'none';
+                document.getElementById('registerForm').style.display = 'block';
+            } else {
+                document.getElementById('loginForm').style.display = 'block';
+                document.getElementById('registerForm').style.display = 'none';
+            }
+        }
+
+        async function login(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            try {
+                const response = await fetch(`${API_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                if (!response.ok) throw new Error('התחברות נכשלה');
+
+                const data = await response.json();
+                localStorage.setItem('token', data.token);
+                checkAuth();
+            } catch (error) {
+                alert('שגיאה בהתחברות. בדוק את הפרטים ונסה שוב.');
+            }
+        }
+
+        async function register(e) {
+            e.preventDefault();
+            const formData = {
+                email: document.getElementById('regEmail').value,
+                password: document.getElementById('regPassword').value,
+                full_name: document.getElementById('regFullName').value,
+                phone: document.getElementById('regPhone').value,
+                address: document.getElementById('regAddress').value
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/api/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                if (!response.ok) throw new Error('הרשמה נכשלה');
+
+                const data = await response.json();
+                localStorage.setItem('token', data.token);
+                checkAuth();
+            } catch (error) {
+                alert('שגיאה בהרשמה. נסה שוב.');
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            checkAuth();
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tab + 'Tab').classList.add('active');
+        }
+
+        async function loadDashboard() {
+            const token = localStorage.getItem('token');
+            
+            try {
+                const response = await fetch(`${API_URL}/api/user/profile`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) throw new Error('שגיאה בטעינת פרופיל');
+
+                const user = await response.json();
+                document.getElementById('userName').textContent = user.full_name;
+                document.getElementById('profileFullName').value = user.full_name;
+                document.getElementById('profilePhone').value = user.phone || '';
+                document.getElementById('profileAddress').value = user.address || '';
+
+                loadOrders();
+                loadWarranties();
+            } catch (error) {
+                console.error('Error:', error);
+                logout();
+            }
+        }
+
+        async function loadOrders() {
+            const token = localStorage.getItem('token');
+            
+            try {
+                const response = await fetch(`${API_URL}/api/user/orders`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                const orders = await response.json();
+                const container = document.getElementById('ordersList');
+
+                if (orders.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><h3>אין הזמנות</h3><p>התחל לקנות עכשיו!</p></div>';
+                    return;
+                }
+
+                container.innerHTML = orders.map(order => `
+                    <div class="order-card">
+                        <div class="order-header">
+                            <span class="order-id">הזמנה #${order.id}</span>
+                            <span class="order-status status-${order.status}">${order.status === 'pending' ? 'ממתין' : 'מאושר'}</span>
+                        </div>
+                        <div><strong>תאריך:</strong> ${new Date(order.created_at).toLocaleDateString('he-IL')}</div>
+                        <div><strong>סה"כ:</strong> ₪${order.total_amount}</div>
+                        <div class="order-items">
+                            ${order.items.map(item => `
+                                <div class="order-item">${item.product_name} x${item.quantity}</div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        async function loadWarranties() {
+            const token = localStorage.getItem('token');
+            
+            try {
+                const response = await fetch(`${API_URL}/api/user/warranties`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                const warranties = await response.json();
+                const container = document.getElementById('warrantiesList');
+
+                if (warranties.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><h3>אין אחריות רשומה</h3></div>';
+                    return;
+                }
+
+                container.innerHTML = warranties.map(w => `
+                    <div class="warranty-card">
+                        <h3>${w.product_name}</h3>
+                        <div class="warranty-info">
+                            <div class="warranty-field">
+                                <strong>תאריך רכישה:</strong>
+                                ${new Date(w.purchase_date).toLocaleDateString('he-IL')}
+                            </div>
+                            <div class="warranty-field">
+                                <strong>תוקף עד:</strong>
+                                ${new Date(w.expiry_date).toLocaleDateString('he-IL')}
+                            </div>
+                            <div class="warranty-field">
+                                <strong>סטטוס:</strong>
+                                ${w.status === 'active' ? 'פעיל' : 'לא פעיל'}
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        async function updateProfile(e) {
+            e.preventDefault();
+            const token = localStorage.getItem('token');
+
+            const formData = {
+                full_name: document.getElementById('profileFullName').value,
+                phone: document.getElementById('profilePhone').value,
+                address: document.getElementById('profileAddress').value
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/api/user/profile`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (!response.ok) throw new Error('שגיאה בעדכון');
+
+                alert('הפרטים עודכנו בהצלחה!');
+                loadDashboard();
+            } catch (error) {
+                alert('שגיאה בעדכון פרטים');
+            }
+        }
+
+        function updateCartBadge() {
+            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            const total = cart.reduce((sum, item) => sum + item.quantity, 0);
+            document.getElementById('cartBadge').textContent = total;
+        }
+
+        const scrollTopBtn = document.querySelector('.scroll-top-btn');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 300) {
+                scrollTopBtn.classList.add('visible');
+            } else {
+                scrollTopBtn.classList.remove('visible');
+            }
+        });
+
+        scrollTopBtn.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        checkAuth();
+        updateCartBadge();
+    </script>
+</body>
+</html>
