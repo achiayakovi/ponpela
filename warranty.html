@@ -648,8 +648,12 @@
 
                         <div class="form-group">
                             <label for="purchase-date">תאריך רכישה *</label>
-                            <input type="date" id="purchase-date" required>
-                        </div>
+<div style="display: flex; gap: 5px;">
+    <input type="text" id="purchase-date" placeholder="02/01/2026" 
+           maxlength="10" required style="flex: 1;">
+    <input type="date" id="purchase-date-picker" 
+           style="width: 40px; cursor: pointer;" title="בחר מלוח שנה">
+</div>                        </div>
 
                         <div class="form-group">
                             <label for="receipt">העלאת קבלה * (תמונה או PDF)</label>
@@ -789,7 +793,37 @@
                 console.error('Error:', error);
             }
         }
+        // סנכרון בין שדה טקסט ללוח שנה
+        const dateInput = document.getElementById('purchase-date');
+        const datePicker = document.getElementById('purchase-date-picker');
 
+        // הקלדה בשדה טקסט → הוספת / אוטומטית
+        dateInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, ''); // רק מספרים
+            
+            if (value.length >= 2) {
+                value = value.substring(0, 2) + '/' + value.substring(2);
+            }
+            if (value.length >= 5) {
+                value = value.substring(0, 5) + '/' + value.substring(5, 8);
+            }
+            
+            e.target.value = value;
+            
+            // סנכרון ללוח שנה
+            if (value.length === 10) {
+                const [d, m, y] = value.split('/');
+                datePicker.value = `${y}-${m}-${d}`;
+            }
+        });
+
+        // בחירה מלוח שנה → עדכון שדה טקסט
+        datePicker.addEventListener('change', function() {
+            if (this.value) {
+                const [y, m, d] = this.value.split('-');
+                dateInput.value = `${d}/${m}/${y}`;
+            }
+        });
         async function registerMachine(event) {
             event.preventDefault();
 
@@ -804,8 +838,16 @@
             const lastName = document.getElementById('last-name').value.trim();
             const phone = document.getElementById('phone').value.trim();
             const machineNumber = document.getElementById('machine-number').value.trim();
-            const purchaseDate = document.getElementById('purchase-date').value;
-            const receipt = document.getElementById('receipt').files[0];
+let purchaseDateInput = document.getElementById('purchase-date').value;
+// אם אין /, הוסף אוטומטית (02012026 → 02/01/2026)
+if (!purchaseDateInput.includes('/') && purchaseDateInput.length === 8) {
+    purchaseDateInput = purchaseDateInput.substring(0,2) + '/' + 
+                       purchaseDateInput.substring(2,4) + '/' + 
+                       purchaseDateInput.substring(4,8);
+}
+// המרה ל-YYYY-MM-DD
+const [day, month, year] = purchaseDateInput.split('/');
+const purchaseDate = `${year}-${month}-${day}`;            const receipt = document.getElementById('receipt').files[0];
 
             // Validation
             if (phone.length !== 10 || !/^[0-9]{10}$/.test(phone)) {
