@@ -793,6 +793,13 @@
         async function registerMachine(event) {
             event.preventDefault();
 
+            const resultDiv = document.getElementById('register-result');
+            const loadingDiv = document.getElementById('register-loading');
+            const submitBtn = document.getElementById('register-btn');
+
+            // השבתת כפתור מיד - למנוע לחיצות כפולות
+            submitBtn.disabled = true;
+
             const firstName = document.getElementById('first-name').value.trim();
             const lastName = document.getElementById('last-name').value.trim();
             const phone = document.getElementById('phone').value.trim();
@@ -800,15 +807,12 @@
             const purchaseDate = document.getElementById('purchase-date').value;
             const receipt = document.getElementById('receipt').files[0];
 
-            const resultDiv = document.getElementById('register-result');
-            const loadingDiv = document.getElementById('register-loading');
-            const submitBtn = document.getElementById('register-btn');
-
             // Validation
             if (phone.length !== 10 || !/^[0-9]{10}$/.test(phone)) {
                 resultDiv.style.display = 'block';
                 resultDiv.className = 'result error';
                 resultDiv.innerHTML = '✗ יש להזין מספר טלפון תקין (10 ספרות)';
+                submitBtn.disabled = false; // מאפשר שוב אם יש שגיאה
                 return;
             }
 
@@ -816,13 +820,13 @@
                 resultDiv.style.display = 'block';
                 resultDiv.className = 'result error';
                 resultDiv.innerHTML = '✗ יש להעלות קבלה';
+                submitBtn.disabled = false; // מאפשר שוב אם יש שגיאה
                 return;
             }
 
             // Show loading
             loadingDiv.style.display = 'block';
             resultDiv.style.display = 'none';
-            submitBtn.disabled = true;
 
             try {
                 // Convert receipt to base64
