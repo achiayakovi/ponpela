@@ -783,26 +783,22 @@
         // עדכון דינמי של margin-bottom של הפוטר לפי גובה התפריט
 
         // מעקב אחר הורדת עלון
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwYp5gvQWGh7I9snLPAJ3JrDjO64268YqYdP57o37f5Rn7o_nI6WRekbj8Ng9deCROT/exec';
-        
-        async function trackDownload(event) {
-            const downloadSuccess = true; // נתחיל בהנחה שההורדה תצליח
-            
-            try {
-                // שליחת התראה לסקריפט
-                const params = new URLSearchParams();
-                params.append('action', 'brochure_download');
-                params.append('timestamp', new Date().toISOString());
-                params.append('success', downloadSuccess);
-                
-                // שליחה אסינכרונית - לא נעצור את ההורדה
-                fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    },
-                    body: params.toString()
-                }).catch(err => console.log('Failed to track download:', err));
+const API_URL = 'https://ponpela-backend-production.up.railway.app';
+
+async function trackDownload(event) {
+    const downloadSuccess = true;
+    
+    try {
+        fetch(`${API_URL}/api/brochure-download`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                timestamp: new Date().toISOString(),
+                success: downloadSuccess
+            })
+        }).catch(err => console.log('Failed to track download:', err));;
                 
                      } catch (error) {
                 console.error('Error tracking download:', error);
