@@ -728,11 +728,11 @@
                         </svg>
                         וואטסאפ
                     </a>
-                    <a href="/cdn-cgi/l/email-protection#b0d9ded6dff0c0dfdec0d5dcd19ed3df9ed9dc" class="email">
+                    <a href="mailto:info@ponpela.co.il" class="email">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="white" style="vertical-align: middle; margin-left: 5px;">
                             <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
                         </svg>
-                        <span class="__cf_email__" data-cfemail="95fcfbf3fad5e5fafbe5f0f9f4bbf6fabbfcf9">[email&#160;protected]</span>
+                        info@ponpela.co.il
                     </a>
                 </div>
             </section>
@@ -755,7 +755,7 @@
         </div>
     </footer>
 
-    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+    <script>
         function showThankYou(event) {
             event.preventDefault();
             
@@ -783,25 +783,28 @@
         // עדכון דינמי של margin-bottom של הפוטר לפי גובה התפריט
 
         // מעקב אחר הורדת עלון
-        const API_URL = 'https://ponpela-backend-production.up.railway.app';
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwYp5gvQWGh7I9snLPAJ3JrDjO64268YqYdP57o37f5Rn7o_nI6WRekbj8Ng9deCROT/exec';
         
         async function trackDownload(event) {
-            const downloadSuccess = true;
+            const downloadSuccess = true; // נתחיל בהנחה שההורדה תצליח
             
             try {
-                // שליחת התראה ל-Railway API
-                fetch(`${API_URL}/api/brochure-download`, {
+                // שליחת התראה לסקריפט
+                const params = new URLSearchParams();
+                params.append('action', 'brochure_download');
+                params.append('timestamp', new Date().toISOString());
+                params.append('success', downloadSuccess);
+                
+                // שליחה אסינכרונית - לא נעצור את ההורדה
+                fetch(SCRIPT_URL, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/x-www-form-urlencoded'
                     },
-                    body: JSON.stringify({
-                        timestamp: new Date().toISOString(),
-                        success: downloadSuccess
-                    })
+                    body: params.toString()
                 }).catch(err => console.log('Failed to track download:', err));
                 
-            } catch (error) {
+                     } catch (error) {
                 console.error('Error tracking download:', error);
             }
         }
@@ -897,4 +900,10 @@
             }
         }
 
-        // קריאה בט
+        // קריאה בטעינה, שינוי גודל, וגלילה
+        updateFooterAndButtons();
+        window.addEventListener('resize', updateFooterAndButtons);
+        window.addEventListener('scroll', updateFooterAndButtons);
+    </script>
+</body>
+</html>
