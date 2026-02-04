@@ -782,7 +782,7 @@
 
                 container.innerHTML = warranties.map(w => `
                     <div class="warranty-card">
-                        <h3>${w.product_name}</h3>
+                        <h3>מספר מכשיר: ${w.machine_number}</h3>
                         <div class="warranty-info">
                             <div class="warranty-field">
                                 <strong>תאריך רכישה:</strong>
@@ -794,7 +794,9 @@
                             </div>
                             <div class="warranty-field">
                                 <strong>סטטוס:</strong>
-                                ${w.status === 'active' ? 'פעיל' : 'לא פעיל'}
+                                <span style="color: ${w.status === 'בתוקף' ? '#27ae60' : w.status === 'ממתין לאישור' ? '#f39c12' : '#e74c3c'};">
+                                    ${w.status}
+                                </span>
                             </div>
                         </div>
                     </div>
