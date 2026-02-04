@@ -690,7 +690,7 @@
     </footer>
 
     <script>
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwYp5gvQWGh7I9snLPAJ3JrDjO64268YqYdP57o37f5Rn7o_nI6WRekbj8Ng9deCROT/exec';
+        const API_URL = 'https://ponpela-backend-production.up.railway.app';
 
         function switchTab(tab) {
             // Hide all tabs
@@ -727,7 +727,7 @@
             resultDiv.style.display = 'none';
 
             try {
-                const response = await fetch(`${SCRIPT_URL}?number=${encodeURIComponent(machineNumber)}`);
+                const response = await fetch(`${API_URL}/api/warranty/check/${encodeURIComponent(machineNumber)}`);
                 const data = await response.json();
 
                 loadingDiv.style.display = 'none';
@@ -778,6 +778,21 @@
                     `;
                 } else {
                     // לא נמצא או שגיאה אחרת - אדום
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `
+                        <div class="warranty-info">
+                            ✗ ${data.message || 'מספר מכשיר לא נמצא במערכת'}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                loadingDiv.style.display = 'none';
+                resultDiv.style.display = 'block';
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = '✗ שגיאה בבדיקת אחריות. נסה שוב מאוחר יותר.';
+                console.error('Error:', error);
+            }
+        }
                     resultDiv.className = 'result error';
                     resultDiv.innerHTML = `✗ ${data.message}`;
                 }
@@ -835,23 +850,28 @@
                 const fullName = `${firstName} ${lastName}`;
                 const website = document.getElementById('website').value; // honeypot
 
-                const params = new URLSearchParams();
-                params.append('action', 'register');
-                params.append('fullName', fullName);
-                params.append('phone', phone);
-                params.append('machineNumber', machineNumber);
-                params.append('purchaseDate', purchaseDate);
-                params.append('receipt', receiptBase64);
-                params.append('receiptName', receipt.name);
-                params.append('receiptType', receipt.type);
-                params.append('website', website); // honeypot
+                // Get token if user is logged in (optional)
+                const token = localStorage.getItem('token');
+                const headers = {
+                    'Content-Type': 'application/json'
+                };
+                if (token) {
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
 
-                const response = await fetch(SCRIPT_URL, {
+                const response = await fetch(`${API_URL}/api/warranty/register`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    },
-                    body: params.toString()
+                    headers: headers,
+                    body: JSON.stringify({
+                        machineNumber: machineNumber,
+                        fullName: fullName,
+                        phone: phone,
+                        purchaseDate: purchaseDate,
+                        receipt: receiptBase64,
+                        receiptName: receipt.name,
+                        receiptType: receipt.type,
+                        website: website
+                    })
                 });
 
                 const data = await response.json();
@@ -866,6 +886,21 @@
                         ✓ המכשיר נרשם בהצלחה!
                         <br><br>
                         הרישום נמצא בבדיקה ויעודכן תוך 24 שעות.
+                    `;
+                    document.getElementById('register-form').reset();
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `✗ ${data.message}`;
+                }
+            } catch (error) {
+                loadingDiv.style.display = 'none';
+                resultDiv.style.display = 'block';
+                submitBtn.disabled = false;
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = '✗ שגיאה ברישום. נסה שוב מאוחר יותר.';
+                console.error('Error:', error);
+            }
+        }
                     `;
                     document.getElementById('register-form').reset();
                 } else {
