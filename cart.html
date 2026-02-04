@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>עגלת קניות - פונפלה</title>
-    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="icon" type="image/png" href="favicon.png">
     <link rel="apple-touch-icon" href="logo.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -32,12 +32,20 @@
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             color: #2c3e50;
             overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 0 20px;
+        }
+
+        main {
+            flex: 1;
+            min-height: 60vh;
         }
 
         header {
@@ -54,6 +62,23 @@
             font-size: 0.9rem;
             color: #5a6c7d;
             font-weight: 500;
+        }
+
+        .account-link {
+            position: absolute;
+            top: 10px;
+            left: 20px;
+            font-size: 0.9rem;
+            color: #667eea;
+            font-weight: 600;
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .account-link:hover {
+            background: rgba(102, 126, 234, 0.1);
         }
 
         .logo-container {
@@ -127,6 +152,7 @@
                 padding: 15px 0;
                 z-index: 1000;
                 justify-content: space-around;
+                flex-wrap: wrap;
             }
             
             .bottom-nav a {
@@ -333,8 +359,8 @@
 
         .floating-btn {
             position: fixed;
-            width: 60px;
-            height: 60px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             border: none;
             font-size: 24px;
@@ -383,6 +409,8 @@
             .scroll-top-btn {
                 bottom: 90px;
                 right: 15px;
+                width: 45px;
+                height: 45px;
             }
 
             .cart-header h1 {
@@ -398,6 +426,7 @@
 <body>
     <header>
         <div class="bsd">בס"ד</div>
+        <a href="account.html" class="account-link">👤 איזור אישי</a>
         <div class="container">
             <div class="logo-container">
                 <a href="/">
@@ -534,8 +563,10 @@
             window.location.href = 'checkout.html';
         }
 
+        // כפתור חזרה למעלה
+        // הצגת/הסתרת הכפתור
         const scrollTopBtn = document.querySelector('.scroll-top-btn');
-        window.addEventListener('scroll', () => {
+        window.addEventListener('scroll', function() {
             if (window.scrollY > 300) {
                 scrollTopBtn.classList.add('visible');
             } else {
@@ -543,10 +574,71 @@
             }
         });
 
-        scrollTopBtn.addEventListener('click', () => {
+        // לחיצה על הכפתור
+        scrollTopBtn.addEventListener('click', function() {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
 
+        // עדכון דינמי של margin-bottom של הפוטר לפי גובה התפריט
+        function updateFooterAndButtons() {
+            const bottomNav = document.querySelector('.bottom-nav');
+            const footer = document.querySelector('footer');
+            const scrollBtn = document.querySelector('.scroll-top-btn');
+            
+            if (window.innerWidth <= 768 && bottomNav) {
+                const navHeight = bottomNav.offsetHeight;
+                
+                // הפוטר תמיד מעל התפריט
+                if (footer) footer.style.marginBottom = navHeight + 'px';
+                
+                // בדוק אם הפוטר קרוב לתחתית המסך
+                let buttonBottom = navHeight + 20; // ברירת מחדל: רק מעל התפריט
+                
+                if (footer) {
+                    const footerRect = footer.getBoundingClientRect();
+                    const viewportHeight = window.innerHeight;
+                    const footerDistanceFromBottom = viewportHeight - footerRect.top;
+                    
+                    // אם הפוטר קרוב לתחתית (נמצא באזור התפריט)
+                    if (footerDistanceFromBottom > 0 && footerDistanceFromBottom < viewportHeight) {
+                        const footerHeight = footer.offsetHeight;
+                        buttonBottom = navHeight + footerHeight + 20; // מעל הפוטר
+                    }
+                }
+                
+                if (scrollBtn) scrollBtn.style.bottom = buttonBottom + 'px';
+            } else {
+                // מחשב - בדוק אם הפוטר נראה בתחתית
+                if (footer) footer.style.marginBottom = '0';
+                
+                let buttonBottom = 30; // ברירת מחדל
+                
+                if (footer) {
+                    const footerRect = footer.getBoundingClientRect();
+                    const viewportHeight = window.innerHeight;
+                    
+                    // רק אם גוללים קרוב לתחתית הדף - הכפתור יעלה
+                    const documentHeight = document.documentElement.scrollHeight;
+                    const scrollPosition = window.scrollY + viewportHeight;
+                    const nearBottom = documentHeight - scrollPosition < 100;
+                    
+                    // אם הפוטר נראה בתחתית המסך וגללנו קרוב לתחתית
+                    if (nearBottom && footerRect.top < viewportHeight) {
+                        const footerVisible = viewportHeight - footerRect.top;
+                        if (footerVisible > 0) {
+                            buttonBottom = footerVisible + 20; // מעל הפוטר
+                        }
+                    }
+                }
+                
+                if (scrollBtn) scrollBtn.style.bottom = buttonBottom + 'px';
+            }
+        }
+
+        // קריאה בטעינה, שינוי גודל, וגלילה
+        updateFooterAndButtons();
+        window.addEventListener('resize', updateFooterAndButtons);
+        window.addEventListener('scroll', updateFooterAndButtons);
         loadCart();
     </script>
 </body>

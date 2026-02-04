@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>חנות - פונפלה</title>
-    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="icon" type="image/png" href="favicon.png">
     <link rel="apple-touch-icon" href="logo.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -33,12 +33,19 @@
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             color: #2c3e50;
             overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 0 20px;
+        }
+
+        main {
+            flex: 1;
         }
 
         /* Header */
@@ -56,6 +63,23 @@
             font-size: 0.9rem;
             color: #5a6c7d;
             font-weight: 500;
+        }
+
+        .account-link {
+            position: absolute;
+            top: 10px;
+            left: 20px;
+            font-size: 0.9rem;
+            color: #667eea;
+            font-weight: 600;
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .account-link:hover {
+            background: rgba(102, 126, 234, 0.1);
         }
 
         .logo-container {
@@ -280,8 +304,9 @@
         .error {
             text-align: center;
             padding: 60px;
-            font-size: 1.3rem;
-            color: #e74c3c;
+            font-size: 2rem;
+            color: #667eea;
+            font-weight: bold;
         }
 
         /* Footer */
@@ -296,8 +321,8 @@
         /* Floating Buttons */
         .floating-btn {
             position: fixed;
-            width: 60px;
-            height: 60px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             border: none;
             font-size: 24px;
@@ -359,11 +384,15 @@
             .scroll-top-btn {
                 bottom: 90px;
                 right: 15px;
+                width: 45px;
+                height: 45px;
             }
 
             .cart-btn {
                 bottom: 90px;
                 left: 15px;
+                width: 45px;
+                height: 45px;
             }
 
             .products-grid {
@@ -379,6 +408,7 @@
 <body>
     <header>
         <div class="bsd">בס"ד</div>
+        <a href="account.html" class="account-link">👤 איזור אישי</a>
         <div class="container">
             <div class="logo-container">
                 <a href="/">
@@ -451,7 +481,7 @@
             } catch (error) {
                 console.error('Error:', error);
                 document.getElementById('productsContainer').innerHTML = 
-                    '<div class="error">שגיאה בטעינת מוצרים. נסה שוב מאוחר יותר.</div>';
+                    '<div class="error">בקרוב...</div>';
             }
         }
 
@@ -495,15 +525,9 @@
         }
 
         // עדכון תג עגלה
-        function updateCartBadge() {
-            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-            const total = cart.reduce((sum, item) => sum + item.quantity, 0);
-            document.getElementById('cartBadge').textContent = total;
-        }
-
-        // חזרה למעלה
+        // הצגת/הסתרת כפתור scroll
         const scrollTopBtn = document.querySelector('.scroll-top-btn');
-        window.addEventListener('scroll', () => {
+        window.addEventListener('scroll', function() {
             if (window.scrollY > 300) {
                 scrollTopBtn.classList.add('visible');
             } else {
@@ -511,11 +535,82 @@
             }
         });
 
-        scrollTopBtn.addEventListener('click', () => {
+        // לחיצה על הכפתור
+        scrollTopBtn.addEventListener('click', function() {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
 
+        // עדכון תג עגלה
+        function updateCartBadge() {
+            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            const total = cart.reduce((sum, item) => sum + item.quantity, 0);
+            document.getElementById('cartBadge').textContent = total;
+        }
+        updateCartBadge();
+
+        // עדכון דינמי של כפתורים וfooter
+        function updateFooterAndButtons() {
+            const bottomNav = document.querySelector('.bottom-nav');
+            const footer = document.querySelector('footer');
+            const scrollBtn = document.querySelector('.scroll-top-btn');
+            const cartBtn = document.querySelector('.cart-btn');
+            
+            if (window.innerWidth <= 768 && bottomNav) {
+                const navHeight = bottomNav.offsetHeight;
+                
+                // הפוטר תמיד מעל התפריט
+                if (footer) footer.style.marginBottom = navHeight + 'px';
+                
+                // בדוק אם הפוטר קרוב לתחתית המסך
+                let buttonBottom = navHeight + 20; // ברירת מחדל: רק מעל התפריט
+                
+                if (footer) {
+                    const footerRect = footer.getBoundingClientRect();
+                    const viewportHeight = window.innerHeight;
+                    const footerDistanceFromBottom = viewportHeight - footerRect.top;
+                    
+                    // אם הפוטר קרוב לתחתית (נמצא באזור התפריט)
+                    if (footerDistanceFromBottom > 0 && footerDistanceFromBottom < viewportHeight) {
+                        const footerHeight = footer.offsetHeight;
+                        buttonBottom = navHeight + footerHeight + 20; // מעל הפוטר
+                    }
+                }
+                
+                if (scrollBtn) scrollBtn.style.bottom = buttonBottom + 'px';
+                if (cartBtn) cartBtn.style.bottom = buttonBottom + 'px';
+            } else {
+                // מחשב - בדוק אם הפוטר נראה בתחתית
+                if (footer) footer.style.marginBottom = '0';
+                
+                let buttonBottom = 30; // ברירת מחדל
+                
+                if (footer) {
+                    const footerRect = footer.getBoundingClientRect();
+                    const viewportHeight = window.innerHeight;
+                    
+                    // רק אם גוללים קרוב לתחתית הדף - הכפתורים יעלו
+                    const documentHeight = document.documentElement.scrollHeight;
+                    const scrollPosition = window.scrollY + viewportHeight;
+                    const nearBottom = documentHeight - scrollPosition < 100;
+                    
+                    // אם הפוטר נראה בתחתית המסך וגללנו קרוב לתחתית
+                    if (nearBottom && footerRect.top < viewportHeight) {
+                        const footerVisible = viewportHeight - footerRect.top;
+                        if (footerVisible > 0) {
+                            buttonBottom = footerVisible + 20; // מעל הפוטר
+                        }
+                    }
+                }
+                
+                if (scrollBtn) scrollBtn.style.bottom = buttonBottom + 'px';
+                if (cartBtn) cartBtn.style.bottom = buttonBottom + 'px';
+            }
+        }
+
         // אתחול
+        updateFooterAndButtons();
+        window.addEventListener('resize', updateFooterAndButtons);
+        window.addEventListener('scroll', updateFooterAndButtons);
         loadProducts();
         updateCartBadge();
     </script>

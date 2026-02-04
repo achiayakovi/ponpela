@@ -83,6 +83,23 @@
             font-weight: 500;
         }
 
+        .account-link {
+            position: absolute;
+            top: 10px;
+            left: 20px;
+            font-size: 0.9rem;
+            color: #667eea;
+            font-weight: 600;
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .account-link:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
         .logo-container {
             text-align: center;
         }
@@ -508,11 +525,60 @@
                 display: none;
             }
         }
+
+        /* Cart Button */
+        .cart-btn {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+            z-index: 1002;
+        }
+
+        .cart-btn .badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #e74c3c;
+            color: white;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .cart-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        @media (max-width: 768px) {
+            .cart-btn {
+                bottom: 90px;
+                left: 15px;
+                width: 45px;
+                height: 45px;
+            }
+        }
     </style>
 </head>
 <body>
     <header>
         <div class="bsd">בס"ד</div>
+        <a href="account.html" class="account-link">👤 איזור אישי</a>
         <div class="container">
             <div class="logo-container">
                 <a href="/">
@@ -527,6 +593,7 @@
             <button class="menu-toggle" onclick="toggleMenu()" aria-label="תפריט">☰</button>
             <ul class="nav-menu" id="navMenu">
                 <li><a href="/">בית</a></li>
+                <li><a href="shop.html">חנות</a></li>
                 <li><a href="businesses.html">עסקים</a></li>
                 <li><a href="warranty.html" class="active">אחריות</a></li>
                 <li><a href="about.html">אודות</a></li>
@@ -615,6 +682,7 @@
     <!-- Bottom Navigation for Mobile -->
     <div class="bottom-nav">
         <a href="/">בית</a>
+        <a href="shop.html">חנות</a>
         <a href="businesses.html">עסקים</a>
         <a href="warranty.html" class="active">אחריות</a>
         <a href="about.html">אודות</a>
@@ -833,21 +901,6 @@
         });
 
         // עדכון דינמי של margin-bottom של הפוטר לפי גובה התפריט
-        function updateFooterMargin() {
-            const bottomNav = document.querySelector('.bottom-nav');
-            const footer = document.querySelector('footer');
-            
-            if (window.innerWidth <= 768 && bottomNav && footer) {
-                const navHeight = bottomNav.offsetHeight;
-                footer.style.marginBottom = navHeight + 'px';
-            } else if (footer) {
-                footer.style.marginBottom = '';
-            }
-        }
-
-        // הפעלה בטעינה ובשינוי גודל מסך
-        updateFooterMargin();
-        window.addEventListener('resize', updateFooterMargin);
 
         // כפתור חזרה למעלה
         const scrollTopBtn = document.createElement('button');
@@ -869,6 +922,81 @@
         scrollTopBtn.addEventListener('click', function() {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
+
+        // כפתור עגלת קניות
+        const cartBtn = document.createElement('button');
+        cartBtn.innerHTML = '🛒<span class="badge" id="cartBadge">0</span>';
+        cartBtn.className = 'cart-btn';
+        cartBtn.setAttribute('aria-label', 'עגלת קניות');
+        cartBtn.onclick = function() { window.location.href = 'cart.html'; };
+        document.body.appendChild(cartBtn);
+
+        // עדכון תג עגלה
+        function updateCartBadge() {
+            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            const total = cart.reduce((sum, item) => sum + item.quantity, 0);
+            document.getElementById('cartBadge').textContent = total;
+        }
+        updateCartBadge();
+
+        // עדכון דינמי של margin-bottom של הפוטר לפי גובה התפריט
+        function updateFooterAndButtons() {
+            const bottomNav = document.querySelector('.bottom-nav');
+            const footer = document.querySelector('footer');
+            const scrollBtn = document.querySelector('.scroll-top-btn');
+            const cartBtn = document.querySelector('.cart-btn');
+            
+            if (window.innerWidth <= 768 && bottomNav) {
+                const navHeight = bottomNav.offsetHeight;
+                
+                // הפוטר תמיד מעל התפריט
+                if (footer) footer.style.marginBottom = navHeight + 'px';
+                
+                // בדוק אם הפוטר קרוב לתחתית המסך
+                let buttonBottom = navHeight + 20; // ברירת מחדל: רק מעל התפריט
+                
+                if (footer) {
+                    const footerRect = footer.getBoundingClientRect();
+                    const viewportHeight = window.innerHeight;
+                    const footerDistanceFromBottom = viewportHeight - footerRect.top;
+                    
+                    // אם הפוטר קרוב לתחתית (נמצא באזור התפריט)
+                    if (footerDistanceFromBottom > 0 && footerDistanceFromBottom < viewportHeight) {
+                        const footerHeight = footer.offsetHeight;
+                        buttonBottom = navHeight + footerHeight + 20; // מעל הפוטר
+                    }
+                }
+                
+                if (scrollBtn) scrollBtn.style.bottom = buttonBottom + 'px';
+                if (cartBtn) cartBtn.style.bottom = buttonBottom + 'px';
+            } else {
+                // מחשב - בדוק אם הפוטר נראה בתחתית
+                if (footer) footer.style.marginBottom = '0';
+                
+                let buttonBottom = 30; // ברירת מחדל
+                
+                if (footer) {
+                    const footerRect = footer.getBoundingClientRect();
+                    const viewportHeight = window.innerHeight;
+                    
+                    // אם הפוטר נראה בתחתית המסך
+                    if (footerRect.top < viewportHeight) {
+                        const footerVisible = viewportHeight - footerRect.top;
+                        if (footerVisible > 0) {
+                            buttonBottom = footerVisible + 20; // מעל הפוטר
+                        }
+                    }
+                }
+                
+                if (scrollBtn) scrollBtn.style.bottom = buttonBottom + 'px';
+                if (cartBtn) cartBtn.style.bottom = buttonBottom + 'px';
+            }
+        }
+
+        // קריאה בטעינה, שינוי גודל, וגלילה
+        updateFooterAndButtons();
+        window.addEventListener('resize', updateFooterAndButtons);
+        window.addEventListener('scroll', updateFooterAndButtons);
     </script>
 </body>
 </html>
