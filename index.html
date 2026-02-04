@@ -65,12 +65,19 @@
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             color: #2c3e50;
             overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 0 20px;
+        }
+
+        main {
+            flex: 1;
         }
 
         /* Header */
@@ -222,7 +229,6 @@
                 padding: 10px 20px;
                 transition: all 0.3s ease;
                 flex: 1 1 0;
-                min-width: 50px;
                 text-align: center;
                 white-space: normal;
                 overflow-wrap: break-word;
@@ -241,7 +247,7 @@
             
             /* הוספת padding למטה כדי שהתוכן לא יוסתר */
             main {
-                padding-bottom: 80px;
+                padding-bottom: 0;
             }
         }
 
@@ -1056,6 +1062,7 @@
 
             footer {
                 padding: 15px 0;
+                margin-top: 0;
             }
         }
 
@@ -1320,11 +1327,11 @@
                         </svg>
                         וואטסאפ
                     </a>
-                    <a href="/cdn-cgi/l/email-protection#94fdfaf2fbd4e4fbfae4f1f8f5baf7fbbafdf8" class="email">
+                    <a href="mailto:info@ponpela.co.il" class="email">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="white" style="vertical-align: middle; margin-left: 5px;">
                             <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
                         </svg>
-                        <span class="__cf_email__" data-cfemail="365f5850597646595846535a57185559185f5a">[email&#160;protected]</span>
+                        info@ponpela.co.il
                     </a>
                 </div>
             </section>
@@ -1347,7 +1354,7 @@
         </div>
     </footer>
 
-    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+    <script>
         // Scroll reveal animation
         const observerOptions = {
             threshold: 0.1,
@@ -1497,11 +1504,17 @@
             const scrollBtn = document.querySelector('.scroll-top-btn');
             const cartBtn = document.querySelector('.cart-btn');
             
+            console.log('updateFooterAndButtons רץ!', 'רוחב מסך:', window.innerWidth);
+            
             if (window.innerWidth <= 768 && bottomNav) {
                 const navHeight = bottomNav.offsetHeight;
+                console.log('מובייל - גובה תפריט:', navHeight);
                 
                 // הפוטר תמיד מעל התפריט
-                if (footer) footer.style.marginBottom = navHeight + 'px';
+                if (footer) {
+                    footer.style.marginBottom = navHeight + 'px';
+                    console.log('הוספתי margin-bottom לפוטר:', navHeight + 'px');
+                }
                 
                 // בדוק אם הפוטר קרוב לתחתית המסך
                 let buttonBottom = navHeight + 20; // ברירת מחדל: רק מעל התפריט
@@ -1521,6 +1534,7 @@
                 if (scrollBtn) scrollBtn.style.bottom = buttonBottom + 'px';
                 if (cartBtn) cartBtn.style.bottom = buttonBottom + 'px';
             } else {
+                console.log('מחשב');
                 // מחשב - בדוק אם הפוטר נראה בתחתית
                 if (footer) footer.style.marginBottom = '0';
                 

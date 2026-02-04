@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>השלמת הזמנה - פונפלה</title>
-    <link rel="icon" type="image/png" href="logo.png">
-    <link rel="apple-touch-icon" href="logo.png">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="apple-touch-icon" href="favicon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;600;700&family=Varela+Round&display=swap" rel="stylesheet">
@@ -53,6 +53,23 @@
             font-size: 0.9rem;
             color: #5a6c7d;
             font-weight: 500;
+        }
+
+        .account-link {
+            position: absolute;
+            top: 10px;
+            left: 20px;
+            font-size: 0.9rem;
+            color: #667eea;
+            font-weight: 600;
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .account-link:hover {
+            background: rgba(102, 126, 234, 0.1);
         }
 
         .logo-container {
@@ -195,8 +212,8 @@
 
         .floating-btn {
             position: fixed;
-            width: 60px;
-            height: 60px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             border: none;
             font-size: 24px;
@@ -269,11 +286,15 @@
             .scroll-top-btn {
                 bottom: 20px;
                 right: 20px;
+                width: 45px;
+                height: 45px;
             }
 
             .cart-btn {
                 bottom: 20px;
                 left: 20px;
+                width: 45px;
+                height: 45px;
             }
         }
     </style>
@@ -281,6 +302,7 @@
 <body>
     <header>
         <div class="bsd">בס"ד</div>
+        <a href="account.html" class="account-link">👤 איזור אישי</a>
         <div class="container">
             <div class="logo-container">
                 <a href="/">
@@ -459,7 +481,14 @@
             }
         });
 
-        const scrollTopBtn = document.querySelector('.scroll-top-btn');
+        // כפתור חזרה למעלה
+        const scrollTopBtn = document.createElement('button');
+        scrollTopBtn.innerHTML = '↑';
+        scrollTopBtn.className = 'scroll-top-btn';
+        scrollTopBtn.setAttribute('aria-label', 'חזרה למעלה');
+        document.body.appendChild(scrollTopBtn);
+
+        // הצגת/הסתרת הכפתור
         window.addEventListener('scroll', () => {
             if (window.scrollY > 300) {
                 scrollTopBtn.classList.add('visible');
@@ -472,12 +501,54 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
 
+        // כפתור עגלת קניות
+        const cartBtn = document.createElement('button');
+        cartBtn.innerHTML = '🛒<span class="badge" id="cartBadge">0</span>';
+        cartBtn.className = 'cart-btn';
+        cartBtn.setAttribute('aria-label', 'עגלת קניות');
+        cartBtn.onclick = function() { window.location.href = 'cart.html'; };
+        document.body.appendChild(cartBtn);
+
         function updateCartBadge() {
             const cart = JSON.parse(localStorage.getItem('cart') || '[]');
             const total = cart.reduce((sum, item) => sum + item.quantity, 0);
             document.getElementById('cartBadge').textContent = total;
         }
 
+        // עדכון דינמי של כפתורים וfooter
+        function updateFooterAndButtons() {
+            const footer = document.querySelector('footer');
+            const scrollBtn = document.querySelector('.scroll-top-btn');
+            const cartBtn = document.querySelector('.cart-btn');
+            
+            if (window.innerWidth <= 768) {
+                // בדוק אם הפוטר קרוב לתחתית המסך
+                let buttonBottom = 30; // ברירת מחדל
+                
+                if (footer) {
+                    const footerRect = footer.getBoundingClientRect();
+                    const viewportHeight = window.innerHeight;
+                    const footerDistanceFromBottom = viewportHeight - footerRect.top;
+                    
+                    // אם הפוטר נמצא באזור התחתית
+                    if (footerDistanceFromBottom > 0 && footerDistanceFromBottom < viewportHeight) {
+                        const footerHeight = footer.offsetHeight;
+                        buttonBottom = footerHeight + 20; // מעל הפוטר
+                    }
+                }
+                
+                if (scrollBtn) scrollBtn.style.bottom = buttonBottom + 'px';
+                if (cartBtn) cartBtn.style.bottom = buttonBottom + 'px';
+            } else {
+                if (scrollBtn) scrollBtn.style.bottom = '30px';
+                if (cartBtn) cartBtn.style.bottom = '30px';
+            }
+        }
+
+        // אתחול
+        updateFooterAndButtons();
+        window.addEventListener('resize', updateFooterAndButtons);
+        window.addEventListener('scroll', updateFooterAndButtons);
         loadOrderSummary();
         loadUserProfile();
         updateCartBadge();

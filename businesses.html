@@ -62,12 +62,19 @@
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             color: #2c3e50;
             overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 0 20px;
+        }
+
+        main {
+            flex: 1;
         }
 
         /* Header */
@@ -194,7 +201,6 @@
                 padding: 10px 20px;
                 transition: all 0.3s ease;
                 flex: 1 1 0;
-                min-width: 50px;
                 text-align: center;
                 white-space: normal;
                 overflow-wrap: break-word;
@@ -208,7 +214,7 @@
             }
             
             main {
-                padding-bottom: 20px;
+                padding-bottom: 0;
             }
         }
 
@@ -543,6 +549,10 @@
                 margin: 10px auto;
             }
 
+            footer {
+                margin-top: 0;
+            }
+
         }
 
         /* Scroll Top Button */
@@ -718,11 +728,11 @@
                         </svg>
                         וואטסאפ
                     </a>
-                    <a href="/cdn-cgi/l/email-protection#7d14131b123d0d12130d18111c531e12531411" class="email">
+                    <a href="mailto:info@ponpela.co.il" class="email">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="white" style="vertical-align: middle; margin-left: 5px;">
                             <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
                         </svg>
-                        <span class="__cf_email__" data-cfemail="82ebece4edc2f2edecf2e7eee3ace1edacebee">[email&#160;protected]</span>
+                        info@ponpela.co.il
                     </a>
                 </div>
             </section>
@@ -745,7 +755,7 @@
         </div>
     </footer>
 
-    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+    <script>
         function showThankYou(event) {
             event.preventDefault();
             

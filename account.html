@@ -124,6 +124,7 @@
                 padding: 15px 0;
                 z-index: 1000;
                 justify-content: space-around;
+                flex-wrap: wrap;
             }
             
             .bottom-nav a {
@@ -645,13 +646,17 @@
                     body: JSON.stringify({ email, password })
                 });
 
-                if (!response.ok) throw new Error('התחברות נכשלה');
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ message: 'התחברות נכשלה' }));
+                    throw new Error(errorData.message || 'התחברות נכשלה');
+                }
 
                 const data = await response.json();
                 localStorage.setItem('token', data.token);
                 checkAuth();
             } catch (error) {
-                alert('שגיאה בהתחברות. בדוק את הפרטים ונסה שוב.');
+                console.error('Login error:', error);
+                alert('שגיאה בהתחברות: ' + (error.message || 'בדוק את הפרטים ונסה שוב.'));
             }
         }
 
@@ -672,13 +677,17 @@
                     body: JSON.stringify(formData)
                 });
 
-                if (!response.ok) throw new Error('הרשמה נכשלה');
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ message: 'הרשמה נכשלה' }));
+                    throw new Error(errorData.message || 'הרשמה נכשלה');
+                }
 
                 const data = await response.json();
                 localStorage.setItem('token', data.token);
                 checkAuth();
             } catch (error) {
-                alert('שגיאה בהרשמה. נסה שוב.');
+                console.error('Register error:', error);
+                alert('שגיאה בהרשמה: ' + (error.message || 'נסה שוב.'));
             }
         }
 
