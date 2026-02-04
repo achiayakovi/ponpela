@@ -779,28 +779,14 @@
                 } else {
                     // לא נמצא או שגיאה אחרת - אדום
                     resultDiv.className = 'result error';
-                    resultDiv.innerHTML = `
-                        <div class="warranty-info">
-                            ✗ ${data.message || 'מספר מכשיר לא נמצא במערכת'}
-                        </div>
-                    `;
-                }
-            } catch (error) {
-                loadingDiv.style.display = 'none';
-                resultDiv.style.display = 'block';
-                resultDiv.className = 'result error';
-                resultDiv.innerHTML = '✗ שגיאה בבדיקת אחריות. נסה שוב מאוחר יותר.';
-                console.error('Error:', error);
-            }
-        }
-                    resultDiv.className = 'result error';
-                    resultDiv.innerHTML = `✗ ${data.message}`;
+                    resultDiv.innerHTML = `✗ ${data.message || 'מספר מכשיר לא נמצא במערכת'}`;
                 }
             } catch (error) {
                 loadingDiv.style.display = 'none';
                 resultDiv.style.display = 'block';
                 resultDiv.className = 'result error';
                 resultDiv.innerHTML = '✗ שגיאה בבדיקה. נסה שוב מאוחר יותר.';
+                console.error('Error:', error);
             }
         }
 
@@ -899,20 +885,6 @@
                 resultDiv.className = 'result error';
                 resultDiv.innerHTML = '✗ שגיאה ברישום. נסה שוב מאוחר יותר.';
                 console.error('Error:', error);
-            }
-        }
-                    `;
-                    document.getElementById('register-form').reset();
-                } else {
-                    resultDiv.className = 'result error';
-                    resultDiv.innerHTML = `✗ ${data.message}`;
-                }
-            } catch (error) {
-                loadingDiv.style.display = 'none';
-                resultDiv.style.display = 'block';
-                submitBtn.disabled = false;
-                resultDiv.className = 'result error';
-                resultDiv.innerHTML = '✗ שגיאה ברישום. נסה שוב מאוחר יותר.';
             }
         }
 
