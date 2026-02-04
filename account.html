@@ -580,6 +580,7 @@
                             </div>
                             <button type="submit" class="btn">עדכן פרטים</button>
                         </form>
+                        <button class="btn" onclick="openChangePasswordModal()" style="margin-top: 20px; background: #3498db;">שנה סיסמה</button>
                     </div>
 
                     <button class="btn btn-logout" onclick="logout()">התנתק</button>
@@ -587,6 +588,32 @@
             </section>
         </div>
     </main>
+
+    <!-- Change Password Modal -->
+    <div id="changePasswordModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center;">
+        <div style="background: white; padding: 30px; border-radius: 15px; max-width: 500px; width: 90%;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="color: #2d7a8e;">שינוי סיסמה</h3>
+                <button onclick="closeChangePasswordModal()" style="background: none; border: none; font-size: 2rem; cursor: pointer; color: #7f8c8d;">×</button>
+            </div>
+            <form id="changePasswordForm" onsubmit="changePassword(event)">
+                <div class="form-group">
+                    <label for="currentPassword">סיסמה נוכחית *</label>
+                    <input type="password" id="currentPassword" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <label for="newPassword">סיסמה חדשה *</label>
+                    <input type="password" id="newPassword" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword">אישור סיסמה חדשה *</label>
+                    <input type="password" id="confirmPassword" required minlength="6">
+                </div>
+                <div id="passwordMessage" style="padding: 10px; border-radius: 8px; margin-bottom: 15px; display: none;"></div>
+                <button type="submit" class="btn">שנה סיסמה</button>
+            </form>
+        </div>
+    </div>
 
     <div class="bottom-nav">
         <a href="/">בית</a>
@@ -920,6 +947,88 @@
         updateFooterAndButtons();
         window.addEventListener('resize', updateFooterAndButtons);
         window.addEventListener('scroll', updateFooterAndButtons);
+
+        // Change Password Modal Functions
+        function openChangePasswordModal() {
+            document.getElementById('changePasswordModal').style.display = 'flex';
+            document.getElementById('changePasswordForm').reset();
+            document.getElementById('passwordMessage').style.display = 'none';
+        }
+
+        function closeChangePasswordModal() {
+            document.getElementById('changePasswordModal').style.display = 'none';
+            document.getElementById('changePasswordForm').reset();
+            document.getElementById('passwordMessage').style.display = 'none';
+        }
+
+        async function changePassword(event) {
+            event.preventDefault();
+
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const messageDiv = document.getElementById('passwordMessage');
+
+            // בדיקה שהסיסמאות תואמות
+            if (newPassword !== confirmPassword) {
+                messageDiv.style.display = 'block';
+                messageDiv.style.background = '#f8d7da';
+                messageDiv.style.color = '#721c24';
+                messageDiv.textContent = 'הסיסמאות אינן תואמות';
+                return;
+            }
+
+            // בדיקה שהסיסמה החדשה שונה מהישנה
+            if (currentPassword === newPassword) {
+                messageDiv.style.display = 'block';
+                messageDiv.style.background = '#fff3cd';
+                messageDiv.style.color = '#856404';
+                messageDiv.textContent = 'הסיסמה החדשה חייבת להיות שונה מהסיסמה הנוכחית';
+                return;
+            }
+
+            const token = localStorage.getItem('token');
+
+            try {
+                const response = await fetch(`${API_URL}/api/user/change-password`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        current_password: currentPassword,
+                        new_password: newPassword
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    messageDiv.style.display = 'block';
+                    messageDiv.style.background = '#d4edda';
+                    messageDiv.style.color = '#155724';
+                    messageDiv.textContent = '✓ הסיסמה שונתה בהצלחה!';
+                    
+                    // סגירת המודל אחרי 2 שניות
+                    setTimeout(() => {
+                        closeChangePasswordModal();
+                    }, 2000);
+                } else {
+                    messageDiv.style.display = 'block';
+                    messageDiv.style.background = '#f8d7da';
+                    messageDiv.style.color = '#721c24';
+                    messageDiv.textContent = '✗ ' + (data.error || 'שגיאה בשינוי הסיסמה');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                messageDiv.style.display = 'block';
+                messageDiv.style.background = '#f8d7da';
+                messageDiv.style.color = '#721c24';
+                messageDiv.textContent = '✗ שגיאה בשינוי הסיסמה. נסה שוב.';
+            }
+        }
+
         checkAuth();
         updateCartBadge();
     </script>
