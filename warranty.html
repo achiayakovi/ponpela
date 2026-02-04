@@ -651,9 +651,14 @@
 <div style="display: flex; gap: 5px;">
     <input type="text" id="purchase-date" placeholder="02/01/2026" 
            maxlength="10" required style="flex: 1;">
-    <input type="date" id="purchase-date-picker" 
-           style="width: 40px; cursor: pointer;" title="בחר מלוח שנה">
-</div>                        </div>
+    <button type="button" onclick="document.getElementById('purchase-date-picker').showPicker()" 
+            style="padding: 10px 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                   color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1.2rem;">
+        📅
+    </button>
+    <input type="date" id="purchase-date-picker" style="display: none;">
+</div>
+                        </div>
 
                         <div class="form-group">
                             <label for="receipt">העלאת קבלה * (תמונה או PDF)</label>
@@ -805,7 +810,7 @@
                 value = value.substring(0, 2) + '/' + value.substring(2);
             }
             if (value.length >= 5) {
-                value = value.substring(0, 5) + '/' + value.substring(5, 8);
+                value = value.substring(0, 5) + '/' + value.substring(5, 9);
             }
             
             e.target.value = value;
@@ -847,7 +852,8 @@ if (!purchaseDateInput.includes('/') && purchaseDateInput.length === 8) {
 }
 // המרה ל-YYYY-MM-DD
 const [day, month, year] = purchaseDateInput.split('/');
-const purchaseDate = `${year}-${month}-${day}`;            const receipt = document.getElementById('receipt').files[0];
+const purchaseDate = `${year}-${month}-${day}`;     
+            const receipt = document.getElementById('receipt').files[0];
 
             // Validation
             if (phone.length !== 10 || !/^[0-9]{10}$/.test(phone)) {
