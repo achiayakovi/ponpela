@@ -13,7 +13,9 @@
             background: #f5f7fa;
             padding: 20px;
         }
-        .container { max-width: 1400px; margin: 0 auto; }
+        .container { max-width: 1600px; margin: 0 auto; }
+        
+        /* Header */
         header {
             background: white;
             padding: 20px;
@@ -24,7 +26,7 @@
             align-items: center;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-        h1 { color: #667eea; }
+        h1 { color: #667eea; font-size: 1.8rem; }
         .logout { 
             background: #e74c3c;
             color: white;
@@ -34,6 +36,8 @@
             cursor: pointer;
             font-weight: 600;
         }
+        
+        /* Stats */
         .stats {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -48,10 +52,13 @@
         }
         .stat-number { font-size: 2.5rem; font-weight: 700; color: #667eea; }
         .stat-label { color: #7f8c8d; margin-top: 8px; }
+        
+        /* Tabs */
         .tabs {
             display: flex;
             gap: 10px;
             margin-bottom: 20px;
+            flex-wrap: wrap;
         }
         .tab {
             background: white;
@@ -61,17 +68,38 @@
             cursor: pointer;
             font-weight: 600;
             color: #7f8c8d;
+            transition: all 0.3s;
         }
+        .tab:hover { background: #ecf0f1; }
         .tab.active {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
         }
-        .section { display: none; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        
+        /* Sections */
+        .section { 
+            display: none; 
+            background: white; 
+            padding: 30px; 
+            border-radius: 12px; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
+        }
         .section.active { display: block; }
+        .section h2 { color: #667eea; margin-bottom: 20px; }
+        
+        /* Filters & Actions */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
         .filters {
             display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
+            gap: 10px;
+            flex: 1;
         }
         .filters input, .filters select {
             padding: 10px;
@@ -79,28 +107,124 @@
             border-radius: 8px;
             font-family: inherit;
         }
-        .filters input { flex: 1; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 15px; text-align: right; border-bottom: 1px solid #f0f0f0; }
-        th { background: #f8f9fa; font-weight: 700; color: #667eea; }
-        tr:hover { background: #f8f9fa; }
-        select.status-select {
-            padding: 5px 10px;
-            border-radius: 20px;
-            border: none;
-            font-weight: 600;
-            cursor: pointer;
-        }
+        .filters input { flex: 1; min-width: 200px; }
+        
+        /* Buttons */
         .btn {
-            padding: 6px 12px;
+            padding: 10px 20px;
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
             cursor: pointer;
             font-weight: 600;
+            transition: all 0.3s;
         }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-primary:hover { transform: translateY(-2px); }
+        .btn-sm { padding: 6px 12px; font-size: 0.85rem; }
         .btn-edit { background: #3498db; color: white; }
         .btn-delete { background: #e74c3c; color: white; }
-        .loading { text-align: center; padding: 40px; color: #7f8c8d; }
+        .btn-success { background: #27ae60; color: white; }
+        
+        /* Table */
+        .table-container { overflow-x: auto; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: right;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        th {
+            background: #f8f9fa;
+            font-weight: 700;
+            color: #667eea;
+            position: sticky;
+            top: 0;
+        }
+        tr:hover { background: #f8f9fa; }
+        .clickable {
+            cursor: pointer;
+            text-decoration: underline;
+            color: #3498db;
+        }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        .modal.active { display: flex; }
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .modal-header h3 { color: #667eea; }
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #7f8c8d;
+        }
+        
+        /* Forms */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        /* Messages */
         .message {
             padding: 15px;
             border-radius: 8px;
@@ -109,17 +233,51 @@
         }
         .message.success { background: #d4edda; color: #155724; }
         .message.error { background: #f8d7da; color: #721c24; }
+        
+        /* Loading & Empty */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #7f8c8d;
+        }
+        
+        /* Status Select */
+        select.status-select {
+            padding: 5px 10px;
+            border-radius: 20px;
+            border: 1px solid #ddd;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container { padding: 10px; }
+            .form-row { grid-template-columns: 1fr; }
+            .top-bar { flex-direction: column; }
+            .filters { flex-direction: column; width: 100%; }
+            .filters input { min-width: 100%; }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>🎛️ פאנל ניהול - פונפלה</h1>
+            <div>
+                <h1>🎛️ פאנל ניהול - פונפלה</h1>
+                <p style="color: #7f8c8d; margin-top: 5px;">שלום, <span id="adminName">אדמין</span></p>
+            </div>
             <button class="logout" onclick="logout()">יציאה</button>
         </header>
 
         <div id="message" class="message" style="display:none;"></div>
 
+        <!-- Stats -->
         <div class="stats">
             <div class="stat-card">
                 <div class="stat-number" id="pendingCount">-</div>
@@ -133,51 +291,190 @@
                 <div class="stat-number" id="ordersCount">-</div>
                 <div class="stat-label">הזמנות חדשות</div>
             </div>
+            <div class="stat-card">
+                <div class="stat-number" id="usersCount">-</div>
+                <div class="stat-label">משתמשים</div>
+            </div>
         </div>
 
+        <!-- Tabs -->
         <div class="tabs">
-            <button class="tab active" onclick="switchTab('warranties')">ניהול אחריות</button>
+            <button class="tab active" onclick="switchTab('warranties')">אחריות</button>
             <button class="tab" onclick="switchTab('orders')">הזמנות</button>
             <button class="tab" onclick="switchTab('products')">מוצרים</button>
             <button class="tab" onclick="switchTab('users')">משתמשים</button>
         </div>
 
+        <!-- Warranties Section -->
         <div id="warrantiesSection" class="section active">
             <h2>ניהול אחריות</h2>
-            <div class="filters">
-                <input type="text" id="searchWarranties" placeholder="חיפוש..." oninput="filterWarranties()">
-                <select id="filterStatus" onchange="filterWarranties()">
-                    <option value="">כל הסטטוסים</option>
-                    <option value="ממתין לאישור">ממתין לאישור</option>
-                    <option value="בתוקף">בתוקף</option>
-                    <option value="נדחה">נדחה</option>
-                    <option value="פג תוקף">פג תוקף</option>
-                </select>
+            <div class="top-bar">
+                <div class="filters">
+                    <input type="text" id="searchWarranties" placeholder="חיפוש..." oninput="filterWarranties()">
+                    <select id="filterStatus" onchange="filterWarranties()">
+                        <option value="">כל הסטטוסים</option>
+                        <option value="ממתין לאישור">ממתין לאישור</option>
+                        <option value="בתוקף">בתוקף</option>
+                        <option value="נדחה">נדחה</option>
+                        <option value="פג תוקף">פג תוקף</option>
+                    </select>
+                </div>
+                <button class="btn btn-success" onclick="exportWarrantiesToCSV()">📥 ייצוא CSV</button>
             </div>
             <div id="warrantiesLoading" class="loading">טוען...</div>
             <div id="warrantiesContent"></div>
         </div>
 
+        <!-- Orders Section -->
         <div id="ordersSection" class="section">
             <h2>ניהול הזמנות</h2>
-            <div id="ordersContent" class="loading">טוען...</div>
+            <div id="ordersLoading" class="loading">טוען...</div>
+            <div id="ordersContent"></div>
         </div>
 
+        <!-- Products Section -->
         <div id="productsSection" class="section">
             <h2>ניהול מוצרים</h2>
-            <div id="productsContent" class="loading">טוען...</div>
+            <button class="btn btn-primary" onclick="openProductModal()" style="margin-bottom: 20px;">+ הוספת מוצר</button>
+            <div id="productsLoading" class="loading">טוען...</div>
+            <div id="productsContent"></div>
         </div>
 
+        <!-- Users Section -->
         <div id="usersSection" class="section">
             <h2>ניהול משתמשים</h2>
-            <div id="usersContent" class="loading">טוען...</div>
+            <div id="usersLoading" class="loading">טוען...</div>
+            <div id="usersContent"></div>
+        </div>
+    </div>
+
+    <!-- Product Modal -->
+    <div class="modal" id="productModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="productModalTitle">הוספת מוצר</h3>
+                <button class="close-modal" onclick="closeProductModal()">×</button>
+            </div>
+            <form id="productForm" onsubmit="saveProduct(event)">
+                <input type="hidden" id="productId">
+                <div class="form-group">
+                    <label>שם המוצר *</label>
+                    <input type="text" id="productName" required>
+                </div>
+                <div class="form-group">
+                    <label>תיאור</label>
+                    <textarea id="productDescription"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>מחיר *</label>
+                        <input type="number" id="productPrice" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label>קישור לתמונה</label>
+                        <input type="text" id="productImage">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>במלאי</label>
+                        <select id="productInStock">
+                            <option value="true">כן</option>
+                            <option value="false">לא</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>יש אחריות</label>
+                        <select id="productHasWarranty">
+                            <option value="false">לא</option>
+                            <option value="true">כן (שנה ויום)</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">שמור</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Reset Password Modal -->
+    <div class="modal" id="resetPasswordModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>איפוס סיסמה</h3>
+                <button class="close-modal" onclick="closeResetPasswordModal()">×</button>
+            </div>
+            <form id="resetPasswordForm" onsubmit="resetPassword(event)">
+                <input type="hidden" id="resetUserEmail">
+                <p style="margin-bottom: 20px;">משתמש: <strong id="resetUserName"></strong></p>
+                <div class="form-group">
+                    <label>סיסמה חדשה *</label>
+                    <input type="password" id="newPassword" minlength="6" required>
+                </div>
+                <button type="submit" class="btn btn-primary">שנה סיסמה</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Assign User Modal -->
+    <div class="modal" id="assignUserModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>שיוך למשתמש</h3>
+                <button class="close-modal" onclick="closeAssignUserModal()">×</button>
+            </div>
+            <form id="assignUserForm" onsubmit="assignUser(event)">
+                <input type="hidden" id="assignWarrantyId">
+                <div class="form-group">
+                    <label>בחר משתמש</label>
+                    <select id="assignUserId">
+                        <option value="">ללא משתמש</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">שייך</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Dates Modal -->
+    <div class="modal" id="editDatesModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>עריכת תאריכים</h3>
+                <button class="close-modal" onclick="closeEditDatesModal()">×</button>
+            </div>
+            <form id="editDatesForm" onsubmit="saveDates(event)">
+                <input type="hidden" id="datesWarrantyId">
+                <div class="form-group">
+                    <label>תאריך רכישה</label>
+                    <input type="date" id="editPurchaseDate" required>
+                </div>
+                <div class="form-group">
+                    <label>תוקף אחריות</label>
+                    <input type="date" id="editExpiryDate" required>
+                </div>
+                <button type="submit" class="btn btn-primary">שמור</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Order Details Modal -->
+    <div class="modal" id="orderModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>פרטי הזמנה</h3>
+                <button class="close-modal" onclick="closeOrderModal()">×</button>
+            </div>
+            <div id="orderDetails"></div>
         </div>
     </div>
 
     <script>
         const API_URL = 'https://ponpela-backend-production.up.railway.app';
         let allWarranties = [];
+        let allUsers = [];
+        let currentProduct = null;
 
+        // Auth Check
         async function checkAuth() {
             const token = localStorage.getItem('token');
             if (!token) {
@@ -197,7 +494,9 @@
                     return;
                 }
 
+                document.getElementById('adminName').textContent = user.full_name;
                 loadDashboard();
+                
             } catch (err) {
                 window.location.href = '/account.html';
             }
@@ -222,19 +521,37 @@
 
         async function loadDashboard() {
             const token = localStorage.getItem('token');
-            const res = await fetch(`${API_URL}/api/admin/warranties`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const warranties = await res.json();
             
-            document.getElementById('pendingCount').textContent = 
-                warranties.filter(w => w.status === 'ממתין לאישור').length;
-            document.getElementById('activeCount').textContent = 
-                warranties.filter(w => w.status === 'בתוקף').length;
+            try {
+                const [warranties, orders, users] = await Promise.all([
+                    fetch(`${API_URL}/api/admin/warranties`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    }).then(r => r.json()),
+                    fetch(`${API_URL}/api/admin/orders`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    }).then(r => r.json()),
+                    fetch(`${API_URL}/api/admin/users`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    }).then(r => r.json())
+                ]);
+                
+                document.getElementById('pendingCount').textContent = 
+                    warranties.filter(w => w.status === 'ממתין לאישור').length;
+                document.getElementById('activeCount').textContent = 
+                    warranties.filter(w => w.status === 'בתוקף').length;
+                document.getElementById('ordersCount').textContent = 
+                    orders.filter(o => o.status === 'pending').length;
+                document.getElementById('usersCount').textContent = users.length;
 
-            loadWarranties();
+                allUsers = users;
+                loadWarranties();
+                
+            } catch (err) {
+                console.error('Dashboard error:', err);
+            }
         }
 
+        // Warranties
         async function loadWarranties() {
             const token = localStorage.getItem('token');
             const loading = document.getElementById('warrantiesLoading');
@@ -259,42 +576,48 @@
             const content = document.getElementById('warrantiesContent');
             
             if (warranties.length === 0) {
-                content.innerHTML = '<p style="text-align:center;padding:40px;color:#7f8c8d;">אין אחריות</p>';
+                content.innerHTML = '<p class="empty-state">אין אחריות</p>';
                 return;
             }
 
             content.innerHTML = `
-                <table>
-                    <tr>
-                        <th>מספר מכשיר</th>
-                        <th>שם</th>
-                        <th>טלפון</th>
-                        <th>תאריך רכישה</th>
-                        <th>תוקף</th>
-                        <th>סטטוס</th>
-                        <th>פעולות</th>
-                    </tr>
-                    ${warranties.map(w => `
+                <div class="table-container">
+                    <table>
                         <tr>
-                            <td onclick="editMachineNumber(${w.id}, '${w.machine_number}')" style="cursor:pointer;text-decoration:underline;">${w.machine_number}</td>
-                            <td>${w.customer_name}</td>
-                            <td>${w.customer_phone}</td>
-                            <td>${new Date(w.purchase_date).toLocaleDateString('he-IL')}</td>
-                            <td>${new Date(w.expiry_date).toLocaleDateString('he-IL')}</td>
-                            <td>
-                                <select class="status-select" onchange="updateStatus(${w.id}, this.value)">
-                                    <option value="ממתין לאישור" ${w.status === 'ממתין לאישור' ? 'selected' : ''}>ממתין</option>
-                                    <option value="בתוקף" ${w.status === 'בתוקף' ? 'selected' : ''}>בתוקף</option>
-                                    <option value="נדחה" ${w.status === 'נדחה' ? 'selected' : ''}>נדחה</option>
-                                    <option value="פג תוקף" ${w.status === 'פג תוקף' ? 'selected' : ''}>פג תוקף</option>
-                                </select>
-                            </td>
-                            <td>
-                                <button class="btn btn-delete" onclick="deleteWarranty(${w.id})">מחק</button>
-                            </td>
+                            <th>מספר מכשיר</th>
+                            <th>שם</th>
+                            <th>טלפון</th>
+                            <th>תאריך רכישה</th>
+                            <th>תוקף</th>
+                            <th>סטטוס</th>
+                            <th>משתמש</th>
+                            <th>פעולות</th>
                         </tr>
-                    `).join('')}
-                </table>
+                        ${warranties.map(w => `
+                            <tr>
+                                <td class="clickable" onclick="editMachineNumber(${w.id}, '${w.machine_number}')">${w.machine_number}</td>
+                                <td>${w.customer_name}</td>
+                                <td>${w.customer_phone}</td>
+                                <td class="clickable" onclick="openEditDatesModal(${w.id}, '${w.purchase_date}', '${w.expiry_date}')">${new Date(w.purchase_date).toLocaleDateString('he-IL')}</td>
+                                <td>${new Date(w.expiry_date).toLocaleDateString('he-IL')}</td>
+                                <td>
+                                    <select class="status-select" onchange="updateStatus(${w.id}, this.value)">
+                                        <option value="ממתין לאישור" ${w.status === 'ממתין לאישור' ? 'selected' : ''}>ממתין</option>
+                                        <option value="בתוקף" ${w.status === 'בתוקף' ? 'selected' : ''}>בתוקף</option>
+                                        <option value="נדחה" ${w.status === 'נדחה' ? 'selected' : ''}>נדחה</option>
+                                        <option value="פג תוקף" ${w.status === 'פג תוקף' ? 'selected' : ''}>פג תוקף</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <span class="clickable" onclick="openAssignUserModal(${w.id}, ${w.user_id})">${w.user_id ? 'שויך' : 'לא שויך'}</span>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-delete" onclick="deleteWarranty(${w.id})">מחק</button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </table>
+                </div>
             `;
         }
 
@@ -311,7 +634,6 @@
                     w.customer_phone.includes(search)
                 );
             }
-            
             renderWarranties(filtered);
         }
 
@@ -329,7 +651,7 @@
                 showMessage('סטטוס עודכן', 'success');
                 loadDashboard();
             } catch (err) {
-                showMessage('שגיאה בעדכון', 'error');
+                showMessage('שגיאה', 'error');
             }
         }
 
@@ -354,13 +676,12 @@
                 showMessage('מספר מכשיר עודכן', 'success');
                 loadWarranties();
             } catch (err) {
-                showMessage('שגיאה בעדכון', 'error');
+                showMessage('שגיאה', 'error');
             }
         }
 
         async function deleteWarranty(id) {
             if (!confirm('למחוק אחריות זו?')) return;
-            
             const token = localStorage.getItem('token');
             try {
                 await fetch(`${API_URL}/api/admin/warranty/${id}`, {
@@ -371,40 +692,455 @@
                 loadWarranties();
                 loadDashboard();
             } catch (err) {
-                showMessage('שגיאה במחיקה', 'error');
+                showMessage('שגיאה', 'error');
             }
         }
 
+        function exportWarrantiesToCSV() {
+            if (allWarranties.length === 0) {
+                alert('אין נתונים לייצוא');
+                return;
+            }
+
+            const headers = ['מספר מכשיר', 'שם', 'טלפון', 'תאריך רכישה', 'תוקף', 'סטטוס'];
+            const rows = allWarranties.map(w => [
+                w.machine_number,
+                w.customer_name,
+                w.customer_phone,
+                new Date(w.purchase_date).toLocaleDateString('he-IL'),
+                new Date(w.expiry_date).toLocaleDateString('he-IL'),
+                w.status
+            ]);
+
+            let csv = '\uFEFF' + headers.join(',') + '\n';
+            rows.forEach(row => {
+                csv += row.map(cell => `"${cell}"`).join(',') + '\n';
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `warranties_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+        }
+
+        // Assign User Modal
+        function openAssignUserModal(warrantyId, currentUserId) {
+            document.getElementById('assignWarrantyId').value = warrantyId;
+            
+            const select = document.getElementById('assignUserId');
+            select.innerHTML = '<option value="">ללא משתמש</option>';
+            allUsers.forEach(u => {
+                const option = document.createElement('option');
+                option.value = u.id;
+                option.textContent = `${u.full_name} (${u.email})`;
+                if (u.id === currentUserId) option.selected = true;
+                select.appendChild(option);
+            });
+            
+            document.getElementById('assignUserModal').classList.add('active');
+        }
+
+        function closeAssignUserModal() {
+            document.getElementById('assignUserModal').classList.remove('active');
+        }
+
+        async function assignUser(e) {
+            e.preventDefault();
+            const token = localStorage.getItem('token');
+            const warrantyId = document.getElementById('assignWarrantyId').value;
+            const userId = document.getElementById('assignUserId').value || null;
+            
+            try {
+                await fetch(`${API_URL}/api/admin/warranty/${warrantyId}/assign-user`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ user_id: userId })
+                });
+                showMessage('משתמש שויך', 'success');
+                closeAssignUserModal();
+                loadWarranties();
+            } catch (err) {
+                showMessage('שגיאה', 'error');
+            }
+        }
+
+        // Edit Dates Modal
+        function openEditDatesModal(warrantyId, purchaseDate, expiryDate) {
+            document.getElementById('datesWarrantyId').value = warrantyId;
+            document.getElementById('editPurchaseDate').value = purchaseDate.split('T')[0];
+            document.getElementById('editExpiryDate').value = expiryDate.split('T')[0];
+            document.getElementById('editDatesModal').classList.add('active');
+        }
+
+        function closeEditDatesModal() {
+            document.getElementById('editDatesModal').classList.remove('active');
+        }
+
+        async function saveDates(e) {
+            e.preventDefault();
+            const token = localStorage.getItem('token');
+            const warrantyId = document.getElementById('datesWarrantyId').value;
+            const purchaseDate = document.getElementById('editPurchaseDate').value;
+            const expiryDate = document.getElementById('editExpiryDate').value;
+            
+            try {
+                await fetch(`${API_URL}/api/admin/warranty/${warrantyId}/dates`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ purchase_date: purchaseDate, expiry_date: expiryDate })
+                });
+                showMessage('תאריכים עודכנו', 'success');
+                closeEditDatesModal();
+                loadWarranties();
+            } catch (err) {
+                showMessage('שגיאה', 'error');
+            }
+        }
+
+        // Products
+        async function loadProducts() {
+            const token = localStorage.getItem('token');
+            const loading = document.getElementById('productsLoading');
+            const content = document.getElementById('productsContent');
+            
+            loading.style.display = 'block';
+            content.innerHTML = '';
+
+            try {
+                const res = await fetch(`${API_URL}/api/products`);
+                const products = await res.json();
+                loading.style.display = 'none';
+                
+                if (products.length === 0) {
+                    content.innerHTML = '<p class="empty-state">אין מוצרים</p>';
+                    return;
+                }
+
+                content.innerHTML = `
+                    <div class="table-container">
+                        <table>
+                            <tr>
+                                <th>שם</th>
+                                <th>תיאור</th>
+                                <th>מחיר</th>
+                                <th>במלאי</th>
+                                <th>אחריות</th>
+                                <th>פעולות</th>
+                            </tr>
+                            ${products.map(p => `
+                                <tr>
+                                    <td>${p.name}</td>
+                                    <td>${p.description || '-'}</td>
+                                    <td>₪${p.price}</td>
+                                    <td>${p.in_stock ? '✓' : '✗'}</td>
+                                    <td>${p.has_warranty ? '✓' : '✗'}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-edit" onclick="editProduct(${p.id})">ערוך</button>
+                                        <button class="btn btn-sm btn-delete" onclick="deleteProduct(${p.id})">מחק</button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </table>
+                    </div>
+                `;
+            } catch (err) {
+                loading.innerHTML = 'שגיאה';
+            }
+        }
+
+        function openProductModal(product = null) {
+            const modal = document.getElementById('productModal');
+            const title = document.getElementById('productModalTitle');
+            
+            if (product) {
+                title.textContent = 'עריכת מוצר';
+                document.getElementById('productId').value = product.id;
+                document.getElementById('productName').value = product.name;
+                document.getElementById('productDescription').value = product.description || '';
+                document.getElementById('productPrice').value = product.price;
+                document.getElementById('productImage').value = product.image_url || '';
+                document.getElementById('productInStock').value = product.in_stock.toString();
+                document.getElementById('productHasWarranty').value = product.has_warranty.toString();
+            } else {
+                title.textContent = 'הוספת מוצר';
+                document.getElementById('productForm').reset();
+                document.getElementById('productId').value = '';
+            }
+            
+            modal.classList.add('active');
+        }
+
+        function closeProductModal() {
+            document.getElementById('productModal').classList.remove('active');
+        }
+
+        async function saveProduct(e) {
+            e.preventDefault();
+            const token = localStorage.getItem('token');
+            const id = document.getElementById('productId').value;
+            
+            const productData = {
+                name: document.getElementById('productName').value,
+                description: document.getElementById('productDescription').value,
+                price: parseFloat(document.getElementById('productPrice').value),
+                image_url: document.getElementById('productImage').value,
+                in_stock: document.getElementById('productInStock').value === 'true',
+                has_warranty: document.getElementById('productHasWarranty').value === 'true'
+            };
+
+            try {
+                const url = id ? `${API_URL}/api/admin/products/${id}` : `${API_URL}/api/admin/products`;
+                const method = id ? 'PUT' : 'POST';
+                
+                await fetch(url, {
+                    method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(productData)
+                });
+
+                showMessage(id ? 'מוצר עודכן' : 'מוצר נוסף', 'success');
+                closeProductModal();
+                loadProducts();
+            } catch (err) {
+                showMessage('שגיאה', 'error');
+            }
+        }
+
+        async function editProduct(id) {
+            const token = localStorage.getItem('token');
+            try {
+                const res = await fetch(`${API_URL}/api/admin/products/${id}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const product = await res.json();
+                openProductModal(product);
+            } catch (err) {
+                showMessage('שגיאה', 'error');
+            }
+        }
+
+        async function deleteProduct(id) {
+            if (!confirm('למחוק מוצר זה?')) return;
+            const token = localStorage.getItem('token');
+            try {
+                await fetch(`${API_URL}/api/admin/products/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                showMessage('מוצר נמחק', 'success');
+                loadProducts();
+            } catch (err) {
+                showMessage('שגיאה', 'error');
+            }
+        }
+
+        // Orders
         async function loadOrders() {
             const token = localStorage.getItem('token');
+            const loading = document.getElementById('ordersLoading');
             const content = document.getElementById('ordersContent');
+            
+            loading.style.display = 'block';
+            content.innerHTML = '';
+
             try {
                 const res = await fetch(`${API_URL}/api/admin/orders`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const orders = await res.json();
-                content.innerHTML = `<p>סה"כ ${orders.length} הזמנות</p>`;
+                loading.style.display = 'none';
+                
+                if (orders.length === 0) {
+                    content.innerHTML = '<p class="empty-state">אין הזמנות</p>';
+                    return;
+                }
+
+                content.innerHTML = `
+                    <div class="table-container">
+                        <table>
+                            <tr>
+                                <th>מספר</th>
+                                <th>לקוח</th>
+                                <th>סכום</th>
+                                <th>סטטוס</th>
+                                <th>תאריך</th>
+                                <th>פעולות</th>
+                            </tr>
+                            ${orders.map(o => `
+                                <tr>
+                                    <td>#${o.id}</td>
+                                    <td>${o.full_name || o.email}</td>
+                                    <td>₪${o.total_amount}</td>
+                                    <td>
+                                        <select class="status-select" onchange="updateOrderStatus(${o.id}, this.value)">
+                                            <option value="pending" ${o.status === 'pending' ? 'selected' : ''}>ממתין</option>
+                                            <option value="completed" ${o.status === 'completed' ? 'selected' : ''}>הושלם</option>
+                                            <option value="cancelled" ${o.status === 'cancelled' ? 'selected' : ''}>בוטל</option>
+                                        </select>
+                                    </td>
+                                    <td>${new Date(o.created_at).toLocaleDateString('he-IL')}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-edit" onclick="viewOrder(${o.id})">צפה</button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </table>
+                    </div>
+                `;
             } catch (err) {
-                content.innerHTML = 'שגיאה בטעינה';
+                loading.innerHTML = 'שגיאה';
             }
         }
 
-        async function loadProducts() {
-            const content = document.getElementById('productsContent');
+        async function updateOrderStatus(id, status) {
+            const token = localStorage.getItem('token');
             try {
-                const res = await fetch(`${API_URL}/api/products`);
-                const products = await res.json();
-                content.innerHTML = `<p>סה"כ ${products.length} מוצרים</p>`;
+                await fetch(`${API_URL}/api/admin/orders/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ status })
+                });
+                showMessage('סטטוס עודכן', 'success');
             } catch (err) {
-                content.innerHTML = 'שגיאה בטעינה';
+                showMessage('שגיאה', 'error');
             }
         }
 
-        async function loadUsers() {
-            const content = document.getElementById('usersContent');
-            content.innerHTML = '<p>טוען...</p>';
+        async function viewOrder(id) {
+            const token = localStorage.getItem('token');
+            try {
+                const res = await fetch(`${API_URL}/api/admin/order/${id}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const order = await res.json();
+                
+                const details = `
+                    <div>
+                        <p><strong>לקוח:</strong> ${order.full_name}</p>
+                        <p><strong>אימייל:</strong> ${order.email}</p>
+                        <p><strong>טלפון:</strong> ${order.phone || '-'}</p>
+                        <p><strong>כתובת:</strong> ${order.shipping_address || '-'}</p>
+                        <p><strong>סכום:</strong> ₪${order.total_amount}</p>
+                        <p><strong>סטטוס:</strong> ${order.status}</p>
+                        <h4 style="margin-top: 20px;">מוצרים:</h4>
+                        <table style="width:100%; margin-top:10px;">
+                            <tr><th>מוצר</th><th>כמות</th><th>מחיר</th></tr>
+                            ${order.items.map(item => `
+                                <tr>
+                                    <td>${item.product_name}</td>
+                                    <td>${item.quantity}</td>
+                                    <td>₪${item.price}</td>
+                                </tr>
+                            `).join('')}
+                        </table>
+                    </div>
+                `;
+                
+                document.getElementById('orderDetails').innerHTML = details;
+                document.getElementById('orderModal').classList.add('active');
+            } catch (err) {
+                showMessage('שגיאה', 'error');
+            }
         }
 
+        function closeOrderModal() {
+            document.getElementById('orderModal').classList.remove('active');
+        }
+
+        // Users
+        async function loadUsers() {
+            const token = localStorage.getItem('token');
+            const loading = document.getElementById('usersLoading');
+            const content = document.getElementById('usersContent');
+            
+            loading.style.display = 'block';
+            content.innerHTML = '';
+
+            try {
+                const res = await fetch(`${API_URL}/api/admin/users`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const users = await res.json();
+                loading.style.display = 'none';
+
+                content.innerHTML = `
+                    <div class="table-container">
+                        <table>
+                            <tr>
+                                <th>שם</th>
+                                <th>אימייל</th>
+                                <th>טלפון</th>
+                                <th>אדמין</th>
+                                <th>תאריך הצטרפות</th>
+                                <th>פעולות</th>
+                            </tr>
+                            ${users.map(u => `
+                                <tr>
+                                    <td>${u.full_name}</td>
+                                    <td>${u.email}</td>
+                                    <td>${u.phone || '-'}</td>
+                                    <td>${u.is_admin ? '✓' : '✗'}</td>
+                                    <td>${new Date(u.created_at).toLocaleDateString('he-IL')}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-edit" onclick="openResetPasswordModal('${u.email}', '${u.full_name}')">איפוס סיסמה</button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </table>
+                    </div>
+                `;
+            } catch (err) {
+                loading.innerHTML = 'שגיאה';
+            }
+        }
+
+        function openResetPasswordModal(email, name) {
+            document.getElementById('resetUserEmail').value = email;
+            document.getElementById('resetUserName').textContent = name;
+            document.getElementById('newPassword').value = '';
+            document.getElementById('resetPasswordModal').classList.add('active');
+        }
+
+        function closeResetPasswordModal() {
+            document.getElementById('resetPasswordModal').classList.remove('active');
+        }
+
+        async function resetPassword(e) {
+            e.preventDefault();
+            const token = localStorage.getItem('token');
+            const email = document.getElementById('resetUserEmail').value;
+            const newPassword = document.getElementById('newPassword').value;
+            
+            try {
+                await fetch(`${API_URL}/api/admin/reset-user-password`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ user_email: email, new_password: newPassword })
+                });
+                showMessage('סיסמה אופסה', 'success');
+                closeResetPasswordModal();
+            } catch (err) {
+                showMessage('שגיאה', 'error');
+            }
+        }
+
+        // Utility
         function showMessage(text, type) {
             const msg = document.getElementById('message');
             msg.textContent = text;
@@ -413,6 +1149,7 @@
             setTimeout(() => msg.style.display = 'none', 3000);
         }
 
+        // Init
         checkAuth();
     </script>
 </body>
