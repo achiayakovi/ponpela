@@ -138,9 +138,6 @@
             padding: 10px 20px;
             border-radius: 8px;
             transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
         }
 
         .account-link:hover {
@@ -175,19 +172,17 @@
             color: white;
         }
 
-        /* מסכים בינוניים - רק אייקון */
-        @media (max-width: 1100px) and (min-width: 769px) {
-            .account-text {
-                display: none;
-            }
-            
-            .account-link {
-                padding: 10px 15px;
-            }
-        }
-
         @media (max-width: 768px) {
             nav {
+                display: block;
+                background: transparent;
+                box-shadow: none;
+                padding: 0;
+                height: 0;
+                overflow: visible;
+            }
+
+            .nav-menu {
                 display: none;
             }
 
@@ -195,21 +190,21 @@
                 position: fixed;
                 left: 15px;
                 top: 85px;
+                transform: none;
+                background: white;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                padding: 12px;
+                border-radius: 50%;
                 width: 50px;
                 height: 50px;
-                border-radius: 50%;
-                background: white;
-                color: #2d7a8e;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-                z-index: 1000;
-                padding: 0;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 font-size: 1.5rem;
+                z-index: 1000;
             }
 
-            .account-text {
+            .account-link .account-text {
                 display: none;
             }
 
@@ -264,6 +259,16 @@
         @media (min-width: 769px) {
             .bottom-nav {
                 display: none;
+            }
+        }
+
+        @media (min-width: 769px) and (max-width: 1100px) {
+            .account-link .account-text {
+                display: none;
+            }
+
+            .account-link {
+                padding: 10px 15px;
             }
         }
 
@@ -593,7 +598,7 @@
             }
 
             footer {
-                margin-top: 0;
+             margin-top: 80px;
             }
 
         }
@@ -824,8 +829,6 @@
             
             return false;
         }
-
-        // עדכון דינמי של margin-bottom של הפוטר לפי גובה התפריט
 
         // מעקב אחר הורדת עלון
 const API_URL = 'https://ponpela-backend-production.up.railway.app';
