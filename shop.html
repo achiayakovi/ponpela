@@ -140,6 +140,64 @@
             color: white;
         }
 
+        /* Toast Notifications */
+        .toast {
+            position: fixed;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+            z-index: 10000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            font-weight: 600;
+            border-right: 4px solid #27ae60;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        .toast.error {
+            border-right-color: #e74c3c;
+        }
+
+        /* Quantity Selector */
+        .quantity-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .quantity-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .quantity-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .quantity-display {
+            flex: 1;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #2d7a8e;
+        }
+
         @media (max-width: 768px) {
             nav {
                 display: block;
@@ -155,23 +213,23 @@
                 display: none;
             }
 
-.account-link {
-    position: fixed;
-    left: 15px;
-    top: 150px;
-    transform: none;
-    background: white;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    padding: 12px;
-    border-radius: 50%;
-    width: 45px;
-    height: 45px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.3rem;
-    z-index: 1000;
-}
+            .account-link {
+                position: fixed;
+                left: 15px;
+                top: 150px;
+                transform: none;
+                background: white;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                padding: 12px;
+                border-radius: 50%;
+                width: 45px;
+                height: 45px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.3rem;
+                z-index: 1000;
+            }
 
             .account-link .account-text {
                 display: none;
@@ -217,6 +275,11 @@
             
             main {
                 padding-bottom: 80px;
+            }
+
+            .toast {
+                top: 80px;
+                max-width: 90%;
             }
         }
 
@@ -870,7 +933,24 @@
 
     <script>
         const API_URL = 'https://ponpela-backend-production.up.railway.app';
-        let allProducts = []; // לסינון קטגוריות
+        let allProducts = [];
+
+        // Toast notification
+        function showToast(message, type = 'success') {
+            const existing = document.querySelector('.toast');
+            if (existing) existing.remove();
+
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
 
         // טעינת מוצרים
         async function loadProducts() {
@@ -891,7 +971,6 @@
         function displayProducts(products) {
             const container = document.getElementById('productsContainer');
             
-            // שמירה לסינון קטגוריות (רק בטעינה ראשונית)
             if (products.length > 0 && allProducts.length === 0) {
                 allProducts = products;
             }
@@ -901,16 +980,19 @@
                 return;
             }
 
-            // הצגת סינון קטגוריות אם יש מוצרים
             const categoryFilter = document.getElementById('categoryFilter');
             if (categoryFilter && products.length > 0) {
                 categoryFilter.style.display = 'flex';
             }
 
+            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+
             container.innerHTML = products.map(product => {
                 const finalPrice = product.sale_price || product.price;
                 const hasStock = product.stock_quantity > 0;
                 const lowStock = product.stock_quantity > 0 && product.stock_quantity <= 10;
+                const cartItem = cart.find(item => item.id === product.id);
+                const inCart = cartItem ? cartItem.quantity : 0;
                 
                 return `
                 <div class="product-card">
@@ -948,15 +1030,110 @@
                         📋 פרטים נוספים
                     </button>
                     
-                    <button 
-                        class="add-to-cart-btn" 
-                        onclick="addToCart(${product.id}, '${product.name.replace(/'/g, "\\'")}', ${finalPrice}, ${product.stock_quantity})"
-                        ${!hasStock ? 'disabled' : ''}
-                    >
-                        ${hasStock ? 'הוסף לעגלה' : 'אזל מהמלאי'}
-                    </button>
+                    <div id="cart-btn-${product.id}">
+                        ${inCart > 0 ? 
+                            `<div class="quantity-selector">
+                                <button class="quantity-btn" onclick="updateQuantity(${product.id}, ${inCart - 1}, ${product.stock_quantity})">-</button>
+                                <div class="quantity-display">${inCart}</div>
+                                <button class="quantity-btn" onclick="updateQuantity(${product.id}, ${inCart + 1}, ${product.stock_quantity})">+</button>
+                            </div>` :
+                            `<button 
+                                class="add-to-cart-btn" 
+                                onclick="addToCart(${product.id}, '${product.name.replace(/'/g, "\\'")}', ${finalPrice}, ${product.stock_quantity})"
+                                ${!hasStock ? 'disabled' : ''}
+                            >
+                                ${hasStock ? 'הוסף לעגלה' : 'אזל מהמלאי'}
+                            </button>`
+                        }
+                    </div>
                 </div>
             `}).join('');
+        }
+
+        // עדכון כמות
+        function updateQuantity(productId, newQuantity, maxStock) {
+            let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            
+            if (newQuantity <= 0) {
+                cart = cart.filter(item => item.id !== productId);
+                showToast('המוצר הוסר מהעגלה');
+            } else if (newQuantity > maxStock) {
+                showToast(`אין מספיק מלאי. נשארו ${maxStock} יחידות בלבד.`, 'error');
+                return;
+            } else {
+                const item = cart.find(item => item.id === productId);
+                if (item) {
+                    item.quantity = newQuantity;
+                }
+            }
+            
+            localStorage.setItem('cart', JSON.stringify(cart));
+            updateCartBadge();
+            
+            // עדכון תצוגת הכפתור
+            const product = allProducts.find(p => p.id === productId);
+            if (product) {
+                const btnContainer = document.getElementById(`cart-btn-${productId}`);
+                const finalPrice = product.sale_price || product.price;
+                const hasStock = product.stock_quantity > 0;
+                
+                if (newQuantity > 0) {
+                    btnContainer.innerHTML = `
+                        <div class="quantity-selector">
+                            <button class="quantity-btn" onclick="updateQuantity(${productId}, ${newQuantity - 1}, ${product.stock_quantity})">-</button>
+                            <div class="quantity-display">${newQuantity}</div>
+                            <button class="quantity-btn" onclick="updateQuantity(${productId}, ${newQuantity + 1}, ${product.stock_quantity})">+</button>
+                        </div>
+                    `;
+                } else {
+                    btnContainer.innerHTML = `
+                        <button 
+                            class="add-to-cart-btn" 
+                            onclick="addToCart(${productId}, '${product.name.replace(/'/g, "\\'")}', ${finalPrice}, ${product.stock_quantity})"
+                            ${!hasStock ? 'disabled' : ''}
+                        >
+                            ${hasStock ? 'הוסף לעגלה' : 'אזל מהמלאי'}
+                        </button>
+                    `;
+                }
+            }
+        }
+
+        // הוספה לעגלה
+        function addToCart(productId, productName, price, stockQuantity) {
+            let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            
+            const existingItem = cart.find(item => item.id === productId);
+            if (existingItem) {
+                if (existingItem.quantity >= stockQuantity) {
+                    showToast(`אין מספיק מלאי. נשארו ${stockQuantity} יחידות בלבד.`, 'error');
+                    return;
+                }
+                existingItem.quantity++;
+            } else {
+                cart.push({ 
+                    id: productId, 
+                    name: productName, 
+                    price: price, 
+                    quantity: 1,
+                    maxStock: stockQuantity
+                });
+            }
+            
+            localStorage.setItem('cart', JSON.stringify(cart));
+            updateCartBadge();
+            showToast('המוצר נוסף לעגלה!');
+            
+            // החלף את הכפתור לבורר כמות
+            const btnContainer = document.getElementById(`cart-btn-${productId}`);
+            const currentQuantity = cart.find(item => item.id === productId).quantity;
+            btnContainer.innerHTML = `
+                <div class="quantity-selector">
+                    <button class="quantity-btn" onclick="updateQuantity(${productId}, ${currentQuantity - 1}, ${stockQuantity})">-</button>
+                    <div class="quantity-display">${currentQuantity}</div>
+                    <button class="quantity-btn" onclick="updateQuantity(${productId}, ${currentQuantity + 1}, ${stockQuantity})">+</button>
+                </div>
+            `;
         }
 
         // פתיחת Modal
@@ -1028,13 +1205,11 @@
 
         // סינון לפי קטגוריה
         function filterByCategory(category) {
-            // עדכון כפתורים
             document.querySelectorAll('.category-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
             event.target.classList.add('active');
 
-            // סינון מוצרים
             const filtered = category === '' ? 
                 allProducts : 
                 allProducts.filter(p => p.category === category);
@@ -1046,33 +1221,6 @@
             }
 
             displayProducts(filtered);
-        }
-
-        // הוספה לעגלה
-        function addToCart(productId, productName, price, stockQuantity) {
-            let cart = JSON.parse(localStorage.getItem('cart') || '[]');
-            
-            const existingItem = cart.find(item => item.id === productId);
-            if (existingItem) {
-                if (existingItem.quantity >= stockQuantity) {
-                    alert(`אין מספיק מלאי. נשארו ${stockQuantity} יחידות בלבד.`);
-                    return;
-                }
-                existingItem.quantity++;
-            } else {
-                cart.push({ 
-                    id: productId, 
-                    name: productName, 
-                    price: price, 
-                    quantity: 1,
-                    maxStock: stockQuantity
-                });
-            }
-            
-            localStorage.setItem('cart', JSON.stringify(cart));
-            updateCartBadge();
-            
-            alert('המוצר נוסף לעגלה!');
         }
 
         // הצגת/הסתרת כפתור scroll
@@ -1107,46 +1255,40 @@
             if (window.innerWidth <= 768 && bottomNav) {
                 const navHeight = bottomNav.offsetHeight;
                 
-                // הפוטר תמיד מעל התפריט
                 if (footer) footer.style.marginBottom = navHeight + 'px';
                 
-                // בדוק אם הפוטר קרוב לתחתית המסך
-                let buttonBottom = navHeight + 20; // ברירת מחדל: רק מעל התפריט
+                let buttonBottom = navHeight + 20;
                 
                 if (footer) {
                     const footerRect = footer.getBoundingClientRect();
                     const viewportHeight = window.innerHeight;
                     const footerDistanceFromBottom = viewportHeight - footerRect.top;
                     
-                    // אם הפוטר קרוב לתחתית (נמצא באזור התפריט)
                     if (footerDistanceFromBottom > 0 && footerDistanceFromBottom < viewportHeight) {
                         const footerHeight = footer.offsetHeight;
-                        buttonBottom = navHeight + footerHeight + 20; // מעל הפוטר
+                        buttonBottom = navHeight + footerHeight + 20;
                     }
                 }
                 
                 if (scrollBtn) scrollBtn.style.bottom = buttonBottom + 'px';
                 if (cartBtn) cartBtn.style.bottom = buttonBottom + 'px';
             } else {
-                // מחשב - בדוק אם הפוטר נראה בתחתית
                 if (footer) footer.style.marginBottom = '0';
                 
-                let buttonBottom = 30; // ברירת מחדל
+                let buttonBottom = 30;
                 
                 if (footer) {
                     const footerRect = footer.getBoundingClientRect();
                     const viewportHeight = window.innerHeight;
                     
-                    // רק אם גוללים קרוב לתחתית הדף - הכפתורים יעלו
                     const documentHeight = document.documentElement.scrollHeight;
                     const scrollPosition = window.scrollY + viewportHeight;
                     const nearBottom = documentHeight - scrollPosition < 100;
                     
-                    // אם הפוטר נראה בתחתית המסך וגללנו קרוב לתחתית
                     if (nearBottom && footerRect.top < viewportHeight) {
                         const footerVisible = viewportHeight - footerRect.top;
                         if (footerVisible > 0) {
-                            buttonBottom = footerVisible + 20; // מעל הפוטר
+                            buttonBottom = footerVisible + 20;
                         }
                     }
                 }
@@ -1156,12 +1298,6 @@
             }
         }
 
-        // אתחול
-        updateFooterAndButtons();
-        window.addEventListener('resize', updateFooterAndButtons);
-        window.addEventListener('scroll', updateFooterAndButtons);
-        loadProducts();
-        updateCartBadge();
         // הזזת כפתור איזור אישי בגלילה - רק במובייל
         function updateAccountButtonPosition() {
             if (window.innerWidth <= 768) {
@@ -1176,9 +1312,15 @@
             }
         }
 
+        // אתחול
+        updateFooterAndButtons();
+        window.addEventListener('resize', updateFooterAndButtons);
+        window.addEventListener('scroll', updateFooterAndButtons);
         window.addEventListener('scroll', updateAccountButtonPosition);
         window.addEventListener('resize', updateAccountButtonPosition);
         updateAccountButtonPosition();
+        loadProducts();
+        updateCartBadge();
     </script>
 </body>
 </html>
