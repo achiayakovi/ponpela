@@ -945,9 +945,27 @@ async function trackDownload(event) {
         }
 
         // קריאה בטעינה, שינוי גודל, וגלילה
-        updateFooterAndButtons();
+updateFooterAndButtons();
         window.addEventListener('resize', updateFooterAndButtons);
         window.addEventListener('scroll', updateFooterAndButtons);
+
+        // הזזת כפתור איזור אישי בגלילה - רק במובייל
+        function updateAccountButtonPosition() {
+            if (window.innerWidth <= 768) {
+                const accountLink = document.querySelector('.account-link');
+                if (accountLink) {
+                    if (window.scrollY > 140) {
+                        accountLink.style.top = '10px';
+                    } else {
+                        accountLink.style.top = '150px';
+                    }
+                }
+            }
+        }
+
+        window.addEventListener('scroll', updateAccountButtonPosition);
+        window.addEventListener('resize', updateAccountButtonPosition);
+        updateAccountButtonPosition();
     </script>
 </body>
 </html>
