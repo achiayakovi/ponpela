@@ -257,6 +257,105 @@
             margin-top: 60px;
         }
 
+        /* Modal Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-box {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.3);
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-box.success {
+            border-top: 5px solid #28a745;
+        }
+
+        .modal-box.error {
+            border-top: 5px solid #dc3545;
+        }
+
+        .modal-box.info {
+            border-top: 5px solid #17a2b8;
+        }
+
+        .modal-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+
+        .modal-box.success .modal-icon {
+            color: #28a745;
+        }
+
+        .modal-box.error .modal-icon {
+            color: #dc3545;
+        }
+
+        .modal-box.info .modal-icon {
+            color: #17a2b8;
+        }
+
+        .modal-message {
+            font-size: 1.3rem;
+            margin-bottom: 30px;
+            line-height: 1.6;
+            color: #2c3e50;
+        }
+
+        .modal-btn {
+            padding: 12px 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .modal-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
         /* Scroll Top Button */
         .scroll-top-btn {
             position: fixed;
@@ -415,6 +514,14 @@
                 font-size: 1.5rem;
             }
 
+            .modal-box {
+                padding: 30px 20px;
+            }
+
+            .modal-message {
+                font-size: 1.1rem;
+            }
+
             .scroll-top-btn {
                 bottom: 90px;
                 right: 15px;
@@ -550,12 +657,48 @@
     <script>
         const API_URL = 'https://ponpela-backend-production.up.railway.app';
 
+        // Modal Function
+        function showModal(message, type = 'info', callback = null) {
+            const icons = {
+                success: '✓',
+                error: '✗',
+                info: 'ℹ'
+            };
+
+            const overlay = document.createElement('div');
+            overlay.className = 'modal-overlay show';
+            overlay.innerHTML = `
+                <div class="modal-box ${type}">
+                    <div class="modal-icon">${icons[type]}</div>
+                    <div class="modal-message">${message}</div>
+                    <button class="modal-btn">אישור</button>
+                </div>
+            `;
+            
+            document.body.appendChild(overlay);
+            
+            const btn = overlay.querySelector('.modal-btn');
+            const closeModal = () => {
+                overlay.classList.remove('show');
+                setTimeout(() => {
+                    overlay.remove();
+                    if (callback) callback();
+                }, 300);
+            };
+
+            btn.onclick = closeModal;
+            overlay.onclick = (e) => {
+                if (e.target === overlay) closeModal();
+            };
+        }
+
         function loadOrderSummary() {
             const cart = JSON.parse(localStorage.getItem('cart') || '[]');
             
             if (cart.length === 0) {
-                alert('העגלה ריקה');
-                window.location.href = 'shop.html';
+                showModal('העגלה ריקה', 'error', () => {
+                    window.location.href = 'shop.html';
+                });
                 return;
             }
 
@@ -579,8 +722,9 @@
         async function loadUserProfile() {
             const token = localStorage.getItem('token');
             if (!token) {
-                alert('יש להתחבר כדי להשלים הזמנה');
-                window.location.href = 'account.html';
+                showModal('יש להתחבר כדי להשלים הזמנה', 'error', () => {
+                    window.location.href = 'account.html';
+                });
                 return;
             }
 
@@ -638,11 +782,12 @@
                 // ניקוי עגלה
                 localStorage.removeItem('cart');
                 
-                alert('ההזמנה נשלחה בהצלחה! מספר הזמנה: ' + order.id);
-                window.location.href = 'account.html';
+                showModal(`ההזמנה נשלחה בהצלחה!<br><br>מספר הזמנה: ${order.id}`, 'success', () => {
+                    window.location.href = 'account.html';
+                });
             } catch (error) {
                 console.error('Error:', error);
-                alert('שגיאה בשליחת ההזמנה. נסה שוב.');
+                showModal('שגיאה בשליחת ההזמנה. אנא נסה שוב.', 'error');
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'שלח הזמנה';
             }
