@@ -235,11 +235,6 @@
             box-shadow: 0 20px 50px rgba(0,0,0,0.2);
         }
 
-        .product-card:hover .product-description {
-            max-height: 500px;
-            opacity: 1;
-        }
-
         @keyframes fadeIn {
             from {
                 opacity: 0;
@@ -289,8 +284,7 @@
             border-radius: 20px;
             font-size: 0.9rem;
             font-weight: 600;
-            margin-bottom: 12px;
-            flex-shrink: 0;
+            margin-bottom: 8px;
         }
 
         .stock-status.in-stock {
@@ -301,6 +295,18 @@
         .stock-status.out-of-stock {
             background: #f8d7da;
             color: #721c24;
+        }
+
+        .warranty-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            background: #e3f2fd;
+            color: #1976d2;
+            margin-bottom: 12px;
+            margin-right: 8px;
         }
 
         .stock-warning {
@@ -318,29 +324,12 @@
             color: #5a6c7d;
             margin-bottom: 20px;
             line-height: 1.6;
-            flex-grow: 1;
+            height: 76px;
             overflow: hidden;
-            max-height: 75px;
-            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-                        opacity 0.3s ease;
-            position: relative;
-        }
-
-        .product-description::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 25px;
-            background: linear-gradient(to bottom, transparent, white);
-            opacity: 1;
-            transition: opacity 0.3s ease;
-            pointer-events: none;
-        }
-
-        .product-card:hover .product-description::after {
-            opacity: 0;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            text-overflow: ellipsis;
         }
 
         .price-container {
@@ -557,11 +546,7 @@
             }
 
             .product-description {
-                max-height: 60px;
-            }
-
-            .product-card:hover .product-description {
-                max-height: 300px;
+                height: 76px;
             }
         }
     </style>
@@ -689,13 +674,18 @@
                     
                     <h3 class="product-name">${product.name}</h3>
                     
-                    <div class="stock-status ${hasStock ? 'in-stock' : 'out-of-stock'}">
-                        ${hasStock ? '🟢 במלאי' : '🔴 אזל מהמלאי'}
+                    <div>
+                        <div class="stock-status ${hasStock ? 'in-stock' : 'out-of-stock'}">
+                            ${hasStock ? '🟢 במלאי' : '🔴 אזל מהמלאי'}
+                        </div>
+                        ${product.has_warranty ? '<span class="warranty-badge">🛡️ אחריות</span>' : ''}
                     </div>
                     
                     ${lowStock ? `<span class="stock-warning">⚠️ נשארו ${product.stock_quantity} יחידות בלבד!</span>` : ''}
                     
                     <p class="product-description">${product.short_description || product.description || ''}</p>
+                    
+                    <div style="flex-grow: 1;"></div>
                     
                     <div class="price-container">
                         ${product.price_label ? `<span class="price-label">${product.price_label}</span>` : ''}
