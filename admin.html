@@ -302,6 +302,7 @@
             <button class="tab active" onclick="switchTab('warranties')">אחריות</button>
             <button class="tab" onclick="switchTab('orders')">הזמנות</button>
             <button class="tab" onclick="switchTab('products')">מוצרים</button>
+            <button class="tab" onclick="switchTab('stock')">מלאי</button>
             <button class="tab" onclick="switchTab('users')">משתמשים</button>
         </div>
 
@@ -340,6 +341,42 @@
             <div id="productsContent"></div>
         </div>
 
+        <!-- Stock Section -->
+        <div id="stockSection" class="section">
+            <h2>ניהול מלאי</h2>
+            
+            <div style="background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                <h3>התראות מלאי נמוך</h3>
+                <div id="lowStockLoading" class="loading">טוען...</div>
+                <div id="lowStockContent"></div>
+            </div>
+
+            <div style="background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                <h3>עדכון מלאי ידני</h3>
+                <form id="updateStockForm" onsubmit="updateStock(event)" style="display: flex; gap: 10px; align-items: end;">
+                    <div class="form-group" style="flex: 2;">
+                        <label>בחר מוצר</label>
+                        <select id="stockProductId" required></select>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>שינוי כמות (+/-)</label>
+                        <input type="number" id="stockChangeAmount" required placeholder="5 או -3">
+                    </div>
+                    <div class="form-group" style="flex: 2;">
+                        <label>סיבה</label>
+                        <input type="text" id="stockReason" placeholder="אופציונלי">
+                    </div>
+                    <button type="submit" class="btn btn-primary">עדכן</button>
+                </form>
+            </div>
+
+            <div style="background: white; padding: 20px; border-radius: 10px;">
+                <h3>לוג שינויי מלאי</h3>
+                <div id="stockLogsLoading" class="loading">טוען...</div>
+                <div id="stockLogsContent"></div>
+            </div>
+        </div>
+
         <!-- Users Section -->
         <div id="usersSection" class="section">
             <h2>ניהול משתמשים</h2>
@@ -357,24 +394,75 @@
             </div>
             <form id="productForm" onsubmit="saveProduct(event)">
                 <input type="hidden" id="productId">
+                
                 <div class="form-group">
                     <label>שם המוצר *</label>
                     <input type="text" id="productName" required>
                 </div>
+                
                 <div class="form-group">
-                    <label>תיאור</label>
-                    <textarea id="productDescription"></textarea>
+                    <label>SKU (קוד מוצר)</label>
+                    <input type="text" id="productSku" placeholder="PUMP-S35-WHT">
                 </div>
+                
+                <div class="form-group">
+                    <label>קטגוריה</label>
+                    <select id="productCategory">
+                        <option value="">בחר קטגוריה</option>
+                        <option value="משאבות חשמליות">משאבות חשמליות</option>
+                        <option value="אביזרים וחלפים">אביזרים וחלפים</option>
+                        <option value="אחסון חלב">אחסון חלב</option>
+                        <option value="מתנות">מתנות</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>תיאור קצר</label>
+                    <input type="text" id="productShortDescription" placeholder="משפט אחד על המוצר" maxlength="200">
+                </div>
+                
+                <div class="form-group">
+                    <label>תיאור מלא</label>
+                    <textarea id="productDescription" rows="4"></textarea>
+                </div>
+                
                 <div class="form-row">
                     <div class="form-group">
-                        <label>מחיר *</label>
+                        <label>מחיר רגיל *</label>
                         <input type="number" id="productPrice" step="0.01" required>
                     </div>
                     <div class="form-group">
-                        <label>קישור לתמונה</label>
-                        <input type="text" id="productImage">
+                        <label>מחיר מבצע</label>
+                        <input type="number" id="productSalePrice" step="0.01" placeholder="אופציונלי">
                     </div>
                 </div>
+                
+                <div class="form-group">
+                    <label>מלל מחיר (אופציונלי)</label>
+                    <input type="text" id="productPriceLabel" placeholder='לדוגמה: "מבצע!", "החל מ-"'>
+                </div>
+                
+                <div class="form-group">
+                    <label>קישור לתמונה</label>
+                    <input type="text" id="productImage">
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>כמות במלאי *</label>
+                        <input type="number" id="productStockQuantity" value="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label>תג מיוחד</label>
+                        <select id="productBadge">
+                            <option value="">ללא</option>
+                            <option value="חדש">חדש!</option>
+                            <option value="מבצע">מבצע!</option>
+                            <option value="פופולרי">פופולרי</option>
+                        </select>
+                    </div>
+                </div>
+                
                 <div class="form-row">
                     <div class="form-group">
                         <label>במלאי</label>
@@ -391,6 +479,7 @@
                         </select>
                     </div>
                 </div>
+                
                 <button type="submit" class="btn btn-primary">שמור</button>
             </form>
         </div>
@@ -516,6 +605,7 @@
             if (tab === 'warranties') loadWarranties();
             else if (tab === 'orders') loadOrders();
             else if (tab === 'products') loadProducts();
+            else if (tab === 'stock') loadStock();
             else if (tab === 'users') loadUsers();
         }
 
@@ -828,19 +918,38 @@
                         <table>
                             <tr>
                                 <th>שם</th>
-                                <th>תיאור</th>
+                                <th>SKU</th>
+                                <th>קטגוריה</th>
                                 <th>מחיר</th>
-                                <th>במלאי</th>
-                                <th>אחריות</th>
+                                <th>מלאי</th>
+                                <th>סטטוס</th>
+                                <th>תג</th>
                                 <th>פעולות</th>
                             </tr>
                             ${products.map(p => `
                                 <tr>
                                     <td>${p.name}</td>
-                                    <td>${p.description || '-'}</td>
-                                    <td>₪${p.price}</td>
-                                    <td>${p.in_stock ? '✓' : '✗'}</td>
-                                    <td>${p.has_warranty ? '✓' : '✗'}</td>
+                                    <td>${p.sku || '-'}</td>
+                                    <td>${p.category || '-'}</td>
+                                    <td>
+                                        ${p.sale_price ? 
+                                            `<span style="text-decoration: line-through; color: gray;">₪${p.price}</span><br>
+                                             <span style="color: red; font-weight: bold;">₪${p.sale_price}</span>` :
+                                            `₪${p.price}`}
+                                    </td>
+                                    <td style="font-weight: bold; color: ${
+                                        p.stock_quantity === 0 ? 'red' : 
+                                        p.stock_quantity <= 10 ? 'orange' : 
+                                        'green'
+                                    };">
+                                        ${p.stock_quantity}
+                                    </td>
+                                    <td>
+                                        ${p.stock_quantity === 0 ? 
+                                            '<span style="color: red;">🔴 אזל</span>' : 
+                                            '<span style="color: green;">🟢 במלאי</span>'}
+                                    </td>
+                                    <td>${p.badge ? `<span style="background: #667eea; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8em;">${p.badge}</span>` : '-'}</td>
                                     <td>
                                         <button class="btn btn-sm btn-edit" onclick="editProduct(${p.id})">ערוך</button>
                                         <button class="btn btn-sm btn-delete" onclick="deleteProduct(${p.id})">מחק</button>
@@ -863,15 +972,23 @@
                 title.textContent = 'עריכת מוצר';
                 document.getElementById('productId').value = product.id;
                 document.getElementById('productName').value = product.name;
+                document.getElementById('productSku').value = product.sku || '';
+                document.getElementById('productCategory').value = product.category || '';
+                document.getElementById('productShortDescription').value = product.short_description || '';
                 document.getElementById('productDescription').value = product.description || '';
                 document.getElementById('productPrice').value = product.price;
+                document.getElementById('productSalePrice').value = product.sale_price || '';
+                document.getElementById('productPriceLabel').value = product.price_label || '';
                 document.getElementById('productImage').value = product.image_url || '';
+                document.getElementById('productStockQuantity').value = product.stock_quantity || 0;
+                document.getElementById('productBadge').value = product.badge || '';
                 document.getElementById('productInStock').value = product.in_stock.toString();
                 document.getElementById('productHasWarranty').value = product.has_warranty.toString();
             } else {
                 title.textContent = 'הוספת מוצר';
                 document.getElementById('productForm').reset();
                 document.getElementById('productId').value = '';
+                document.getElementById('productStockQuantity').value = '0';
             }
             
             modal.classList.add('active');
@@ -889,8 +1006,16 @@
             const productData = {
                 name: document.getElementById('productName').value,
                 description: document.getElementById('productDescription').value,
+                short_description: document.getElementById('productShortDescription').value,
                 price: parseFloat(document.getElementById('productPrice').value),
+                sale_price: document.getElementById('productSalePrice').value ? 
+                           parseFloat(document.getElementById('productSalePrice').value) : null,
+                price_label: document.getElementById('productPriceLabel').value || null,
                 image_url: document.getElementById('productImage').value,
+                stock_quantity: parseInt(document.getElementById('productStockQuantity').value) || 0,
+                category: document.getElementById('productCategory').value || null,
+                sku: document.getElementById('productSku').value || null,
+                badge: document.getElementById('productBadge').value || null,
                 in_stock: document.getElementById('productInStock').value === 'true',
                 has_warranty: document.getElementById('productHasWarranty').value === 'true'
             };
@@ -899,7 +1024,7 @@
                 const url = id ? `${API_URL}/api/admin/products/${id}` : `${API_URL}/api/admin/products`;
                 const method = id ? 'PUT' : 'POST';
                 
-                await fetch(url, {
+                const response = await fetch(url, {
                     method,
                     headers: {
                         'Content-Type': 'application/json',
@@ -908,11 +1033,16 @@
                     body: JSON.stringify(productData)
                 });
 
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'שגיאה');
+                }
+
                 showMessage(id ? 'מוצר עודכן' : 'מוצר נוסף', 'success');
                 closeProductModal();
                 loadProducts();
             } catch (err) {
-                showMessage('שגיאה', 'error');
+                showMessage(err.message || 'שגיאה', 'error');
             }
         }
 
@@ -1137,6 +1267,166 @@
                 closeResetPasswordModal();
             } catch (err) {
                 showMessage('שגיאה', 'error');
+            }
+        }
+
+        // ===== Stock Management =====
+
+        async function loadStock() {
+            await loadProductsForStockSelect();
+            await loadLowStock();
+            await loadStockLogs();
+        }
+
+        async function loadProductsForStockSelect() {
+            const token = localStorage.getItem('token');
+            try {
+                const res = await fetch(`${API_URL}/api/products`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const products = await res.json();
+                
+                const select = document.getElementById('stockProductId');
+                select.innerHTML = '<option value="">בחר מוצר</option>' +
+                    products.map(p => `<option value="${p.id}">${p.name} (מלאי נוכחי: ${p.stock_quantity})</option>`).join('');
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function loadLowStock() {
+            const token = localStorage.getItem('token');
+            const loading = document.getElementById('lowStockLoading');
+            const content = document.getElementById('lowStockContent');
+            
+            loading.style.display = 'block';
+            content.innerHTML = '';
+
+            try {
+                const res = await fetch(`${API_URL}/api/admin/low-stock?threshold=10`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const products = await res.json();
+                loading.style.display = 'none';
+
+                if (products.length === 0) {
+                    content.innerHTML = '<p style="color: green;">✓ כל המוצרים במלאי תקין</p>';
+                    return;
+                }
+
+                content.innerHTML = `
+                    <div class="table-container">
+                        <table>
+                            <tr>
+                                <th>מוצר</th>
+                                <th>SKU</th>
+                                <th>מלאי נוכחי</th>
+                                <th>סטטוס</th>
+                            </tr>
+                            ${products.map(p => `
+                                <tr>
+                                    <td>${p.name}</td>
+                                    <td>${p.sku || '-'}</td>
+                                    <td style="font-weight: bold; color: ${p.stock_quantity === 0 ? 'red' : 'orange'};">
+                                        ${p.stock_quantity}
+                                    </td>
+                                    <td>
+                                        ${p.stock_quantity === 0 ? 
+                                            '<span style="color: red;">⚠️ אזל!</span>' : 
+                                            '<span style="color: orange;">⚠️ נמוך</span>'}
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </table>
+                    </div>
+                `;
+            } catch (err) {
+                loading.style.display = 'none';
+                content.innerHTML = '<p style="color: red;">שגיאה בטעינת מלאי</p>';
+            }
+        }
+
+        async function loadStockLogs() {
+            const token = localStorage.getItem('token');
+            const loading = document.getElementById('stockLogsLoading');
+            const content = document.getElementById('stockLogsContent');
+            
+            loading.style.display = 'block';
+            content.innerHTML = '';
+
+            try {
+                const res = await fetch(`${API_URL}/api/admin/stock-logs`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const logs = await res.json();
+                loading.style.display = 'none';
+
+                if (logs.length === 0) {
+                    content.innerHTML = '<p>אין שינויי מלאי</p>';
+                    return;
+                }
+
+                content.innerHTML = `
+                    <div class="table-container">
+                        <table>
+                            <tr>
+                                <th>תאריך</th>
+                                <th>מוצר</th>
+                                <th>שינוי</th>
+                                <th>סיבה</th>
+                                <th>על ידי</th>
+                            </tr>
+                            ${logs.map(log => `
+                                <tr>
+                                    <td>${new Date(log.created_at).toLocaleString('he-IL')}</td>
+                                    <td>${log.product_name}</td>
+                                    <td style="color: ${log.change_amount > 0 ? 'green' : 'red'}; font-weight: bold;">
+                                        ${log.change_amount > 0 ? '+' : ''}${log.change_amount}
+                                    </td>
+                                    <td>${log.reason || '-'}</td>
+                                    <td>${log.admin_name || 'מערכת'}</td>
+                                </tr>
+                            `).join('')}
+                        </table>
+                    </div>
+                `;
+            } catch (err) {
+                loading.style.display = 'none';
+                content.innerHTML = '<p style="color: red;">שגיאה בטעינת לוג</p>';
+            }
+        }
+
+        async function updateStock(e) {
+            e.preventDefault();
+            const token = localStorage.getItem('token');
+            
+            const product_id = parseInt(document.getElementById('stockProductId').value);
+            const change_amount = parseInt(document.getElementById('stockChangeAmount').value);
+            const reason = document.getElementById('stockReason').value;
+
+            if (!product_id) {
+                showMessage('נא לבחור מוצר', 'error');
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_URL}/api/admin/update-stock`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ product_id, change_amount, reason })
+                });
+
+                if (!res.ok) throw new Error('שגיאה');
+
+                showMessage('מלאי עודכן בהצלחה', 'success');
+                document.getElementById('updateStockForm').reset();
+                await loadStock();
+                await loadProducts(); // refresh products tab
+            } catch (err) {
+                showMessage('שגיאה בעדכון מלאי', 'error');
             }
         }
 
