@@ -138,6 +138,91 @@
             color: white;
         }
 
+        /* Toast Notification Styles */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            background: white;
+            padding: 16px 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 300px;
+            animation: slideInRight 0.3s ease;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast.hiding {
+            animation: slideOutRight 0.3s ease;
+        }
+
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+
+        .toast-icon {
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .toast.success {
+            border-right: 4px solid #28a745;
+        }
+
+        .toast.success .toast-icon {
+            color: #28a745;
+        }
+
+        .toast.error {
+            border-right: 4px solid #dc3545;
+        }
+
+        .toast.error .toast-icon {
+            color: #dc3545;
+        }
+
+        .toast.info {
+            border-right: 4px solid #17a2b8;
+        }
+
+        .toast.info .toast-icon {
+            color: #17a2b8;
+        }
+
+        .toast-message {
+            flex: 1;
+            font-size: 1rem;
+            color: #2c3e50;
+            line-height: 1.4;
+        }
+
         @media (max-width: 768px) {
             nav {
                 display: block;
@@ -215,6 +300,16 @@
             
             main {
                 padding-bottom: 80px;
+            }
+
+            .toast-container {
+                top: 10px;
+                right: 10px;
+                left: 10px;
+            }
+
+            .toast {
+                min-width: auto;
             }
         }
 
@@ -473,6 +568,8 @@
     </style>
 </head>
 <body>
+    <div class="toast-container" id="toastContainer"></div>
+
     <header>
         <div class="bsd">בס"ד</div>
         <div class="container">
@@ -532,6 +629,32 @@
     <button class="floating-btn scroll-top-btn" aria-label="חזרה למעלה">↑</button>
 
     <script>
+        // Toast Notification Function
+        function showToast(message, type = 'info', duration = 3000) {
+            const icons = {
+                success: '✓',
+                error: '✗',
+                info: 'ℹ'
+            };
+
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <div class="toast-icon">${icons[type]}</div>
+                <div class="toast-message">${message}</div>
+            `;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.add('hiding');
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, duration);
+        }
+
         function loadCart() {
             const cart = JSON.parse(localStorage.getItem('cart') || '[]');
             const container = document.getElementById('cartContent');
@@ -589,6 +712,9 @@
             
             if (cart[index].quantity <= 0) {
                 cart.splice(index, 1);
+                showToast('המוצר הוסר מהעגלה', 'info');
+            } else {
+                showToast('הכמות עודכנה', 'success', 2000);
             }
             
             localStorage.setItem('cart', JSON.stringify(cart));
@@ -596,19 +722,20 @@
         }
 
         function removeItem(index) {
-            if (confirm('האם אתה בטוח שברצונך להסיר פריט זה?')) {
-                const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-                cart.splice(index, 1);
-                localStorage.setItem('cart', JSON.stringify(cart));
-                loadCart();
-            }
+            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            cart.splice(index, 1);
+            localStorage.setItem('cart', JSON.stringify(cart));
+            showToast('המוצר הוסר מהעגלה', 'success');
+            loadCart();
         }
 
         function goToCheckout() {
             const token = localStorage.getItem('token');
             if (!token) {
-                alert('יש להתחבר כדי להשלים הזמנה');
-                window.location.href = 'account.html';
+                showToast('יש להתחבר כדי להשלים הזמנה', 'error');
+                setTimeout(() => {
+                    window.location.href = 'account.html';
+                }, 1500);
                 return;
             }
             window.location.href = 'checkout.html';
