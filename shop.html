@@ -584,6 +584,7 @@
 
     <script>
         const API_URL = 'https://ponpela-backend-production.up.railway.app';
+        let allProducts = []; // לסינון קטגוריות
 
         // טעינת מוצרים
         async function loadProducts() {
@@ -601,15 +602,16 @@
         }
 
         // הצגת מוצרים
-        // הצגת מוצרים
-        let allProducts = []; // שמירת כל המוצרים לסינון
-
         function displayProducts(products) {
             const container = document.getElementById('productsContainer');
-            allProducts = products; // שמירה לסינון
+            
+            // שמירה לסינון קטגוריות (רק בטעינה ראשונית)
+            if (products.length > 0 && allProducts.length === 0) {
+                allProducts = products;
+            }
             
             if (products.length === 0) {
-                container.innerHTML = '<div class="error">אין מוצרים להצגה</div>';
+                container.innerHTML = '<div class="error">בקרוב...</div>';
                 return;
             }
 
@@ -677,7 +679,7 @@
             
             const container = document.getElementById('productsContainer');
             if (filtered.length === 0) {
-                container.innerHTML = '<div class="error">אין מוצרים בקטגוריה זו</div>';
+                container.innerHTML = '<div class="error">בקרוב...</div>';
                 return;
             }
 
