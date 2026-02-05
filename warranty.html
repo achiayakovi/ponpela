@@ -10,36 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;600;700&family=Varela+Round&display=swap" rel="stylesheet">
     
-    <!-- Meta Description -->
     <meta name="description" content="בדיקה ורישום אחריות למשאבת החלב פונפלה. רישום מהיר ופשוט לאחריות המוצר שלך.">
-    
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://ponpela.co.il/warranty.html">
-    <meta property="og:title" content="אחריות פונפלה - רישום מכשיר">
-    <meta property="og:description" content="בדיקה ורישום אחריות למשאבת החלב פונפלה">
-    <meta property="og:image" content="https://ponpela.co.il/logo.png">
-    
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary">
-    <meta property="twitter:url" content="https://ponpela.co.il/warranty.html">
-    <meta property="twitter:title" content="אחריות פונפלה">
-    <meta property="twitter:description" content="בדיקה ורישום אחריות">
-    <meta property="twitter:image" content="https://ponpela.co.il/logo.png">
-    
-    <!-- Schema.org for Google -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "Organization",
-      "name": "פונפלה",
-      "url": "https://ponpela.co.il/",
-      "logo": "https://ponpela.co.il/logo.png",
-      "description": "משאבת חלב חשמלית איכותית",
-      "telephone": "+972-53-715-7746",
-      "email": "info@ponpela.co.il"
-    }
-    </script>
     
     <style>
         * {
@@ -90,8 +61,6 @@
         .logo-container a {
             display: inline-block;
             text-decoration: none;
-            -webkit-tap-highlight-color: transparent;
-            outline: none;
         }
 
         .logo {
@@ -100,14 +69,13 @@
             height: auto;
             width: auto;
             transition: transform 0.3s ease;
-            -webkit-tap-highlight-color: transparent;
         }
 
         .logo:hover {
             transform: scale(1.05);
         }
 
-        /* Navigation Menu */
+        /* Navigation */
         nav {
             background: white;
             padding: 15px 0;
@@ -159,17 +127,6 @@
         .nav-menu a.active {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-        }
-
-        /* Mobile Menu Toggle */
-        .menu-toggle {
-            display: none;
-            background: none;
-            border: none;
-            font-size: 1.8rem;
-            color: #2d7a8e;
-            cursor: pointer;
-            padding: 10px;
         }
 
         /* Main Content */
@@ -277,6 +234,90 @@
             gap: 15px;
         }
 
+        /* Date Picker Styling */
+        .date-input-wrapper {
+            position: relative;
+            display: flex;
+            gap: 10px;
+            align-items: stretch;
+        }
+
+        .date-input-wrapper input[type="text"] {
+            flex: 1;
+        }
+
+        .calendar-btn {
+            padding: 0;
+            width: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.8rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .calendar-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        .calendar-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Custom Date Picker */
+        input[type="date"] {
+            position: relative;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-family: 'Varela Round', sans-serif;
+            font-size: 1rem;
+            color: #2c3e50;
+            background: white;
+            cursor: pointer;
+        }
+
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            position: absolute;
+            right: 10px;
+            width: 25px;
+            height: 25px;
+            cursor: pointer;
+            opacity: 0;
+        }
+
+        input[type="date"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        /* סגנון ללוח שנה עצמו */
+        input[type="date"]::-webkit-datetime-edit {
+            padding: 0;
+            direction: ltr;
+        }
+
+        input[type="date"]::-webkit-datetime-edit-fields-wrapper {
+            padding: 0;
+        }
+
+        input[type="date"]::-webkit-datetime-edit-text,
+        input[type="date"]::-webkit-datetime-edit-month-field,
+        input[type="date"]::-webkit-datetime-edit-day-field,
+        input[type="date"]::-webkit-datetime-edit-year-field {
+            padding: 0 2px;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+
         .btn-primary {
             width: 100%;
             padding: 18px;
@@ -371,8 +412,75 @@
             margin-top: 60px;
         }
 
+        /* Floating Buttons */
+        .scroll-top-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 999;
+        }
+
+        .scroll-top-btn.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .scroll-top-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .cart-btn {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+            z-index: 1002;
+        }
+
+        .cart-btn .badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #e74c3c;
+            color: white;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .cart-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
         @media (max-width: 768px) {
-            /* הסתרת התפריט הרגיל במובייל */
             nav {
                 display: block;
                 background: transparent;
@@ -414,7 +522,6 @@
                 transform: scale(1.1);
             }
             
-            /* תפריט תחתון קבוע */
             .bottom-nav {
                 display: flex;
                 position: fixed;
@@ -448,17 +555,8 @@
                 border-top: 3px solid #667eea;
             }
             
-            .bottom-nav-icon {
-                display: none;
-            }
-            
-            /* הוספת padding למטה כדי שהתוכן לא יוסתר */
             main {
                 padding-bottom: 20px;
-            }
-
-            .menu-toggle {
-                display: none;
             }
 
             .container {
@@ -490,7 +588,6 @@
                 grid-template-columns: 1fr;
             }
 
-
             .form-group input,
             .form-group select {
                 max-width: 100%;
@@ -498,19 +595,29 @@
                 box-sizing: border-box;
             }
 
-            .form-group {
-                width: 100%;
-                max-width: 100%;
+            .calendar-btn {
+                width: 55px;
+                font-size: 1.5rem;
             }
 
-            .btn-primary {
-                width: 100%;
-                padding: 15px;
-                font-size: 1rem;
+            .scroll-top-btn, .cart-btn {
+                bottom: 90px;
+                width: 45px;
+                height: 45px;
             }
 
-            footer {
-                padding: 15px 0;
+            .scroll-top-btn {
+                right: 15px;
+            }
+
+            .cart-btn {
+                left: 15px;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .bottom-nav {
+                display: none;
             }
         }
 
@@ -521,99 +628,6 @@
 
             .account-link {
                 padding: 10px 15px;
-            }
-        }
-
-        /* Scroll Top Button */
-        .scroll-top-btn {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            font-size: 24px;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-            z-index: 999;
-        }
-
-        .scroll-top-btn.visible {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .scroll-top-btn:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
-        }
-
-        @media (max-width: 768px) {
-            .scroll-top-btn {
-                bottom: 90px;
-                right: 15px;
-                width: 45px;
-                height: 45px;
-            }
-        }
-
-        @media (min-width: 769px) {
-            .bottom-nav {
-                display: none;
-            }
-        }
-
-        /* Cart Button */
-        .cart-btn {
-            position: fixed;
-            bottom: 30px;
-            left: 30px;
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            font-size: 24px;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-            transition: all 0.3s ease;
-            z-index: 1002;
-        }
-
-        .cart-btn .badge {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            background: #e74c3c;
-            color: white;
-            border-radius: 50%;
-            width: 25px;
-            height: 25px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: bold;
-        }
-
-        .cart-btn:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
-        }
-
-        @media (max-width: 768px) {
-            .cart-btn {
-                bottom: 90px;
-                left: 15px;
-                width: 45px;
-                height: 45px;
             }
         }
     </style>
@@ -635,8 +649,7 @@
             👤 <span class="account-text">איזור אישי</span>
         </a>
         <div class="container">
-            <button class="menu-toggle" onclick="toggleMenu()" aria-label="תפריט">☰</button>
-            <ul class="nav-menu" id="navMenu">
+            <ul class="nav-menu">
                 <li><a href="/">בית</a></li>
                 <li><a href="shop.html">חנות</a></li>
                 <li><a href="businesses.html">עסקים</a></li>
@@ -698,17 +711,13 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="purchase-date">תאריך רכישה *</label>
-<div style="display: flex; gap: 5px;">
-    <input type="text" id="purchase-date" placeholder="02/01/2026" 
-           maxlength="10" required style="flex: 1;">
-    <button type="button" onclick="document.getElementById('purchase-date-picker').showPicker()" 
-            style="padding: 10px 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                   color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1.2rem;">
-        📅
-    </button>
-    <input type="date" id="purchase-date-picker" style="display: none;">
-</div>
+                            <label for="purchase-date-native">תאריך רכישה *</label>
+                            <div class="date-input-wrapper">
+                                <input type="date" id="purchase-date-native" required>
+                                <button type="button" class="calendar-btn" onclick="document.getElementById('purchase-date-native').showPicker()">
+                                    📅
+                                </button>
+                            </div>
                         </div>
 
                         <div class="form-group">
@@ -716,7 +725,6 @@
                             <input type="file" id="receipt" required accept="image/*,.pdf">
                         </div>
 
-                        <!-- Honeypot field - hidden from humans, visible to bots -->
                         <input type="text" id="website" style="position:absolute;left:0;top:-9999px;width:0;height:0;opacity:0" tabindex="-1" autocomplete="off">
 
                         <button type="submit" class="btn-primary" id="register-btn">רישום מכשיר</button>
@@ -733,7 +741,6 @@
         </div>
     </main>
 
-    <!-- Bottom Navigation for Mobile -->
     <div class="bottom-nav">
         <a href="/">בית</a>
         <a href="shop.html">חנות</a>
@@ -753,7 +760,6 @@
         const API_URL = 'https://ponpela-backend-production.up.railway.app';
 
         function switchTab(tab) {
-            // Hide all tabs
             document.querySelectorAll('.tab-content').forEach(content => {
                 content.classList.remove('active');
             });
@@ -761,7 +767,6 @@
                 button.classList.remove('active');
             });
 
-            // Show selected tab
             if (tab === 'check') {
                 document.getElementById('check-tab').classList.add('active');
                 document.querySelectorAll('.tab-button')[0].classList.add('active');
@@ -770,7 +775,6 @@
                 document.querySelectorAll('.tab-button')[1].classList.add('active');
             }
 
-            // Clear results
             document.getElementById('check-result').style.display = 'none';
             document.getElementById('register-result').style.display = 'none';
         }
@@ -782,7 +786,6 @@
             const resultDiv = document.getElementById('check-result');
             const loadingDiv = document.getElementById('check-loading');
 
-            // Show loading
             loadingDiv.style.display = 'block';
             resultDiv.style.display = 'none';
 
@@ -794,7 +797,6 @@
                 resultDiv.style.display = 'block';
 
                 if (data.success && data.status === 'בתוקף') {
-                    // בתוקף - ירוק
                     resultDiv.className = 'result success';
                     resultDiv.innerHTML = `
                         <div class="warranty-info">
@@ -807,7 +809,6 @@
                         </div>
                     `;
                 } else if (data.status === 'ממתין לאישור') {
-                    // ממתין לאישור - כחול
                     resultDiv.className = 'result info';
                     resultDiv.innerHTML = `
                         <div class="warranty-info">
@@ -817,7 +818,6 @@
                         </div>
                     `;
                 } else if (data.status === 'נדחה') {
-                    // נדחה - אדום
                     resultDiv.className = 'result error';
                     resultDiv.innerHTML = `
                         <div class="warranty-info">
@@ -827,7 +827,6 @@
                         </div>
                     `;
                 } else if (data.status === 'פג תוקף') {
-                    // פג תוקף - אדום
                     resultDiv.className = 'result error';
                     resultDiv.innerHTML = `
                         <div class="warranty-info">
@@ -837,7 +836,6 @@
                         </div>
                     `;
                 } else {
-                    // לא נמצא או שגיאה אחרת - אדום
                     resultDiv.className = 'result error';
                     resultDiv.innerHTML = `✗ ${data.message || 'מספר מכשיר לא נמצא במערכת'}`;
                 }
@@ -849,37 +847,7 @@
                 console.error('Error:', error);
             }
         }
-        // סנכרון בין שדה טקסט ללוח שנה
-        const dateInput = document.getElementById('purchase-date');
-        const datePicker = document.getElementById('purchase-date-picker');
 
-        // הקלדה בשדה טקסט → הוספת / אוטומטית
-        dateInput.addEventListener('input', function(e) {
-            let value = e.target.value.replace(/\D/g, ''); // רק מספרים
-            
-            if (value.length >= 2) {
-                value = value.substring(0, 2) + '/' + value.substring(2);
-            }
-            if (value.length >= 5) {
-                value = value.substring(0, 5) + '/' + value.substring(5, 9);
-            }
-            
-            e.target.value = value;
-            
-            // סנכרון ללוח שנה
-            if (value.length === 10) {
-                const [d, m, y] = value.split('/');
-                datePicker.value = `${y}-${m}-${d}`;
-            }
-        });
-
-        // בחירה מלוח שנה → עדכון שדה טקסט
-        datePicker.addEventListener('change', function() {
-            if (this.value) {
-                const [y, m, d] = this.value.split('-');
-                dateInput.value = `${d}/${m}/${y}`;
-            }
-        });
         async function registerMachine(event) {
             event.preventDefault();
 
@@ -887,31 +855,20 @@
             const loadingDiv = document.getElementById('register-loading');
             const submitBtn = document.getElementById('register-btn');
 
-            // השבתת כפתור מיד - למנוע לחיצות כפולות
             submitBtn.disabled = true;
 
             const firstName = document.getElementById('first-name').value.trim();
             const lastName = document.getElementById('last-name').value.trim();
             const phone = document.getElementById('phone').value.trim();
             const machineNumber = document.getElementById('machine-number').value.trim();
-let purchaseDateInput = document.getElementById('purchase-date').value;
-// אם אין /, הוסף אוטומטית (02012026 → 02/01/2026)
-if (!purchaseDateInput.includes('/') && purchaseDateInput.length === 8) {
-    purchaseDateInput = purchaseDateInput.substring(0,2) + '/' + 
-                       purchaseDateInput.substring(2,4) + '/' + 
-                       purchaseDateInput.substring(4,8);
-}
-// המרה ל-YYYY-MM-DD
-const [day, month, year] = purchaseDateInput.split('/');
-const purchaseDate = `${year}-${month}-${day}`;     
+            const purchaseDate = document.getElementById('purchase-date-native').value;
             const receipt = document.getElementById('receipt').files[0];
 
-            // Validation
             if (phone.length !== 10 || !/^[0-9]{10}$/.test(phone)) {
                 resultDiv.style.display = 'block';
                 resultDiv.className = 'result error';
                 resultDiv.innerHTML = '✗ יש להזין מספר טלפון תקין (10 ספרות)';
-                submitBtn.disabled = false; // מאפשר שוב אם יש שגיאה
+                submitBtn.disabled = false;
                 return;
             }
 
@@ -919,16 +876,14 @@ const purchaseDate = `${year}-${month}-${day}`;
                 resultDiv.style.display = 'block';
                 resultDiv.className = 'result error';
                 resultDiv.innerHTML = '✗ יש להעלות קבלה';
-                submitBtn.disabled = false; // מאפשר שוב אם יש שגיאה
+                submitBtn.disabled = false;
                 return;
             }
 
-            // Show loading
             loadingDiv.style.display = 'block';
             resultDiv.style.display = 'none';
 
             try {
-                // Convert receipt to base64
                 const reader = new FileReader();
                 const receiptBase64 = await new Promise((resolve, reject) => {
                     reader.onload = () => resolve(reader.result.split(',')[1]);
@@ -937,9 +892,8 @@ const purchaseDate = `${year}-${month}-${day}`;
                 });
 
                 const fullName = `${firstName} ${lastName}`;
-                const website = document.getElementById('website').value; // honeypot
+                const website = document.getElementById('website').value;
 
-                // Get token if user is logged in (optional)
                 const token = localStorage.getItem('token');
                 const headers = {
                     'Content-Type': 'application/json'
@@ -991,21 +945,6 @@ const purchaseDate = `${year}-${month}-${day}`;
             }
         }
 
-        // Toggle mobile menu
-        function toggleMenu() {
-            const navMenu = document.getElementById('navMenu');
-            navMenu.classList.toggle('active');
-        }
-
-        // Close menu when clicking on a link
-        document.querySelectorAll('.nav-menu a').forEach(link => {
-            link.addEventListener('click', () => {
-                document.getElementById('navMenu').classList.remove('active');
-            });
-        });
-
-        // עדכון דינמי של margin-bottom של הפוטר לפי גובה התפריט
-
         // כפתור חזרה למעלה
         const scrollTopBtn = document.createElement('button');
         scrollTopBtn.innerHTML = '↑';
@@ -1013,7 +952,6 @@ const purchaseDate = `${year}-${month}-${day}`;
         scrollTopBtn.setAttribute('aria-label', 'חזרה למעלה');
         document.body.appendChild(scrollTopBtn);
 
-        // הצגת/הסתרת הכפתור
         window.addEventListener('scroll', function() {
             if (window.scrollY > 300) {
                 scrollTopBtn.classList.add('visible');
@@ -1022,7 +960,6 @@ const purchaseDate = `${year}-${month}-${day}`;
             }
         });
 
-        // לחיצה על הכפתור
         scrollTopBtn.addEventListener('click', function() {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
@@ -1035,7 +972,6 @@ const purchaseDate = `${year}-${month}-${day}`;
         cartBtn.onclick = function() { window.location.href = 'cart.html'; };
         document.body.appendChild(cartBtn);
 
-        // עדכון תג עגלה
         function updateCartBadge() {
             const cart = JSON.parse(localStorage.getItem('cart') || '[]');
             const total = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -1043,7 +979,6 @@ const purchaseDate = `${year}-${month}-${day}`;
         }
         updateCartBadge();
 
-        // עדכון דינמי של margin-bottom של הפוטר לפי גובה התפריט
         function updateFooterAndButtons() {
             const bottomNav = document.querySelector('.bottom-nav');
             const footer = document.querySelector('footer');
@@ -1053,41 +988,36 @@ const purchaseDate = `${year}-${month}-${day}`;
             if (window.innerWidth <= 768 && bottomNav) {
                 const navHeight = bottomNav.offsetHeight;
                 
-                // הפוטר תמיד מעל התפריט
                 if (footer) footer.style.marginBottom = navHeight + 'px';
                 
-                // בדוק אם הפוטר קרוב לתחתית המסך
-                let buttonBottom = navHeight + 20; // ברירת מחדל: רק מעל התפריט
+                let buttonBottom = navHeight + 20;
                 
                 if (footer) {
                     const footerRect = footer.getBoundingClientRect();
                     const viewportHeight = window.innerHeight;
                     const footerDistanceFromBottom = viewportHeight - footerRect.top;
                     
-                    // אם הפוטר קרוב לתחתית (נמצא באזור התפריט)
                     if (footerDistanceFromBottom > 0 && footerDistanceFromBottom < viewportHeight) {
                         const footerHeight = footer.offsetHeight;
-                        buttonBottom = navHeight + footerHeight + 20; // מעל הפוטר
+                        buttonBottom = navHeight + footerHeight + 20;
                     }
                 }
                 
                 if (scrollBtn) scrollBtn.style.bottom = buttonBottom + 'px';
                 if (cartBtn) cartBtn.style.bottom = buttonBottom + 'px';
             } else {
-                // מחשב - בדוק אם הפוטר נראה בתחתית
                 if (footer) footer.style.marginBottom = '0';
                 
-                let buttonBottom = 30; // ברירת מחדל
+                let buttonBottom = 30;
                 
                 if (footer) {
                     const footerRect = footer.getBoundingClientRect();
                     const viewportHeight = window.innerHeight;
                     
-                    // אם הפוטר נראה בתחתית המסך
                     if (footerRect.top < viewportHeight) {
                         const footerVisible = viewportHeight - footerRect.top;
                         if (footerVisible > 0) {
-                            buttonBottom = footerVisible + 20; // מעל הפוטר
+                            buttonBottom = footerVisible + 20;
                         }
                     }
                 }
@@ -1097,12 +1027,10 @@ const purchaseDate = `${year}-${month}-${day}`;
             }
         }
 
-        // קריאה בטעינה, שינוי גודל, וגלילה
         updateFooterAndButtons();
         window.addEventListener('resize', updateFooterAndButtons);
         window.addEventListener('scroll', updateFooterAndButtons);
 
-        // הזזת כפתור איזור אישי בגלילה - רק במובייל
         function updateAccountButtonPosition() {
             if (window.innerWidth <= 768) {
                 const accountLink = document.querySelector('.account-link');
