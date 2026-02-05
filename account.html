@@ -68,16 +68,45 @@
             text-align: center;
         }
 
+        .logo-container a {
+            display: inline-block;
+            text-decoration: none;
+        }
+
         .logo {
             max-width: 500px;
             max-height: 100px;
             height: auto;
+            transition: transform 0.3s ease;
+        }
+
+        .logo:hover {
+            transform: scale(1.05);
         }
 
         nav {
             background: white;
             padding: 15px 0;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: relative;
+        }
+
+        .account-link {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            text-decoration: none;
+            color: #2d7a8e;
+            font-size: 1.1rem;
+            font-weight: 600;
+            padding: 10px 20px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .account-link:hover {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
         }
 
         .nav-menu {
@@ -108,9 +137,141 @@
             color: white;
         }
 
+        /* Toast Notification Styles */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            background: white;
+            padding: 16px 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 300px;
+            animation: slideInRight 0.3s ease;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast.hiding {
+            animation: slideOutRight 0.3s ease;
+        }
+
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+
+        .toast-icon {
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .toast.success {
+            border-right: 4px solid #28a745;
+        }
+
+        .toast.success .toast-icon {
+            color: #28a745;
+        }
+
+        .toast.error {
+            border-right: 4px solid #dc3545;
+        }
+
+        .toast.error .toast-icon {
+            color: #dc3545;
+        }
+
+        .toast.info {
+            border-right: 4px solid #17a2b8;
+        }
+
+        .toast.info .toast-icon {
+            color: #17a2b8;
+        }
+
+        .toast-message {
+            flex: 1;
+            font-size: 1rem;
+            color: #2c3e50;
+            line-height: 1.4;
+        }
+
         @media (max-width: 768px) {
             nav {
+                display: block;
+                background: transparent;
+                box-shadow: none;
+                padding: 0;
+                height: 0;
+                overflow: visible;
+            }
+
+            nav .container,
+            nav .nav-menu {
                 display: none;
+            }
+
+            .account-link {
+                position: fixed;
+                left: 15px;
+                top: 150px;
+                transform: none;
+                background: white;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                padding: 12px;
+                border-radius: 50%;
+                width: 45px;
+                height: 45px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.3rem;
+                z-index: 1000;
+            }
+
+            .account-link .account-text {
+                display: none;
+            }
+
+            .account-link:hover {
+                background: white;
+                transform: scale(1.1);
+            }
+
+            .toast-container {
+                top: 10px;
+                right: 10px;
+                left: 10px;
+            }
+
+            .toast {
+                min-width: auto;
             }
             
             .bottom-nav {
@@ -154,6 +315,16 @@
         @media (min-width: 769px) {
             .bottom-nav {
                 display: none;
+            }
+        }
+
+        @media (min-width: 769px) and (max-width: 1100px) {
+            .account-link .account-text {
+                display: none;
+            }
+
+            .account-link {
+                padding: 10px 15px;
             }
         }
 
@@ -460,9 +631,59 @@
                 height: 45px;
             }
         }
+
+        /* Change Password Modal */
+        #changePasswordModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 10001;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h3 {
+            color: #2d7a8e;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #7f8c8d;
+        }
+
+        #passwordMessage {
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: none;
+        }
     </style>
 </head>
 <body>
+    <div class="toast-container" id="toastContainer"></div>
+
     <header>
         <div class="bsd">בס"ד</div>
         <div class="container">
@@ -475,6 +696,9 @@
     </header>
 
     <nav>
+        <a href="account.html" class="account-link">
+            👤 <span class="account-text">איזור אישי</span>
+        </a>
         <div class="container">
             <ul class="nav-menu">
                 <li><a href="/">בית</a></li>
@@ -590,11 +814,11 @@
     </main>
 
     <!-- Change Password Modal -->
-    <div id="changePasswordModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center;">
-        <div style="background: white; padding: 30px; border-radius: 15px; max-width: 500px; width: 90%;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h3 style="color: #2d7a8e;">שינוי סיסמה</h3>
-                <button onclick="closeChangePasswordModal()" style="background: none; border: none; font-size: 2rem; cursor: pointer; color: #7f8c8d;">×</button>
+    <div id="changePasswordModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>שינוי סיסמה</h3>
+                <button onclick="closeChangePasswordModal()" class="modal-close">×</button>
             </div>
             <form id="changePasswordForm" onsubmit="changePassword(event)">
                 <div class="form-group">
@@ -609,7 +833,7 @@
                     <label for="confirmPassword">אישור סיסמה חדשה *</label>
                     <input type="password" id="confirmPassword" required minlength="6">
                 </div>
-                <div id="passwordMessage" style="padding: 10px; border-radius: 8px; margin-bottom: 15px; display: none;"></div>
+                <div id="passwordMessage"></div>
                 <button type="submit" class="btn">שנה סיסמה</button>
             </form>
         </div>
@@ -638,6 +862,32 @@
 
     <script>
         const API_URL = 'https://ponpela-backend-production.up.railway.app';
+
+        // Toast Notification Function
+        function showToast(message, type = 'info', duration = 3000) {
+            const icons = {
+                success: '✓',
+                error: '✗',
+                info: 'ℹ'
+            };
+
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <div class="toast-icon">${icons[type]}</div>
+                <div class="toast-message">${message}</div>
+            `;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.add('hiding');
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, duration);
+        }
 
         function checkAuth() {
             const token = localStorage.getItem('token');
@@ -680,10 +930,11 @@
 
                 const data = await response.json();
                 localStorage.setItem('token', data.token);
-                checkAuth();
+                showToast('התחברת בהצלחה!', 'success');
+                setTimeout(() => checkAuth(), 1000);
             } catch (error) {
                 console.error('Login error:', error);
-                alert('שגיאה בהתחברות: ' + (error.message || 'בדוק את הפרטים ונסה שוב.'));
+                showToast('שגיאה בהתחברות: ' + (error.message || 'בדוק את הפרטים ונסה שוב'), 'error');
             }
         }
 
@@ -711,16 +962,18 @@
 
                 const data = await response.json();
                 localStorage.setItem('token', data.token);
-                checkAuth();
+                showToast('נרשמת בהצלחה!', 'success');
+                setTimeout(() => checkAuth(), 1000);
             } catch (error) {
                 console.error('Register error:', error);
-                alert('שגיאה בהרשמה: ' + (error.message || 'נסה שוב.'));
+                showToast('שגיאה בהרשמה: ' + (error.message || 'נסה שוב'), 'error');
             }
         }
 
         function logout() {
             localStorage.removeItem('token');
-            checkAuth();
+            showToast('התנתקת בהצלחה', 'info');
+            setTimeout(() => checkAuth(), 1000);
         }
 
         function switchTab(tab) {
@@ -751,6 +1004,7 @@
                 loadWarranties();
             } catch (error) {
                 console.error('Error:', error);
+                showToast('שגיאה בטעינת הפרופיל', 'error');
                 logout();
             }
         }
@@ -855,10 +1109,10 @@
 
                 if (!response.ok) throw new Error('שגיאה בעדכון');
 
-                alert('הפרטים עודכנו בהצלחה!');
+                showToast('הפרטים עודכנו בהצלחה!', 'success');
                 loadDashboard();
             } catch (error) {
-                alert('שגיאה בעדכון פרטים');
+                showToast('שגיאה בעדכון פרטים', 'error');
             }
         }
 
@@ -882,7 +1136,6 @@
             const total = cart.reduce((sum, item) => sum + item.quantity, 0);
             document.getElementById('cartBadge').textContent = total;
         }
-        updateCartBadge();
 
         // עדכון דינמי של margin-bottom של הפוטר לפי גובה התפריט
         function updateFooterAndButtons() {
@@ -894,59 +1147,62 @@
             if (window.innerWidth <= 768 && bottomNav) {
                 const navHeight = bottomNav.offsetHeight;
                 
-                // הפוטר תמיד מעל התפריט
                 if (footer) footer.style.marginBottom = navHeight + 'px';
                 
-                // בדוק אם הפוטר קרוב לתחתית המסך
-                let buttonBottom = navHeight + 20; // ברירת מחדל: רק מעל התפריט
+                let buttonBottom = navHeight + 20;
                 
                 if (footer) {
                     const footerRect = footer.getBoundingClientRect();
                     const viewportHeight = window.innerHeight;
                     const footerDistanceFromBottom = viewportHeight - footerRect.top;
                     
-                    // אם הפוטר קרוב לתחתית (נמצא באזור התפריט)
                     if (footerDistanceFromBottom > 0 && footerDistanceFromBottom < viewportHeight) {
                         const footerHeight = footer.offsetHeight;
-                        buttonBottom = navHeight + footerHeight + 20; // מעל הפוטר
+                        buttonBottom = navHeight + footerHeight + 20;
                     }
                 }
                 
                 if (scrollBtn) scrollBtn.style.bottom = buttonBottom + 'px';
                 if (cartBtn) cartBtn.style.bottom = buttonBottom + 'px';
             } else {
-                // מחשב - בדוק אם הפוטר נראה בתחתית
                 if (footer) footer.style.marginBottom = '0';
                 
-                let buttonBottom = 30; // ברירת מחדל
+                let buttonBottom = 30;
                 
                 if (footer) {
                     const footerRect = footer.getBoundingClientRect();
                     const viewportHeight = window.innerHeight;
                     
-                    // רק אם גוללים קרוב לתחתית הדף - הכפתורים יעלו
                     const documentHeight = document.documentElement.scrollHeight;
                     const scrollPosition = window.scrollY + viewportHeight;
                     const nearBottom = documentHeight - scrollPosition < 100;
                     
-                    // אם הפוטר נראה בתחתית המסך וגללנו קרוב לתחתית
                     if (nearBottom && footerRect.top < viewportHeight) {
                         const footerVisible = viewportHeight - footerRect.top;
                         if (footerVisible > 0) {
-                            buttonBottom = footerVisible + 20; // מעל הפוטר
+                            buttonBottom = footerVisible + 20;
                         }
                     }
                 }
                 
                 if (scrollBtn) scrollBtn.style.bottom = buttonBottom + 'px';
-                if (cartBtn) cartBtn.style.bottom = buttonBottom + 'px';
+                if (cartBtn) scrollBtn.style.bottom = buttonBottom + 'px';
             }
         }
 
-        // קריאה בטעינה, שינוי גודל, וגלילה
-        updateFooterAndButtons();
-        window.addEventListener('resize', updateFooterAndButtons);
-        window.addEventListener('scroll', updateFooterAndButtons);
+        // הזזת כפתור איזור אישי בגלילה - רק במובייל
+        function updateAccountButtonPosition() {
+            if (window.innerWidth <= 768) {
+                const accountLink = document.querySelector('.account-link');
+                if (accountLink) {
+                    if (window.scrollY > 140) {
+                        accountLink.style.top = '10px';
+                    } else {
+                        accountLink.style.top = '150px';
+                    }
+                }
+            }
+        }
 
         // Change Password Modal Functions
         function openChangePasswordModal() {
@@ -967,23 +1223,14 @@
             const currentPassword = document.getElementById('currentPassword').value;
             const newPassword = document.getElementById('newPassword').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
-            const messageDiv = document.getElementById('passwordMessage');
 
-            // בדיקה שהסיסמאות תואמות
             if (newPassword !== confirmPassword) {
-                messageDiv.style.display = 'block';
-                messageDiv.style.background = '#f8d7da';
-                messageDiv.style.color = '#721c24';
-                messageDiv.textContent = 'הסיסמאות אינן תואמות';
+                showToast('הסיסמאות אינן תואמות', 'error');
                 return;
             }
 
-            // בדיקה שהסיסמה החדשה שונה מהישנה
             if (currentPassword === newPassword) {
-                messageDiv.style.display = 'block';
-                messageDiv.style.background = '#fff3cd';
-                messageDiv.style.color = '#856404';
-                messageDiv.textContent = 'הסיסמה החדשה חייבת להיות שונה מהסיסמה הנוכחית';
+                showToast('הסיסמה החדשה חייבת להיות שונה מהסיסמה הנוכחית', 'error');
                 return;
             }
 
@@ -1005,29 +1252,24 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    messageDiv.style.display = 'block';
-                    messageDiv.style.background = '#d4edda';
-                    messageDiv.style.color = '#155724';
-                    messageDiv.textContent = '✓ הסיסמה שונתה בהצלחה!';
-                    
-                    // סגירת המודל אחרי 2 שניות
-                    setTimeout(() => {
-                        closeChangePasswordModal();
-                    }, 2000);
+                    showToast('הסיסמה שונתה בהצלחה!', 'success');
+                    setTimeout(() => closeChangePasswordModal(), 1500);
                 } else {
-                    messageDiv.style.display = 'block';
-                    messageDiv.style.background = '#f8d7da';
-                    messageDiv.style.color = '#721c24';
-                    messageDiv.textContent = '✗ ' + (data.error || 'שגיאה בשינוי הסיסמה');
+                    showToast(data.error || 'שגיאה בשינוי הסיסמה', 'error');
                 }
             } catch (error) {
                 console.error('Error:', error);
-                messageDiv.style.display = 'block';
-                messageDiv.style.background = '#f8d7da';
-                messageDiv.style.color = '#721c24';
-                messageDiv.textContent = '✗ שגיאה בשינוי הסיסמה. נסה שוב.';
+                showToast('שגיאה בשינוי הסיסמה. נסה שוב.', 'error');
             }
         }
+
+        // קריאה בטעינה, שינוי גודל, וגלילה
+        updateFooterAndButtons();
+        window.addEventListener('resize', updateFooterAndButtons);
+        window.addEventListener('scroll', updateFooterAndButtons);
+        window.addEventListener('scroll', updateAccountButtonPosition);
+        window.addEventListener('resize', updateAccountButtonPosition);
+        updateAccountButtonPosition();
 
         checkAuth();
         updateCartBadge();
