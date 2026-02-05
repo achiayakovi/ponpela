@@ -55,31 +55,78 @@
             font-weight: 500;
         }
 
-        .account-link {
-            position: absolute;
-            top: 10px;
-            left: 20px;
-            font-size: 0.9rem;
-            color: #667eea;
-            font-weight: 600;
-            text-decoration: none;
-            padding: 8px 15px;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-        }
-
-        .account-link:hover {
-            background: rgba(102, 126, 234, 0.1);
-        }
-
         .logo-container {
             text-align: center;
+        }
+
+        .logo-container a {
+            display: inline-block;
+            text-decoration: none;
         }
 
         .logo {
             max-width: 500px;
             max-height: 100px;
             height: auto;
+            transition: transform 0.3s ease;
+        }
+
+        .logo:hover {
+            transform: scale(1.05);
+        }
+
+        /* Navigation Menu */
+        nav {
+            background: white;
+            padding: 15px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: relative;
+        }
+
+        .account-link {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            text-decoration: none;
+            color: #2d7a8e;
+            font-size: 1.1rem;
+            font-weight: 600;
+            padding: 10px 20px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .account-link:hover {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+
+        .nav-menu {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 40px;
+            list-style: none;
+        }
+
+        .nav-menu a {
+            text-decoration: none;
+            color: #2d7a8e;
+            font-size: 1.1rem;
+            font-weight: 600;
+            padding: 10px 20px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-menu a:hover {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            transform: translateY(-2px);
+        }
+
+        .nav-menu a.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
         }
 
         .checkout-section {
@@ -210,26 +257,24 @@
             margin-top: 60px;
         }
 
-        .floating-btn {
-            position: fixed;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            transition: all 0.3s ease;
-            z-index: 999;
-        }
-
+        /* Scroll Top Button */
         .scroll-top-btn {
+            position: fixed;
             bottom: 30px;
             right: 30px;
+            width: 50px;
+            height: 50px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
             opacity: 0;
             visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 1001;
         }
 
         .scroll-top-btn.visible {
@@ -237,11 +282,27 @@
             visibility: visible;
         }
 
+        .scroll-top-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        /* Cart Button */
         .cart-btn {
+            position: fixed;
             bottom: 30px;
             left: 30px;
+            width: 50px;
+            height: 50px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+            z-index: 1002;
         }
 
         .cart-btn .badge {
@@ -260,11 +321,88 @@
             font-weight: bold;
         }
 
-        .floating-btn:hover {
+        .cart-btn:hover {
             transform: translateY(-5px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
         }
 
-        @media (max-width: 968px) {
+        @media (max-width: 768px) {
+            /* הסתרת התפריט הרגיל במובייל */
+            nav {
+                display: block;
+                background: transparent;
+                box-shadow: none;
+                padding: 0;
+                height: 0;
+                overflow: visible;
+            }
+
+            nav .container,
+            nav .nav-menu {
+                display: none;
+            }
+
+            .account-link {
+                position: fixed;
+                left: 15px;
+                top: 150px;
+                transform: none;
+                background: white;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                padding: 12px;
+                border-radius: 50%;
+                width: 45px;
+                height: 45px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.3rem;
+                z-index: 1000;
+            }
+
+            .account-link .account-text {
+                display: none;
+            }
+
+            .account-link:hover {
+                background: white;
+                transform: scale(1.1);
+            }
+
+            /* תפריט תחתון קבוע */
+            .bottom-nav {
+                display: flex;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background: white;
+                box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+                padding: 15px 0;
+                z-index: 1000;
+                justify-content: space-around;
+                flex-wrap: wrap;
+            }
+            
+            .bottom-nav a {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                text-decoration: none;
+                color: #2d7a8e;
+                font-size: 1.1rem;
+                font-weight: 600;
+                padding: 10px 20px;
+                flex: 1 1 0;
+                text-align: center;
+                border-top: 3px solid transparent;
+            }
+            
+            .bottom-nav a.active {
+                color: #667eea;
+                border-top: 3px solid #667eea;
+            }
+
             .checkout-container {
                 grid-template-columns: 1fr;
             }
@@ -277,24 +415,34 @@
                 font-size: 1.5rem;
             }
 
-            .floating-btn {
-                width: 50px;
-                height: 50px;
-                font-size: 20px;
-            }
-
             .scroll-top-btn {
-                bottom: 20px;
-                right: 20px;
+                bottom: 90px;
+                right: 15px;
                 width: 45px;
                 height: 45px;
             }
 
             .cart-btn {
-                bottom: 20px;
-                left: 20px;
+                bottom: 90px;
+                left: 15px;
                 width: 45px;
                 height: 45px;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .bottom-nav {
+                display: none;
+            }
+        }
+
+        @media (min-width: 769px) and (max-width: 1100px) {
+            .account-link .account-text {
+                display: none;
+            }
+
+            .account-link {
+                padding: 10px 15px;
             }
         }
     </style>
@@ -302,7 +450,6 @@
 <body>
     <header>
         <div class="bsd">בס"ד</div>
-        <a href="account.html" class="account-link">👤 איזור אישי</a>
         <div class="container">
             <div class="logo-container">
                 <a href="/">
@@ -311,6 +458,22 @@
             </div>
         </div>
     </header>
+
+    <nav>
+        <a href="account.html" class="account-link">
+            👤 <span class="account-text">איזור אישי</span>
+        </a>
+        <div class="container">
+            <ul class="nav-menu">
+                <li><a href="/">בית</a></li>
+                <li><a href="shop.html">חנות</a></li>
+                <li><a href="businesses.html">עסקים</a></li>
+                <li><a href="warranty.html">אחריות</a></li>
+                <li><a href="about.html">אודות</a></li>
+                <li><a href="/#contact">צור קשר</a></li>
+            </ul>
+        </div>
+    </nav>
 
     <main>
         <div class="container">
@@ -368,17 +531,21 @@
         </div>
     </main>
 
+    <!-- Bottom Navigation for Mobile -->
+    <div class="bottom-nav">
+        <a href="/">בית</a>
+        <a href="shop.html">חנות</a>
+        <a href="businesses.html">עסקים</a>
+        <a href="warranty.html">אחריות</a>
+        <a href="about.html">אודות</a>
+        <a href="/#contact">צור קשר</a>
+    </div>
+
     <footer>
         <div class="container">
             <p>&copy; 2026 פונפלה - כל הזכויות שמורות</p>
         </div>
     </footer>
-
-    <button class="floating-btn scroll-top-btn" aria-label="חזרה למעלה">↑</button>
-    <button class="floating-btn cart-btn" onclick="window.location.href='cart.html'" aria-label="עגלת קניות">
-        🛒
-        <span class="badge" id="cartBadge">0</span>
-    </button>
 
     <script>
         const API_URL = 'https://ponpela-backend-production.up.railway.app';
@@ -488,7 +655,6 @@
         scrollTopBtn.setAttribute('aria-label', 'חזרה למעלה');
         document.body.appendChild(scrollTopBtn);
 
-        // הצגת/הסתרת הכפתור
         window.addEventListener('scroll', () => {
             if (window.scrollY > 300) {
                 scrollTopBtn.classList.add('visible');
@@ -517,38 +683,76 @@
 
         // עדכון דינמי של כפתורים וfooter
         function updateFooterAndButtons() {
+            const bottomNav = document.querySelector('.bottom-nav');
             const footer = document.querySelector('footer');
             const scrollBtn = document.querySelector('.scroll-top-btn');
             const cartBtn = document.querySelector('.cart-btn');
             
-            if (window.innerWidth <= 768) {
+            if (window.innerWidth <= 768 && bottomNav) {
+                const navHeight = bottomNav.offsetHeight;
+                
+                // הפוטר תמיד מעל התפריט
+                if (footer) footer.style.marginBottom = navHeight + 'px';
+                
                 // בדוק אם הפוטר קרוב לתחתית המסך
-                let buttonBottom = 30; // ברירת מחדל
+                let buttonBottom = navHeight + 20;
                 
                 if (footer) {
                     const footerRect = footer.getBoundingClientRect();
                     const viewportHeight = window.innerHeight;
                     const footerDistanceFromBottom = viewportHeight - footerRect.top;
                     
-                    // אם הפוטר נמצא באזור התחתית
                     if (footerDistanceFromBottom > 0 && footerDistanceFromBottom < viewportHeight) {
                         const footerHeight = footer.offsetHeight;
-                        buttonBottom = footerHeight + 20; // מעל הפוטר
+                        buttonBottom = navHeight + footerHeight + 20;
                     }
                 }
                 
                 if (scrollBtn) scrollBtn.style.bottom = buttonBottom + 'px';
                 if (cartBtn) cartBtn.style.bottom = buttonBottom + 'px';
             } else {
-                if (scrollBtn) scrollBtn.style.bottom = '30px';
-                if (cartBtn) cartBtn.style.bottom = '30px';
+                if (footer) footer.style.marginBottom = '0';
+                
+                let buttonBottom = 30;
+                
+                if (footer) {
+                    const footerRect = footer.getBoundingClientRect();
+                    const viewportHeight = window.innerHeight;
+                    
+                    if (footerRect.top < viewportHeight) {
+                        const footerVisible = viewportHeight - footerRect.top;
+                        if (footerVisible > 0) {
+                            buttonBottom = footerVisible + 20;
+                        }
+                    }
+                }
+                
+                if (scrollBtn) scrollBtn.style.bottom = buttonBottom + 'px';
+                if (cartBtn) cartBtn.style.bottom = buttonBottom + 'px';
+            }
+        }
+
+        // הזזת כפתור איזור אישי בגלילה - רק במובייל
+        function updateAccountButtonPosition() {
+            if (window.innerWidth <= 768) {
+                const accountLink = document.querySelector('.account-link');
+                if (accountLink) {
+                    if (window.scrollY > 140) {
+                        accountLink.style.top = '10px';
+                    } else {
+                        accountLink.style.top = '150px';
+                    }
+                }
             }
         }
 
         // אתחול
         updateFooterAndButtons();
+        updateAccountButtonPosition();
         window.addEventListener('resize', updateFooterAndButtons);
+        window.addEventListener('resize', updateAccountButtonPosition);
         window.addEventListener('scroll', updateFooterAndButtons);
+        window.addEventListener('scroll', updateAccountButtonPosition);
         loadOrderSummary();
         loadUserProfile();
         updateCartBadge();
