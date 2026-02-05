@@ -210,7 +210,6 @@
 
         .form-group input[type="text"],
         .form-group input[type="tel"],
-        .form-group input[type="date"],
         .form-group input[type="file"],
         .form-group select {
             width: 100%;
@@ -234,7 +233,7 @@
             gap: 15px;
         }
 
-        /* Date Picker Styling */
+        /* Date Picker Custom */
         .date-input-wrapper {
             position: relative;
             display: flex;
@@ -271,51 +270,121 @@
             transform: translateY(0);
         }
 
-        /* Custom Date Picker */
-        input[type="date"] {
-            position: relative;
-            padding: 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-family: 'Varela Round', sans-serif;
-            font-size: 1rem;
-            color: #2c3e50;
-            background: white;
-            cursor: pointer;
-        }
-
-        input[type="date"]::-webkit-calendar-picker-indicator {
+        /* Custom Calendar */
+        .calendar-popup {
+            display: none;
             position: absolute;
-            right: 10px;
-            width: 25px;
-            height: 25px;
+            top: calc(100% + 10px);
+            left: 0;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 20px;
+            z-index: 1000;
+            min-width: 320px;
+            animation: slideDown 0.3s ease;
+        }
+
+        .calendar-popup.active {
+            display: block;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .calendar-nav-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
             cursor: pointer;
-            opacity: 0;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        input[type="date"]:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        .calendar-nav-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
         }
 
-        /* סגנון ללוח שנה עצמו */
-        input[type="date"]::-webkit-datetime-edit {
-            padding: 0;
-            direction: ltr;
+        .calendar-month-year {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #2d7a8e;
         }
 
-        input[type="date"]::-webkit-datetime-edit-fields-wrapper {
-            padding: 0;
+        .calendar-days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            margin-bottom: 10px;
         }
 
-        input[type="date"]::-webkit-datetime-edit-text,
-        input[type="date"]::-webkit-datetime-edit-month-field,
-        input[type="date"]::-webkit-datetime-edit-day-field,
-        input[type="date"]::-webkit-datetime-edit-year-field {
-            padding: 0 2px;
-            color: #2c3e50;
-            font-weight: 500;
+        .calendar-day-name {
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #764ba2;
+            padding: 8px 0;
+        }
+
+        .calendar-dates {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+        }
+
+        .calendar-date {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+            background: #f8f9fa;
+        }
+
+        .calendar-date:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .calendar-date.today {
+            border: 2px solid #667eea;
+            font-weight: 700;
+        }
+
+        .calendar-date.selected {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 700;
+        }
+
+        .calendar-date.other-month {
+            color: #ccc;
         }
 
         .btn-primary {
@@ -600,6 +669,11 @@
                 font-size: 1.5rem;
             }
 
+            .calendar-popup {
+                min-width: 280px;
+                padding: 15px;
+            }
+
             .scroll-top-btn, .cart-btn {
                 bottom: 90px;
                 width: 45px;
@@ -711,12 +785,29 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="purchase-date-native">תאריך רכישה *</label>
-                            <div class="date-input-wrapper">
-                                <input type="date" id="purchase-date-native" required>
-                                <button type="button" class="calendar-btn" onclick="document.getElementById('purchase-date-native').showPicker()">
+                            <label for="purchase-date">תאריך רכישה *</label>
+                            <div class="date-input-wrapper" id="date-wrapper">
+                                <input type="text" id="purchase-date" placeholder="02/01/2026" maxlength="10" required readonly>
+                                <button type="button" class="calendar-btn" onclick="toggleCalendar()">
                                     📅
                                 </button>
+                                <div class="calendar-popup" id="calendar-popup">
+                                    <div class="calendar-header">
+                                        <button type="button" class="calendar-nav-btn" onclick="changeMonth(-1)">◀</button>
+                                        <div class="calendar-month-year" id="calendar-month-year"></div>
+                                        <button type="button" class="calendar-nav-btn" onclick="changeMonth(1)">▶</button>
+                                    </div>
+                                    <div class="calendar-days">
+                                        <div class="calendar-day-name">ראש</div>
+                                        <div class="calendar-day-name">שני</div>
+                                        <div class="calendar-day-name">שלי</div>
+                                        <div class="calendar-day-name">רבי</div>
+                                        <div class="calendar-day-name">חמי</div>
+                                        <div class="calendar-day-name">שישי</div>
+                                        <div class="calendar-day-name">שבת</div>
+                                    </div>
+                                    <div class="calendar-dates" id="calendar-dates"></div>
+                                </div>
                             </div>
                         </div>
 
@@ -758,6 +849,120 @@
 
     <script>
         const API_URL = 'https://ponpela-backend-production.up.railway.app';
+        
+        // Calendar state
+        let currentMonth = new Date().getMonth();
+        let currentYear = new Date().getFullYear();
+        let selectedDate = null;
+
+        const monthNames = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני',
+                           'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
+
+        function toggleCalendar() {
+            const popup = document.getElementById('calendar-popup');
+            popup.classList.toggle('active');
+            if (popup.classList.contains('active')) {
+                renderCalendar();
+            }
+        }
+
+        function changeMonth(delta) {
+            currentMonth += delta;
+            if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            } else if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            }
+            renderCalendar();
+        }
+
+        function renderCalendar() {
+            const monthYear = document.getElementById('calendar-month-year');
+            const dates = document.getElementById('calendar-dates');
+            
+            monthYear.textContent = `${monthNames[currentMonth]} ${currentYear}`;
+            
+            // Clear previous dates
+            dates.innerHTML = '';
+            
+            // Get first day of month and number of days
+            const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            const daysInPrevMonth = new Date(currentYear, currentMonth, 0).getDate();
+            
+            const today = new Date();
+            const todayDate = today.getDate();
+            const todayMonth = today.getMonth();
+            const todayYear = today.getFullYear();
+            
+            // Previous month days
+            for (let i = firstDay - 1; i >= 0; i--) {
+                const day = daysInPrevMonth - i;
+                const dateDiv = document.createElement('div');
+                dateDiv.className = 'calendar-date other-month';
+                dateDiv.textContent = day;
+                dates.appendChild(dateDiv);
+            }
+            
+            // Current month days
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateDiv = document.createElement('div');
+                dateDiv.className = 'calendar-date';
+                dateDiv.textContent = day;
+                
+                // Mark today
+                if (day === todayDate && currentMonth === todayMonth && currentYear === todayYear) {
+                    dateDiv.classList.add('today');
+                }
+                
+                // Mark selected date
+                if (selectedDate && 
+                    day === selectedDate.getDate() && 
+                    currentMonth === selectedDate.getMonth() && 
+                    currentYear === selectedDate.getFullYear()) {
+                    dateDiv.classList.add('selected');
+                }
+                
+                dateDiv.onclick = () => selectDate(day);
+                dates.appendChild(dateDiv);
+            }
+            
+            // Next month days to fill grid
+            const totalCells = dates.children.length;
+            const remainingCells = 42 - totalCells; // 6 rows * 7 days
+            for (let day = 1; day <= remainingCells; day++) {
+                const dateDiv = document.createElement('div');
+                dateDiv.className = 'calendar-date other-month';
+                dateDiv.textContent = day;
+                dates.appendChild(dateDiv);
+            }
+        }
+
+        function selectDate(day) {
+            selectedDate = new Date(currentYear, currentMonth, day);
+            
+            // Format as DD/MM/YYYY
+            const dd = String(day).padStart(2, '0');
+            const mm = String(currentMonth + 1).padStart(2, '0');
+            const yyyy = currentYear;
+            
+            document.getElementById('purchase-date').value = `${dd}/${mm}/${yyyy}`;
+            
+            // Close calendar
+            document.getElementById('calendar-popup').classList.remove('active');
+        }
+
+        // Close calendar when clicking outside
+        document.addEventListener('click', function(event) {
+            const wrapper = document.getElementById('date-wrapper');
+            const popup = document.getElementById('calendar-popup');
+            
+            if (!wrapper.contains(event.target) && popup.classList.contains('active')) {
+                popup.classList.remove('active');
+            }
+        });
 
         function switchTab(tab) {
             document.querySelectorAll('.tab-content').forEach(content => {
@@ -861,7 +1066,7 @@
             const lastName = document.getElementById('last-name').value.trim();
             const phone = document.getElementById('phone').value.trim();
             const machineNumber = document.getElementById('machine-number').value.trim();
-            const purchaseDate = document.getElementById('purchase-date-native').value;
+            const purchaseDateInput = document.getElementById('purchase-date').value;
             const receipt = document.getElementById('receipt').files[0];
 
             if (phone.length !== 10 || !/^[0-9]{10}$/.test(phone)) {
@@ -879,6 +1084,10 @@
                 submitBtn.disabled = false;
                 return;
             }
+
+            // Convert DD/MM/YYYY to YYYY-MM-DD
+            const [day, month, year] = purchaseDateInput.split('/');
+            const purchaseDate = `${year}-${month}-${day}`;
 
             loadingDiv.style.display = 'block';
             resultDiv.style.display = 'none';
@@ -931,6 +1140,7 @@
                         הרישום נמצא בבדיקה ויעודכן תוך 24 שעות.
                     `;
                     document.getElementById('register-form').reset();
+                    selectedDate = null;
                 } else {
                     resultDiv.className = 'result error';
                     resultDiv.innerHTML = `✗ ${data.message}`;
