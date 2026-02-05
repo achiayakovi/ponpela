@@ -223,6 +223,7 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             transition: all 0.3s ease;
             animation: fadeIn 0.5s ease-out;
+            position: relative;
         }
 
         .product-card:hover {
@@ -241,6 +242,20 @@
             }
         }
 
+        .product-badge {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            z-index: 1;
+            box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+        }
+
         .product-image {
             width: 100%;
             height: 200px;
@@ -256,18 +271,73 @@
             margin-bottom: 10px;
         }
 
+        .stock-status {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .stock-status.in-stock {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .stock-status.out-of-stock {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .stock-warning {
+            color: #e74c3c;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: block;
+        }
+
         .product-description {
             font-size: 1rem;
             color: #5a6c7d;
             margin-bottom: 20px;
             line-height: 1.6;
+            min-height: 48px;
+        }
+
+        .price-container {
+            margin-bottom: 20px;
+        }
+
+        .price-label {
+            font-size: 1rem;
+            color: #e74c3c;
+            font-weight: 700;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .price-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .original-price {
+            font-size: 1.4rem;
+            color: #999;
+            text-decoration: line-through;
         }
 
         .product-price {
             font-size: 2rem;
             font-weight: 700;
             color: #667eea;
-            margin-bottom: 20px;
+        }
+
+        .sale-price {
+            color: #e74c3c;
         }
 
         .add-to-cart-btn {
@@ -283,7 +353,7 @@
             transition: all 0.3s ease;
         }
 
-        .add-to-cart-btn:hover {
+        .add-to-cart-btn:hover:not(:disabled) {
             transform: translateY(-3px);
             box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
         }
@@ -291,6 +361,42 @@
         .add-to-cart-btn:disabled {
             background: #ccc;
             cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Category Filter */
+        .category-filter {
+            text-align: center;
+            margin: 30px 0 40px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .category-btn {
+            background: white;
+            border: 2px solid #667eea;
+            color: #667eea;
+            padding: 10px 25px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Varela Round', sans-serif;
+        }
+
+        .category-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .category-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
         }
 
         /* Loading */
@@ -439,6 +545,15 @@
                     <p>מוצרים איכותיים במחיר הוגן</p>
                 </div>
 
+                <!-- Category Filter -->
+                <div class="category-filter" id="categoryFilter" style="display: none;">
+                    <button class="category-btn active" onclick="filterByCategory('')">הכל</button>
+                    <button class="category-btn" onclick="filterByCategory('משאבות חשמליות')">משאבות חשמליות</button>
+                    <button class="category-btn" onclick="filterByCategory('אביזרים וחלפים')">אביזרים וחלפים</button>
+                    <button class="category-btn" onclick="filterByCategory('אחסון חלב')">אחסון חלב</button>
+                    <button class="category-btn" onclick="filterByCategory('מתנות')">מתנות</button>
+                </div>
+
                 <div id="productsContainer" class="products-grid">
                     <div class="loading">טוען מוצרים...</div>
                 </div>
@@ -486,36 +601,108 @@
         }
 
         // הצגת מוצרים
+        // הצגת מוצרים
+        let allProducts = []; // שמירת כל המוצרים לסינון
+
         function displayProducts(products) {
             const container = document.getElementById('productsContainer');
+            allProducts = products; // שמירה לסינון
             
             if (products.length === 0) {
-                container.innerHTML = '<div class="error">בקרוב...</div>';
+                container.innerHTML = '<div class="error">אין מוצרים להצגה</div>';
                 return;
             }
 
-            container.innerHTML = products.map(product => `
+            // הצגת סינון קטגוריות אם יש מוצרים
+            const categoryFilter = document.getElementById('categoryFilter');
+            if (categoryFilter && products.length > 0) {
+                categoryFilter.style.display = 'flex';
+            }
+
+            container.innerHTML = products.map(product => {
+                const finalPrice = product.sale_price || product.price;
+                const hasStock = product.stock_quantity > 0;
+                const lowStock = product.stock_quantity > 0 && product.stock_quantity <= 10;
+                
+                return `
                 <div class="product-card">
+                    ${product.badge ? `<div class="product-badge">${product.badge}</div>` : ''}
+                    
                     ${product.image_url ? `<img src="${product.image_url}" alt="${product.name}" class="product-image">` : ''}
+                    
                     <h3 class="product-name">${product.name}</h3>
-                    <p class="product-description">${product.description || ''}</p>
-                    <div class="product-price">₪${product.price}</div>
-                    <button class="add-to-cart-btn" onclick="addToCart(${product.id}, '${product.name}', ${product.price})">
-                        הוסף לעגלה
+                    
+                    <div class="stock-status ${hasStock ? 'in-stock' : 'out-of-stock'}">
+                        ${hasStock ? '🟢 במלאי' : '🔴 אזל מהמלאי'}
+                    </div>
+                    
+                    ${lowStock ? `<span class="stock-warning">⚠️ נשארו ${product.stock_quantity} יחידות בלבד!</span>` : ''}
+                    
+                    <p class="product-description">${product.short_description || product.description || ''}</p>
+                    
+                    <div class="price-container">
+                        ${product.price_label ? `<span class="price-label">${product.price_label}</span>` : ''}
+                        <div class="price-wrapper">
+                            ${product.sale_price ? 
+                                `<span class="original-price">₪${product.price}</span>
+                                 <span class="product-price sale-price">₪${product.sale_price}</span>` :
+                                `<span class="product-price">₪${product.price}</span>`
+                            }
+                        </div>
+                    </div>
+                    
+                    <button 
+                        class="add-to-cart-btn" 
+                        onclick="addToCart(${product.id}, '${product.name.replace(/'/g, "\\'")}', ${finalPrice}, ${product.stock_quantity})"
+                        ${!hasStock ? 'disabled' : ''}
+                    >
+                        ${hasStock ? 'הוסף לעגלה' : 'אזל מהמלאי'}
                     </button>
                 </div>
-            `).join('');
+            `}).join('');
+        }
+
+        // סינון לפי קטגוריה
+        function filterByCategory(category) {
+            // עדכון כפתורים
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // סינון מוצרים
+            const filtered = category === '' ? 
+                allProducts : 
+                allProducts.filter(p => p.category === category);
+            
+            const container = document.getElementById('productsContainer');
+            if (filtered.length === 0) {
+                container.innerHTML = '<div class="error">אין מוצרים בקטגוריה זו</div>';
+                return;
+            }
+
+            displayProducts(filtered);
         }
 
         // הוספה לעגלה
-        function addToCart(productId, productName, price) {
+        function addToCart(productId, productName, price, stockQuantity) {
             let cart = JSON.parse(localStorage.getItem('cart') || '[]');
             
             const existingItem = cart.find(item => item.id === productId);
             if (existingItem) {
+                if (existingItem.quantity >= stockQuantity) {
+                    alert(`אין מספיק מלאי. נשארו ${stockQuantity} יחידות בלבד.`);
+                    return;
+                }
                 existingItem.quantity++;
             } else {
-                cart.push({ id: productId, name: productName, price: price, quantity: 1 });
+                cart.push({ 
+                    id: productId, 
+                    name: productName, 
+                    price: price, 
+                    quantity: 1,
+                    maxStock: stockQuantity
+                });
             }
             
             localStorage.setItem('cart', JSON.stringify(cart));
