@@ -265,10 +265,11 @@
             }
             html.a11y-contrast-high .bottom-nav a {
                 border-color: #000 !important;
+                box-shadow: none !important;
             }
             html.a11y-contrast-high .bottom-nav a.active {
                 background-color: #222 !important;
-                border-top: 3px solid #ffff00 !important;
+                box-shadow: inset 0 3px 0 #ffff00 !important;
             }
             html.a11y-contrast-high input,
             html.a11y-contrast-high textarea,
