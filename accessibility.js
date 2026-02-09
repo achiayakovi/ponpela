@@ -53,18 +53,21 @@
                 color: white;
                 border: none;
                 border-radius: 50%;
-                font-size: 26px;
                 cursor: pointer;
                 box-shadow: 0 4px 15px rgba(45,122,142,0.5);
                 z-index: 10000;
-                transition: transform 0.2s, box-shadow 0.2s;
+                transition: box-shadow 0.2s;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                line-height: 1;
+                padding: 0;
+            }
+            .a11y-btn svg {
+                width: 28px;
+                height: 28px;
+                fill: white;
             }
             .a11y-btn:hover {
-                transform: translateY(-50%) scale(1.1);
                 box-shadow: 0 6px 20px rgba(45,122,142,0.7);
             }
             @media (max-width: 768px) {
@@ -72,7 +75,10 @@
                     right: 15px;
                     width: 45px;
                     height: 45px;
-                    font-size: 22px;
+                }
+                .a11y-btn svg {
+                    width: 24px;
+                    height: 24px;
                 }
             }
 
@@ -373,7 +379,7 @@
         panel.setAttribute('aria-label', 'הגדרות נגישות');
         panel.innerHTML = `
             <div class="a11y-panel-header">
-                <h2>♿ נגישות</h2>
+                <h2><svg viewBox="0 0 24 24" width="22" height="22" fill="white" style="vertical-align:middle;margin-left:8px;"><circle cx="12" cy="4" r="2"/><path d="M19 13v-2c-1.54.02-3.09-.75-4.07-1.83l-1.29-1.43c-.17-.19-.38-.34-.61-.45-.01 0-.01-.01-.02-.01H13c-.35-.2-.75-.3-1.19-.26C10.76 7.11 10 8.04 10 9.09V15c0 1.1.9 2 2 2h5v5h2v-5.5c0-1.1-.9-2-2-2h-3v-3.45c1.29 1.07 3.25 1.94 5 1.95zm-6.17 5c-.41 1.16-1.52 2-2.83 2-1.66 0-3-1.34-3-3 0-1.31.84-2.41 2-2.83V12.1c-2.28.46-4 2.48-4 4.9 0 2.76 2.24 5 5 5 2.42 0 4.44-1.72 4.9-4h-2.07z"/></svg>נגישות</h2>
                 <button class="a11y-close" aria-label="סגור">&times;</button>
             </div>
             <div class="a11y-panel-body">
@@ -471,8 +477,8 @@
         // Floating button
         const btn = document.createElement('button');
         btn.className = 'a11y-btn';
+        btn.innerHTML = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="4" r="2"/><path d="M19 13v-2c-1.54.02-3.09-.75-4.07-1.83l-1.29-1.43c-.17-.19-.38-.34-.61-.45-.01 0-.01-.01-.02-.01H13c-.35-.2-.75-.3-1.19-.26C10.76 7.11 10 8.04 10 9.09V15c0 1.1.9 2 2 2h5v5h2v-5.5c0-1.1-.9-2-2-2h-3v-3.45c1.29 1.07 3.25 1.94 5 1.95zm-6.17 5c-.41 1.16-1.52 2-2.83 2-1.66 0-3-1.34-3-3 0-1.31.84-2.41 2-2.83V12.1c-2.28.46-4 2.48-4 4.9 0 2.76 2.24 5 5 5 2.42 0 4.44-1.72 4.9-4h-2.07z"/></svg>';
         btn.setAttribute('aria-label', 'הגדרות נגישות');
-        btn.textContent = '♿';
         btn.addEventListener('click', togglePanel);
         document.body.appendChild(btn);
     }
