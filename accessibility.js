@@ -345,7 +345,8 @@
             }
             body.a11y-contrast-inverted .a11y-panel,
             body.a11y-contrast-inverted .a11y-overlay,
-            body.a11y-contrast-inverted .a11y-btn {
+            body.a11y-contrast-inverted .a11y-btn,
+            body.a11y-contrast-inverted .bottom-nav {
                 filter: invert(1) hue-rotate(180deg);
             }
 
@@ -358,12 +359,14 @@
             }
             body.a11y-grayscale .a11y-panel,
             body.a11y-grayscale .a11y-overlay,
-            body.a11y-grayscale .a11y-btn {
+            body.a11y-grayscale .a11y-btn,
+            body.a11y-grayscale .bottom-nav {
                 filter: grayscale(0);
             }
             body.a11y-grayscale.a11y-contrast-inverted .a11y-panel,
             body.a11y-grayscale.a11y-contrast-inverted .a11y-overlay,
-            body.a11y-grayscale.a11y-contrast-inverted .a11y-btn {
+            body.a11y-grayscale.a11y-contrast-inverted .a11y-btn,
+            body.a11y-grayscale.a11y-contrast-inverted .bottom-nav {
                 filter: grayscale(0) invert(1) hue-rotate(180deg);
             }
 
@@ -372,6 +375,22 @@
                 outline: 3px solid #ff0 !important;
                 outline-offset: 2px !important;
                 text-decoration: underline !important;
+            }
+
+            /* Bottom nav - high contrast structure */
+            body.a11y-contrast-high .bottom-nav {
+                border-top: 2px solid #ffff00 !important;
+                box-shadow: none !important;
+            }
+            body.a11y-contrast-high .bottom-nav a {
+                border-left: 1px solid #ffff00 !important;
+            }
+            body.a11y-contrast-high .bottom-nav a:last-child {
+                border-left: none !important;
+            }
+            body.a11y-contrast-high .bottom-nav a.active {
+                background-color: #333 !important;
+                border-top: 3px solid #ffff00 !important;
             }
 
             /* Stop animations */
@@ -583,29 +602,46 @@
 
     // --- Panel open/close ---
     let previouslyFocused = null;
+    let scrollY = 0;
 
     function togglePanel() {
         const panel = document.querySelector('.a11y-panel');
         const isOpen = panel.classList.toggle('open');
         document.querySelector('.a11y-overlay').classList.toggle('open');
-        document.body.style.overflow = isOpen ? 'hidden' : '';
 
         if (isOpen) {
+            scrollY = window.scrollY;
+            document.body.style.position = 'fixed';
+            document.body.style.top = '-' + scrollY + 'px';
+            document.body.style.left = '0';
+            document.body.style.right = '0';
+            document.body.style.overflow = 'hidden';
             previouslyFocused = document.activeElement;
             const firstBtn = panel.querySelector('.a11y-close');
             if (firstBtn) firstBtn.focus();
+        } else {
+            unlockScroll();
         }
     }
 
     function closePanel() {
         document.querySelector('.a11y-panel').classList.remove('open');
         document.querySelector('.a11y-overlay').classList.remove('open');
-        document.body.style.overflow = '';
+        unlockScroll();
 
         if (previouslyFocused && previouslyFocused.focus) {
             previouslyFocused.focus();
             previouslyFocused = null;
         }
+    }
+
+    function unlockScroll() {
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.left = '';
+        document.body.style.right = '';
+        document.body.style.overflow = '';
+        window.scrollTo(0, scrollY);
     }
 
     // --- Actions ---
