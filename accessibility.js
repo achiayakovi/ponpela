@@ -98,7 +98,7 @@
             .a11y-btn svg {
                 width: 38px;
                 height: 38px;
-                fill: #2d7a8e;
+                fill: #236474;
                 transition: fill 0.2s;
             }
             .a11y-btn:hover svg { fill: #1d5a6e; }
@@ -146,7 +146,7 @@
                 word-spacing: normal !important;
             }
             .a11y-panel-header {
-                background: #2d7a8e;
+                background: #236474;
                 color: white;
                 padding: 18px 24px;
                 border-radius: 20px 20px 0 0;
@@ -194,8 +194,8 @@
                 color: #333;
                 font-weight: 600;
             }
-            .a11y-option:hover { border-color: #2d7a8e; background: #f0f9fb; }
-            .a11y-option.active { border-color: #2d7a8e; background: #e6f3f7; color: #2d7a8e; }
+            .a11y-option:hover { border-color: #236474; background: #f0f9fb; }
+            .a11y-option.active { border-color: #236474; background: #e6f3f7; color: #236474; }
             .a11y-option-icon { font-size: 1.5rem !important; line-height: 1 !important; }
             .a11y-font-row {
                 display: flex;
@@ -210,9 +210,9 @@
             .a11y-font-btn {
                 width: 40px; height: 40px;
                 border-radius: 50%;
-                border: 2px solid #2d7a8e;
+                border: 2px solid #236474;
                 background: white;
-                color: #2d7a8e;
+                color: #236474;
                 font-size: 1.3rem !important;
                 font-weight: 700;
                 cursor: pointer;
@@ -221,7 +221,7 @@
                 justify-content: center;
                 transition: all 0.2s;
             }
-            .a11y-font-btn:hover { background: #2d7a8e; color: white; }
+            .a11y-font-btn:hover { background: #236474; color: white; }
             .a11y-font-label {
                 font-size: 0.95rem !important;
                 font-weight: 600;

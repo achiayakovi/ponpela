@@ -98,7 +98,7 @@
             top: 50%;
             transform: translateY(-50%);
             text-decoration: none;
-            color: #2d7a8e;
+            color: #236474;
             font-size: 1.1rem;
             font-weight: 600;
             padding: 10px 20px;
@@ -120,7 +120,7 @@
 
         .nav-menu a {
             text-decoration: none;
-            color: #2d7a8e;
+            color: #236474;
             font-size: 1.1rem;
             font-weight: 600;
             padding: 10px 20px;
@@ -134,7 +134,7 @@
         }
 
         .nav-menu a.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #5060c0 0%, #764ba2 100%);
             color: white;
         }
 
@@ -284,7 +284,7 @@
                 flex-direction: column;
                 align-items: center;
                 text-decoration: none;
-                color: #2d7a8e;
+                color: #236474;
                 font-size: 1.1rem;
                 font-weight: 600;
                 padding: 10px 20px;
@@ -294,8 +294,8 @@
             }
             
             .bottom-nav a.active {
-                color: #667eea;
-                border-top: 3px solid #667eea;
+                color: #5060c0;
+                border-top: 3px solid #5060c0;
             }
             
             main {
@@ -340,7 +340,7 @@
 
         .cart-header h1 {
             font-size: 3rem;
-            color: #2d7a8e;
+            color: #236474;
         }
 
         .cart-content {
@@ -372,13 +372,13 @@
         .item-name {
             font-size: 1.3rem;
             font-weight: 700;
-            color: #2d7a8e;
+            color: #236474;
             margin-bottom: 5px;
         }
 
         .item-price {
             font-size: 1.1rem;
-            color: #667eea;
+            color: #5060c0;
         }
 
         .quantity-controls {
@@ -388,7 +388,7 @@
         }
 
         .quantity-btn {
-            background: #667eea;
+            background: #5060c0;
             color: white;
             border: none;
             width: 35px;
@@ -430,7 +430,7 @@
         .cart-summary {
             margin-top: 40px;
             padding-top: 30px;
-            border-top: 2px solid #667eea;
+            border-top: 2px solid #5060c0;
         }
 
         .summary-row {
@@ -443,12 +443,12 @@
         .summary-row.total {
             font-size: 1.8rem;
             font-weight: 700;
-            color: #667eea;
+            color: #5060c0;
         }
 
         .checkout-btn {
             width: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #5060c0 0%, #764ba2 100%);
             color: white;
             border: none;
             padding: 20px;
@@ -478,7 +478,7 @@
 
         .continue-shopping-btn {
             display: inline-block;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #5060c0 0%, #764ba2 100%);
             color: white;
             padding: 15px 40px;
             border-radius: 10px;
@@ -517,7 +517,7 @@
         .scroll-top-btn {
             bottom: 30px;
             right: 30px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #5060c0 0%, #764ba2 100%);
             color: white;
             opacity: 0;
             visibility: hidden;
@@ -565,32 +565,9 @@
                 padding: 20px;
             }
         }
-        /* Accessibility */
-        .skip-to-content {
-            position: absolute;
-            top: -100%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #2d7a8e;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 0 0 8px 8px;
-            z-index: 9999;
-            font-weight: 600;
-            text-decoration: none;
-            transition: top 0.2s ease;
-        }
-        .skip-to-content:focus {
-            top: 0;
-        }
-        *:focus-visible {
-            outline: 3px solid #2d7a8e;
-            outline-offset: 2px;
-        }
     </style>
 </head>
 <body>
-    <a href="#main-content" class="skip-to-content">דלג לתוכן הראשי</a>
     <div class="toast-container" id="toastContainer"></div>
 
     <header>
@@ -605,7 +582,7 @@
     </header>
 
     <nav>
-        <a href="account.html" class="account-link" aria-label="אזור אישי">
+        <a href="account.html" class="account-link">
             👤 <span class="account-text">איזור אישי</span>
         </a>
         <div class="container">
@@ -620,7 +597,7 @@
         </div>
     </nav>
 
-    <main id="main-content">
+    <main>
         <div class="container">
             <section class="cart-section">
                 <div class="cart-header">

@@ -89,7 +89,7 @@
             top: 50%;
             transform: translateY(-50%);
             text-decoration: none;
-            color: #2d7a8e;
+            color: #236474;
             font-size: 1.1rem;
             font-weight: 600;
             padding: 10px 20px;
@@ -111,7 +111,7 @@
 
         .nav-menu a {
             text-decoration: none;
-            color: #2d7a8e;
+            color: #236474;
             font-size: 1.1rem;
             font-weight: 600;
             padding: 10px 20px;
@@ -125,7 +125,7 @@
         }
 
         .nav-menu a.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #5060c0 0%, #764ba2 100%);
             color: white;
         }
 
@@ -151,7 +151,7 @@
 
         h2 {
             font-size: 2rem;
-            color: #2d7a8e;
+            color: #236474;
             margin-bottom: 30px;
         }
 
@@ -178,8 +178,7 @@
 
         .form-group input:focus, .form-group textarea:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+            border-color: #5060c0;
         }
 
         .form-group textarea {
@@ -210,7 +209,7 @@
         .summary-total {
             margin-top: 30px;
             padding-top: 20px;
-            border-top: 2px solid #667eea;
+            border-top: 2px solid #5060c0;
         }
 
         .total-row {
@@ -223,12 +222,12 @@
         .total-row.final {
             font-size: 1.8rem;
             font-weight: 700;
-            color: #667eea;
+            color: #5060c0;
         }
 
         .submit-btn {
             width: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #5060c0 0%, #764ba2 100%);
             color: white;
             border: none;
             padding: 18px;
@@ -350,7 +349,7 @@
             right: 30px;
             width: 50px;
             height: 50px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #5060c0 0%, #764ba2 100%);
             color: white;
             border: none;
             border-radius: 50%;
@@ -380,7 +379,7 @@
             left: 30px;
             width: 50px;
             height: 50px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #5060c0 0%, #764ba2 100%);
             color: white;
             border: none;
             border-radius: 50%;
@@ -475,7 +474,7 @@
                 flex-direction: column;
                 align-items: center;
                 text-decoration: none;
-                color: #2d7a8e;
+                color: #236474;
                 font-size: 1.1rem;
                 font-weight: 600;
                 padding: 10px 20px;
@@ -485,8 +484,8 @@
             }
             
             .bottom-nav a.active {
-                color: #667eea;
-                border-top: 3px solid #667eea;
+                color: #5060c0;
+                border-top: 3px solid #5060c0;
             }
 
             .toast-container {
@@ -541,32 +540,9 @@
                 padding: 10px 15px;
             }
         }
-        /* Accessibility */
-        .skip-to-content {
-            position: absolute;
-            top: -100%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #2d7a8e;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 0 0 8px 8px;
-            z-index: 9999;
-            font-weight: 600;
-            text-decoration: none;
-            transition: top 0.2s ease;
-        }
-        .skip-to-content:focus {
-            top: 0;
-        }
-        *:focus-visible {
-            outline: 3px solid #2d7a8e;
-            outline-offset: 2px;
-        }
     </style>
 </head>
 <body>
-    <a href="#main-content" class="skip-to-content">דלג לתוכן הראשי</a>
     <div class="toast-container" id="toastContainer"></div>
 
     <header>
@@ -581,7 +557,7 @@
     </header>
 
     <nav>
-        <a href="account.html" class="account-link" aria-label="אזור אישי">
+        <a href="account.html" class="account-link">
             👤 <span class="account-text">איזור אישי</span>
         </a>
         <div class="container">
@@ -596,7 +572,7 @@
         </div>
     </nav>
 
-    <main id="main-content">
+    <main>
         <div class="container">
             <section class="checkout-section">
                 <div class="checkout-container">
