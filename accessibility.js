@@ -271,10 +271,24 @@
                 background-color: #222 !important;
                 box-shadow: inset 0 3px 0 #ffff00 !important;
             }
-            html.a11y-contrast-high input,
+            html.a11y-contrast-high input:not([type="hidden"]):not([type="submit"]):not([type="button"]),
             html.a11y-contrast-high textarea,
             html.a11y-contrast-high select {
+                background-color: #111 !important;
+                color: #ffff00 !important;
                 border: 2px solid #ffff00 !important;
+            }
+            html.a11y-contrast-high input::placeholder,
+            html.a11y-contrast-high textarea::placeholder {
+                color: #aaa !important;
+                opacity: 1 !important;
+            }
+
+            /* Inverted - ensure form fields have visible borders */
+            html.a11y-contrast-inverted input:not([type="hidden"]):not([type="submit"]):not([type="button"]),
+            html.a11y-contrast-inverted textarea,
+            html.a11y-contrast-inverted select {
+                border: 2px solid #333 !important;
             }
             html.a11y-contrast-high .a11y-btn svg {
                 fill: #ffff00 !important;
@@ -524,6 +538,7 @@
         // Invert overlay (mix-blend-mode)
         const invertOverlay = document.querySelector('.a11y-invert-overlay');
         if (invertOverlay) invertOverlay.classList.toggle('active', settings.contrast === 'inverted');
+        html.classList.toggle('a11y-contrast-inverted', settings.contrast === 'inverted');
 
         // Grayscale overlay (backdrop-filter)
         const grayOverlay = document.querySelector('.a11y-gray-overlay');
