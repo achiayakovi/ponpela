@@ -42,12 +42,22 @@
         style.id = 'ponpela-a11y-css';
         style.textContent = `
 
-            /* ========== Content Wrapper (receives filters) ========== */
+            /* ========== Wrapper ========== */
             .a11y-content-wrapper {
                 min-height: 100vh;
             }
 
-            /* ========== Widget UI ========== */
+            /* Scroll lock - on html, not body */
+            html.a11y-scroll-locked {
+                overflow: hidden !important;
+                height: 100% !important;
+            }
+            html.a11y-scroll-locked body {
+                overflow: hidden !important;
+                height: 100% !important;
+            }
+
+            /* ========== Widget UI (outside wrapper, never affected) ========== */
 
             .a11y-btn {
                 position: fixed;
@@ -98,7 +108,6 @@
                 display: block;
             }
 
-            /* Panel - immune to all accessibility changes */
             .a11y-panel {
                 display: none;
                 position: fixed;
@@ -158,13 +167,8 @@
                 line-height: 1 !important;
             }
 
-            .a11y-panel-body {
-                padding: 20px 24px;
-            }
-
-            .a11y-section {
-                margin-bottom: 20px;
-            }
+            .a11y-panel-body { padding: 20px 24px; }
+            .a11y-section { margin-bottom: 20px; }
             .a11y-section-title {
                 font-size: 0.85rem !important;
                 color: #888;
@@ -173,13 +177,11 @@
                 padding-bottom: 5px;
                 border-bottom: 1px solid #eee;
             }
-
             .a11y-grid {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
                 gap: 10px;
             }
-
             .a11y-option {
                 display: flex;
                 flex-direction: column;
@@ -209,7 +211,6 @@
                 font-size: 1.5rem !important;
                 line-height: 1 !important;
             }
-
             .a11y-font-row {
                 display: flex;
                 align-items: center;
@@ -246,7 +247,6 @@
                 min-width: 100px;
                 text-align: center !important;
             }
-
             .a11y-reset {
                 width: 100%;
                 padding: 14px;
@@ -260,135 +260,75 @@
                 transition: all 0.2s;
                 margin-top: 10px;
             }
-            .a11y-reset:hover {
-                background: #c0392b;
-            }
+            .a11y-reset:hover { background: #c0392b; }
 
-            /* ========== Applied Styles ========== */
-            /* Filters go on wrapper, NOT body - prevents position:fixed breakage */
+            /* ====================================================
+               ALL visual changes target .a11y-content-wrapper ONLY
+               body stays untouched = position:fixed never breaks
+               ==================================================== */
 
-            /* High contrast - on body (no filter, just colors) */
-            body.a11y-contrast-high,
-            body.a11y-contrast-high .a11y-content-wrapper,
-            body.a11y-contrast-high .a11y-content-wrapper * {
+            /* --- High contrast (colors, no filter) --- */
+            .a11y-content-wrapper.a11y-contrast-high,
+            .a11y-content-wrapper.a11y-contrast-high * {
                 background-color: #000 !important;
                 color: #ffff00 !important;
                 border-color: #ffff00 !important;
             }
-            body.a11y-contrast-high .a11y-content-wrapper a,
-            body.a11y-contrast-high .a11y-content-wrapper a * {
+            .a11y-content-wrapper.a11y-contrast-high a,
+            .a11y-content-wrapper.a11y-contrast-high a * {
                 color: #00ffff !important;
             }
-            body.a11y-contrast-high .a11y-content-wrapper img {
+            .a11y-content-wrapper.a11y-contrast-high img {
                 background-color: transparent !important;
             }
-            /* Bottom nav in high contrast */
-            body.a11y-contrast-high .bottom-nav {
+            .a11y-content-wrapper.a11y-contrast-high .bottom-nav {
                 border-top: 2px solid #ffff00 !important;
                 box-shadow: none !important;
             }
-            body.a11y-contrast-high .bottom-nav a {
+            .a11y-content-wrapper.a11y-contrast-high .bottom-nav a {
                 border-left: 1px solid #333 !important;
             }
-            body.a11y-contrast-high .bottom-nav a:last-child {
+            .a11y-content-wrapper.a11y-contrast-high .bottom-nav a:last-child {
                 border-left: none !important;
             }
-            body.a11y-contrast-high .bottom-nav a.active {
+            .a11y-content-wrapper.a11y-contrast-high .bottom-nav a.active {
                 background-color: #222 !important;
                 border-top: 3px solid #ffff00 !important;
             }
-            /* Protect widget from high contrast */
-            body.a11y-contrast-high .a11y-btn {
-                background: none !important;
-            }
-            body.a11y-contrast-high .a11y-btn svg {
-                fill: #ffff00 !important;
-            }
-            body.a11y-contrast-high .a11y-overlay {
-                background: rgba(0,0,0,0.6) !important;
-            }
-            body.a11y-contrast-high .a11y-panel {
-                background: white !important;
-            }
-            body.a11y-contrast-high .a11y-panel-header {
-                background: #2d7a8e !important;
-            }
-            body.a11y-contrast-high .a11y-panel-header h2,
-            body.a11y-contrast-high .a11y-panel-header svg,
-            body.a11y-contrast-high .a11y-close {
-                color: white !important;
-                fill: white !important;
-            }
-            body.a11y-contrast-high .a11y-panel-body {
-                background: white !important;
-            }
-            body.a11y-contrast-high .a11y-section-title {
-                color: #888 !important;
-                border-color: #eee !important;
-            }
-            body.a11y-contrast-high .a11y-option {
-                background: white !important;
-                color: #333 !important;
-                border-color: #e8e8e8 !important;
-            }
-            body.a11y-contrast-high .a11y-option.active {
-                background: #e6f3f7 !important;
-                color: #2d7a8e !important;
-                border-color: #2d7a8e !important;
-            }
-            body.a11y-contrast-high .a11y-option-icon {
-                color: inherit !important;
-            }
-            body.a11y-contrast-high .a11y-font-row {
-                background: white !important;
-                border-color: #e8e8e8 !important;
-            }
-            body.a11y-contrast-high .a11y-font-btn {
-                background: white !important;
-                color: #2d7a8e !important;
-                border-color: #2d7a8e !important;
-            }
-            body.a11y-contrast-high .a11y-font-label {
-                color: #333 !important;
-            }
-            body.a11y-contrast-high .a11y-reset {
-                background: #e74c3c !important;
-                color: white !important;
-            }
 
-            /* Inverted contrast - on WRAPPER only */
-            .a11y-content-wrapper.a11y-filter-inverted {
+            /* --- Inverted (filter on wrapper) --- */
+            .a11y-content-wrapper.a11y-inverted {
                 filter: invert(1) hue-rotate(180deg);
             }
-            .a11y-content-wrapper.a11y-filter-inverted img,
-            .a11y-content-wrapper.a11y-filter-inverted video {
+            .a11y-content-wrapper.a11y-inverted img,
+            .a11y-content-wrapper.a11y-inverted video {
                 filter: invert(1) hue-rotate(180deg);
             }
 
-            /* Grayscale - on WRAPPER only */
-            .a11y-content-wrapper.a11y-filter-grayscale {
+            /* --- Grayscale (filter on wrapper) --- */
+            .a11y-content-wrapper.a11y-grayscale {
                 filter: grayscale(100%);
             }
-            .a11y-content-wrapper.a11y-filter-grayscale.a11y-filter-inverted {
+            .a11y-content-wrapper.a11y-grayscale.a11y-inverted {
                 filter: grayscale(100%) invert(1) hue-rotate(180deg);
             }
-            .a11y-content-wrapper.a11y-filter-grayscale.a11y-filter-inverted img,
-            .a11y-content-wrapper.a11y-filter-grayscale.a11y-filter-inverted video {
+            .a11y-content-wrapper.a11y-grayscale.a11y-inverted img,
+            .a11y-content-wrapper.a11y-grayscale.a11y-inverted video {
                 filter: invert(1) hue-rotate(180deg);
             }
 
-            /* Highlight links */
-            body.a11y-highlight-links a:not(.a11y-panel a) {
+            /* --- Highlight links --- */
+            .a11y-content-wrapper.a11y-highlight-links a {
                 outline: 3px solid #ff0 !important;
                 outline-offset: 2px !important;
                 text-decoration: underline !important;
             }
 
-            /* Stop animations */
-            body.a11y-no-animations,
-            body.a11y-no-animations *,
-            body.a11y-no-animations *::before,
-            body.a11y-no-animations *::after {
+            /* --- Stop animations --- */
+            .a11y-content-wrapper.a11y-no-animations,
+            .a11y-content-wrapper.a11y-no-animations *,
+            .a11y-content-wrapper.a11y-no-animations *::before,
+            .a11y-content-wrapper.a11y-no-animations *::after {
                 animation-duration: 0s !important;
                 animation-delay: 0s !important;
                 transition-duration: 0s !important;
@@ -396,61 +336,35 @@
                 scroll-behavior: auto !important;
             }
 
-            /* Big cursor */
-            body.a11y-big-cursor,
-            body.a11y-big-cursor * {
+            /* --- Big cursor --- */
+            .a11y-content-wrapper.a11y-big-cursor,
+            .a11y-content-wrapper.a11y-big-cursor * {
                 cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Cpath d='M8 4l28 20H20l-4 16z' fill='black' stroke='white' stroke-width='2'/%3E%3C/svg%3E") 4 4, auto !important;
             }
 
-            /* Readable font - optimized for Hebrew */
-            body.a11y-readable-font,
-            body.a11y-readable-font * {
+            /* --- Readable font --- */
+            .a11y-content-wrapper.a11y-readable-font,
+            .a11y-content-wrapper.a11y-readable-font * {
                 font-family: 'Rubik', 'David', Arial, sans-serif !important;
             }
-            body.a11y-readable-font .a11y-panel,
-            body.a11y-readable-font .a11y-panel * {
-                font-family: 'Varela Round', sans-serif !important;
-            }
 
-            /* Line height */
-            body.a11y-line-height,
-            body.a11y-line-height * {
+            /* --- Line height --- */
+            .a11y-content-wrapper.a11y-line-height,
+            .a11y-content-wrapper.a11y-line-height * {
                 line-height: 2 !important;
             }
-            body.a11y-line-height .a11y-panel,
-            body.a11y-line-height .a11y-panel * {
-                line-height: 1.4 !important;
-            }
 
-            /* Letter spacing */
-            body.a11y-letter-spacing,
-            body.a11y-letter-spacing * {
+            /* --- Letter spacing --- */
+            .a11y-content-wrapper.a11y-letter-spacing,
+            .a11y-content-wrapper.a11y-letter-spacing * {
                 letter-spacing: 0.12em !important;
                 word-spacing: 0.2em !important;
             }
-            body.a11y-letter-spacing .a11y-panel,
-            body.a11y-letter-spacing .a11y-panel * {
-                letter-spacing: normal !important;
-                word-spacing: normal !important;
-            }
 
-            /* Text align */
-            body.a11y-align-right * { text-align: right !important; }
-            body.a11y-align-left * { text-align: left !important; }
-            body.a11y-align-center * { text-align: center !important; }
-            body.a11y-align-right .a11y-panel *,
-            body.a11y-align-left .a11y-panel *,
-            body.a11y-align-center .a11y-panel * {
-                text-align: right !important;
-            }
-            body.a11y-align-right .a11y-option,
-            body.a11y-align-left .a11y-option,
-            body.a11y-align-center .a11y-option,
-            body.a11y-align-right .a11y-font-label,
-            body.a11y-align-left .a11y-font-label,
-            body.a11y-align-center .a11y-font-label {
-                text-align: center !important;
-            }
+            /* --- Text align --- */
+            .a11y-content-wrapper.a11y-align-right * { text-align: right !important; }
+            .a11y-content-wrapper.a11y-align-left * { text-align: left !important; }
+            .a11y-content-wrapper.a11y-align-center * { text-align: center !important; }
         `;
         document.head.appendChild(style);
     }
@@ -460,8 +374,6 @@
 
     // --- Wrap page content ---
     function wrapContent() {
-        // Wrap all existing body children in a wrapper div
-        // Widget elements (panel, overlay, btn) will be appended AFTER this wrapper
         const wrapper = document.createElement('div');
         wrapper.className = 'a11y-content-wrapper';
         while (document.body.firstChild) {
@@ -475,7 +387,7 @@
     function buildPanel() {
         const wrapper = wrapContent();
 
-        // These go OUTSIDE the wrapper = immune to filters
+        // All widget elements go OUTSIDE wrapper - completely isolated
         const overlay = document.createElement('div');
         overlay.className = 'a11y-overlay';
         overlay.addEventListener('click', closePanel);
@@ -503,69 +415,42 @@
                 <div class="a11y-section">
                     <div class="a11y-section-title">תצוגה</div>
                     <div class="a11y-grid">
-                        <button class="a11y-option" data-action="contrast-high">
-                            <span class="a11y-option-icon">🔲</span>ניגודיות גבוהה
-                        </button>
-                        <button class="a11y-option" data-action="contrast-inverted">
-                            <span class="a11y-option-icon">🔄</span>היפוך צבעים
-                        </button>
-                        <button class="a11y-option" data-action="grayscale">
-                            <span class="a11y-option-icon">⚫</span>גווני אפור
-                        </button>
-                        <button class="a11y-option" data-action="links">
-                            <span class="a11y-option-icon">🔗</span>הדגשת קישורים
-                        </button>
+                        <button class="a11y-option" data-action="contrast-high"><span class="a11y-option-icon">🔲</span>ניגודיות גבוהה</button>
+                        <button class="a11y-option" data-action="contrast-inverted"><span class="a11y-option-icon">🔄</span>היפוך צבעים</button>
+                        <button class="a11y-option" data-action="grayscale"><span class="a11y-option-icon">⚫</span>גווני אפור</button>
+                        <button class="a11y-option" data-action="links"><span class="a11y-option-icon">🔗</span>הדגשת קישורים</button>
                     </div>
                 </div>
                 <div class="a11y-section">
                     <div class="a11y-section-title">קריאות</div>
                     <div class="a11y-grid">
-                        <button class="a11y-option" data-action="font">
-                            <span class="a11y-option-icon">Aa</span>גופן קריא
-                        </button>
-                        <button class="a11y-option" data-action="lineHeight">
-                            <span class="a11y-option-icon">↕</span>ריווח שורות
-                        </button>
-                        <button class="a11y-option" data-action="letterSpacing">
-                            <span class="a11y-option-icon">↔</span>ריווח אותיות
-                        </button>
-                        <button class="a11y-option" data-action="animations">
-                            <span class="a11y-option-icon">⏸</span>ביטול אנימציות
-                        </button>
+                        <button class="a11y-option" data-action="font"><span class="a11y-option-icon">Aa</span>גופן קריא</button>
+                        <button class="a11y-option" data-action="lineHeight"><span class="a11y-option-icon">↕</span>ריווח שורות</button>
+                        <button class="a11y-option" data-action="letterSpacing"><span class="a11y-option-icon">↔</span>ריווח אותיות</button>
+                        <button class="a11y-option" data-action="animations"><span class="a11y-option-icon">⏸</span>ביטול אנימציות</button>
                     </div>
                 </div>
                 <div class="a11y-section">
                     <div class="a11y-section-title">ניווט</div>
                     <div class="a11y-grid">
-                        <button class="a11y-option" data-action="cursor">
-                            <span class="a11y-option-icon">🖱️</span>סמן מוגדל
-                        </button>
-                        <button class="a11y-option" data-action="align-right">
-                            <span class="a11y-option-icon">⫸</span>ישור לימין
-                        </button>
-                        <button class="a11y-option" data-action="align-left">
-                            <span class="a11y-option-icon">⫷</span>ישור לשמאל
-                        </button>
-                        <button class="a11y-option" data-action="align-center">
-                            <span class="a11y-option-icon">☰</span>ישור למרכז
-                        </button>
+                        <button class="a11y-option" data-action="cursor"><span class="a11y-option-icon">🖱️</span>סמן מוגדל</button>
+                        <button class="a11y-option" data-action="align-right"><span class="a11y-option-icon">⫸</span>ישור לימין</button>
+                        <button class="a11y-option" data-action="align-left"><span class="a11y-option-icon">⫷</span>ישור לשמאל</button>
+                        <button class="a11y-option" data-action="align-center"><span class="a11y-option-icon">☰</span>ישור למרכז</button>
                     </div>
                 </div>
                 <button class="a11y-reset" data-action="reset">↩ איפוס הגדרות</button>
             </div>
         `;
-
         document.body.appendChild(panel);
 
         panel.querySelector('.a11y-close').addEventListener('click', closePanel);
-
         panel.querySelectorAll('[data-action]').forEach(btn => {
             btn.addEventListener('click', function () {
                 handleAction(this.dataset.action);
             });
         });
 
-        // Floating button - OUTSIDE wrapper
         const btn = document.createElement('button');
         btn.className = 'a11y-btn';
         btn.innerHTML = ICON_SVG;
@@ -573,7 +458,7 @@
         btn.addEventListener('click', togglePanel);
         document.body.appendChild(btn);
 
-        // Keyboard handling
+        // Keyboard
         document.addEventListener('keydown', function (e) {
             const panelEl = document.querySelector('.a11y-panel');
             if (!panelEl || !panelEl.classList.contains('open')) return;
@@ -583,24 +468,17 @@
                 document.querySelector('.a11y-btn').focus();
                 return;
             }
-
-            // Focus trap
             if (e.key === 'Tab') {
                 const focusable = panelEl.querySelectorAll('button');
-                if (focusable.length === 0) return;
+                if (!focusable.length) return;
                 const first = focusable[0];
                 const last = focusable[focusable.length - 1];
-
-                if (e.shiftKey) {
-                    if (document.activeElement === first) {
-                        e.preventDefault();
-                        last.focus();
-                    }
-                } else {
-                    if (document.activeElement === last) {
-                        e.preventDefault();
-                        first.focus();
-                    }
+                if (e.shiftKey && document.activeElement === first) {
+                    e.preventDefault();
+                    last.focus();
+                } else if (!e.shiftKey && document.activeElement === last) {
+                    e.preventDefault();
+                    first.focus();
                 }
             }
         });
@@ -608,46 +486,28 @@
 
     // --- Panel open/close ---
     let previouslyFocused = null;
-    let scrollY = 0;
 
     function togglePanel() {
         const panel = document.querySelector('.a11y-panel');
         const isOpen = panel.classList.toggle('open');
         document.querySelector('.a11y-overlay').classList.toggle('open');
+        document.documentElement.classList.toggle('a11y-scroll-locked', isOpen);
 
         if (isOpen) {
-            scrollY = window.scrollY;
-            document.body.style.position = 'fixed';
-            document.body.style.top = '-' + scrollY + 'px';
-            document.body.style.left = '0';
-            document.body.style.right = '0';
-            document.body.style.overflow = 'hidden';
             previouslyFocused = document.activeElement;
-            const firstBtn = panel.querySelector('.a11y-close');
-            if (firstBtn) firstBtn.focus();
-        } else {
-            unlockScroll();
+            panel.querySelector('.a11y-close').focus();
         }
     }
 
     function closePanel() {
         document.querySelector('.a11y-panel').classList.remove('open');
         document.querySelector('.a11y-overlay').classList.remove('open');
-        unlockScroll();
+        document.documentElement.classList.remove('a11y-scroll-locked');
 
         if (previouslyFocused && previouslyFocused.focus) {
             previouslyFocused.focus();
             previouslyFocused = null;
         }
-    }
-
-    function unlockScroll() {
-        document.body.style.position = '';
-        document.body.style.top = '';
-        document.body.style.left = '';
-        document.body.style.right = '';
-        document.body.style.overflow = '';
-        window.scrollTo(0, scrollY);
     }
 
     // --- Actions ---
@@ -705,36 +565,34 @@
         updateUI();
     }
 
-    // --- Apply Settings ---
+    // --- Apply Settings (ALL on wrapper, NOTHING on body) ---
     function applySettings() {
-        const body = document.body;
         const wrapper = document.querySelector('.a11y-content-wrapper');
+        if (!wrapper) return;
 
         // Font size
         const pct = 100 + (settings.fontSize * 15);
-        document.documentElement.style.fontSize = pct + '%';
+        wrapper.style.fontSize = pct + '%';
 
-        // High contrast - on body (colors only, no filter)
-        body.classList.remove('a11y-contrast-high');
-        if (settings.contrast === 'high') body.classList.add('a11y-contrast-high');
+        // Contrast
+        wrapper.classList.remove('a11y-contrast-high');
+        if (settings.contrast === 'high') wrapper.classList.add('a11y-contrast-high');
 
-        // Filters - on WRAPPER (inverted, grayscale)
-        if (wrapper) {
-            wrapper.classList.toggle('a11y-filter-inverted', settings.contrast === 'inverted');
-            wrapper.classList.toggle('a11y-filter-grayscale', settings.grayscale);
-        }
+        // Filters
+        wrapper.classList.toggle('a11y-inverted', settings.contrast === 'inverted');
+        wrapper.classList.toggle('a11y-grayscale', settings.grayscale);
 
-        // Body classes for non-filter features
-        body.classList.toggle('a11y-no-animations', !settings.animations);
-        body.classList.toggle('a11y-highlight-links', settings.links);
-        body.classList.toggle('a11y-big-cursor', settings.cursor);
-        body.classList.toggle('a11y-readable-font', settings.font);
-        body.classList.toggle('a11y-line-height', settings.lineHeight);
-        body.classList.toggle('a11y-letter-spacing', settings.letterSpacing);
+        // Other features
+        wrapper.classList.toggle('a11y-no-animations', !settings.animations);
+        wrapper.classList.toggle('a11y-highlight-links', settings.links);
+        wrapper.classList.toggle('a11y-big-cursor', settings.cursor);
+        wrapper.classList.toggle('a11y-readable-font', settings.font);
+        wrapper.classList.toggle('a11y-line-height', settings.lineHeight);
+        wrapper.classList.toggle('a11y-letter-spacing', settings.letterSpacing);
 
-        body.classList.remove('a11y-align-right', 'a11y-align-left', 'a11y-align-center');
+        wrapper.classList.remove('a11y-align-right', 'a11y-align-left', 'a11y-align-center');
         if (settings.textAlign !== 'none') {
-            body.classList.add('a11y-align-' + settings.textAlign);
+            wrapper.classList.add('a11y-align-' + settings.textAlign);
         }
     }
 
