@@ -276,7 +276,8 @@
             html.a11y-contrast-high select {
                 background-color: #111 !important;
                 color: #ffff00 !important;
-                border: 2px solid #ffff00 !important;
+                outline: 2px solid #ffff00 !important;
+                outline-offset: -1px !important;
             }
             html.a11y-contrast-high input::placeholder,
             html.a11y-contrast-high textarea::placeholder {
