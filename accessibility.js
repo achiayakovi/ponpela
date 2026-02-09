@@ -44,8 +44,9 @@
             /* Accessibility Panel */
             .a11y-btn {
                 position: fixed;
-                bottom: 30px;
-                right: 90px;
+                right: 20px;
+                top: 50%;
+                transform: translateY(-50%);
                 width: 50px;
                 height: 50px;
                 background: #2d7a8e;
@@ -63,13 +64,12 @@
                 line-height: 1;
             }
             .a11y-btn:hover {
-                transform: scale(1.1);
+                transform: translateY(-50%) scale(1.1);
                 box-shadow: 0 6px 20px rgba(45,122,142,0.7);
             }
             @media (max-width: 768px) {
                 .a11y-btn {
-                    bottom: 90px;
-                    right: 70px;
+                    right: 15px;
                     width: 45px;
                     height: 45px;
                     font-size: 22px;
@@ -534,6 +534,7 @@
                 break;
             case 'reset':
                 settings = { ...defaults };
+                closePanel();
                 break;
         }
         saveSettings();
