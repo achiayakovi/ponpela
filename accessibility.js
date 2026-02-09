@@ -9,16 +9,16 @@
 
     const STORAGE_KEY = 'ponpela_a11y';
     const defaults = {
-        fontSize: 0,        // -2 to +5
-        contrast: 'none',   // none, high, inverted
+        fontSize: 0,
+        contrast: 'none',
         grayscale: false,
         animations: true,
         links: false,
         cursor: false,
-        font: false,         // readable font
+        font: false,
         lineHeight: false,
         letterSpacing: false,
-        textAlign: 'none'   // none, right, left, center
+        textAlign: 'none'
     };
 
     let settings = loadSettings();
@@ -36,12 +36,14 @@
         localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
     }
 
-    // --- CSS injection ---
+    // --- CSS ---
     function injectCSS() {
         const style = document.createElement('style');
         style.id = 'ponpela-a11y-css';
         style.textContent = `
-            /* Accessibility Panel */
+
+            /* ========== Widget UI ========== */
+
             .a11y-btn {
                 position: fixed;
                 right: 20px;
@@ -63,6 +65,7 @@
                 width: 38px;
                 height: 38px;
                 fill: #2d7a8e;
+                transition: fill 0.2s;
             }
             .a11y-btn:hover svg {
                 fill: #1d5a6e;
@@ -90,6 +93,7 @@
                 display: block;
             }
 
+            /* Panel - immune to all accessibility changes */
             .a11y-panel {
                 display: none;
                 position: fixed;
@@ -105,10 +109,22 @@
                 max-height: 85vh;
                 overflow-y: auto;
                 direction: rtl;
-                font-family: 'Varela Round', sans-serif;
+                font-size: 16px !important;
+                font-family: 'Varela Round', sans-serif !important;
+                line-height: 1.4 !important;
+                letter-spacing: normal !important;
+                word-spacing: normal !important;
+                text-align: right !important;
             }
             .a11y-panel.open {
                 display: block;
+            }
+            /* Lock all panel children to fixed styles */
+            .a11y-panel * {
+                font-family: 'Varela Round', sans-serif !important;
+                line-height: 1.4 !important;
+                letter-spacing: normal !important;
+                word-spacing: normal !important;
             }
 
             .a11y-panel-header {
@@ -125,17 +141,17 @@
             }
             .a11y-panel-header h2 {
                 margin: 0;
-                font-size: 1.3rem;
+                font-size: 1.3rem !important;
                 font-weight: 700;
             }
             .a11y-close {
                 background: none;
                 border: none;
                 color: white;
-                font-size: 1.6rem;
+                font-size: 1.6rem !important;
                 cursor: pointer;
                 padding: 0 5px;
-                line-height: 1;
+                line-height: 1 !important;
             }
 
             .a11y-panel-body {
@@ -146,7 +162,7 @@
                 margin-bottom: 20px;
             }
             .a11y-section-title {
-                font-size: 0.85rem;
+                font-size: 0.85rem !important;
                 color: #888;
                 font-weight: 600;
                 margin-bottom: 10px;
@@ -171,9 +187,8 @@
                 cursor: pointer;
                 transition: all 0.2s;
                 background: white;
-                text-align: center;
-                font-family: inherit;
-                font-size: 0.85rem;
+                text-align: center !important;
+                font-size: 0.85rem !important;
                 color: #333;
                 font-weight: 600;
             }
@@ -187,11 +202,10 @@
                 color: #2d7a8e;
             }
             .a11y-option-icon {
-                font-size: 1.5rem;
-                line-height: 1;
+                font-size: 1.5rem !important;
+                line-height: 1 !important;
             }
 
-            /* Font size row */
             .a11y-font-row {
                 display: flex;
                 align-items: center;
@@ -209,28 +223,26 @@
                 border: 2px solid #2d7a8e;
                 background: white;
                 color: #2d7a8e;
-                font-size: 1.3rem;
+                font-size: 1.3rem !important;
                 font-weight: 700;
                 cursor: pointer;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 transition: all 0.2s;
-                font-family: inherit;
             }
             .a11y-font-btn:hover {
                 background: #2d7a8e;
                 color: white;
             }
             .a11y-font-label {
-                font-size: 0.95rem;
+                font-size: 0.95rem !important;
                 font-weight: 600;
                 color: #333;
                 min-width: 100px;
-                text-align: center;
+                text-align: center !important;
             }
 
-            /* Reset button */
             .a11y-reset {
                 width: 100%;
                 padding: 14px;
@@ -238,11 +250,10 @@
                 color: white;
                 border: none;
                 border-radius: 12px;
-                font-size: 1rem;
+                font-size: 1rem !important;
                 font-weight: 700;
                 cursor: pointer;
                 transition: all 0.2s;
-                font-family: inherit;
                 margin-top: 10px;
             }
             .a11y-reset:hover {
@@ -265,19 +276,63 @@
             body.a11y-contrast-high img {
                 background-color: transparent !important;
             }
-            body.a11y-contrast-high .a11y-panel,
-            body.a11y-contrast-high .a11y-panel * {
-                background-color: revert !important;
-                color: revert !important;
-                border-color: revert !important;
-            }
-            body.a11y-contrast-high .a11y-panel-header,
-            body.a11y-contrast-high .a11y-panel-header * {
-                background-color: #2d7a8e !important;
-                color: white !important;
+            /* Protect widget from high contrast */
+            body.a11y-contrast-high .a11y-btn {
+                background: none !important;
             }
             body.a11y-contrast-high .a11y-btn svg {
                 fill: #ffff00 !important;
+            }
+            body.a11y-contrast-high .a11y-overlay {
+                background: rgba(0,0,0,0.6) !important;
+            }
+            body.a11y-contrast-high .a11y-panel {
+                background: white !important;
+            }
+            body.a11y-contrast-high .a11y-panel-header {
+                background: #2d7a8e !important;
+            }
+            body.a11y-contrast-high .a11y-panel-header h2,
+            body.a11y-contrast-high .a11y-panel-header svg,
+            body.a11y-contrast-high .a11y-close {
+                color: white !important;
+                fill: white !important;
+            }
+            body.a11y-contrast-high .a11y-panel-body {
+                background: white !important;
+            }
+            body.a11y-contrast-high .a11y-section-title {
+                color: #888 !important;
+                border-color: #eee !important;
+            }
+            body.a11y-contrast-high .a11y-option {
+                background: white !important;
+                color: #333 !important;
+                border-color: #e8e8e8 !important;
+            }
+            body.a11y-contrast-high .a11y-option.active {
+                background: #e6f3f7 !important;
+                color: #2d7a8e !important;
+                border-color: #2d7a8e !important;
+            }
+            body.a11y-contrast-high .a11y-option-icon {
+                color: inherit !important;
+            }
+            body.a11y-contrast-high .a11y-font-row {
+                background: white !important;
+                border-color: #e8e8e8 !important;
+            }
+            body.a11y-contrast-high .a11y-font-btn {
+                background: white !important;
+                color: #2d7a8e !important;
+                border-color: #2d7a8e !important;
+            }
+            body.a11y-contrast-high .a11y-font-label {
+                color: #333 !important;
+            }
+            body.a11y-contrast-high .a11y-reset {
+                background: #e74c3c !important;
+                color: white !important;
             }
 
             /* Inverted contrast */
@@ -289,6 +344,7 @@
                 filter: invert(1) hue-rotate(180deg);
             }
             body.a11y-contrast-inverted .a11y-panel,
+            body.a11y-contrast-inverted .a11y-overlay,
             body.a11y-contrast-inverted .a11y-btn {
                 filter: invert(1) hue-rotate(180deg);
             }
@@ -301,8 +357,21 @@
                 filter: grayscale(100%) invert(1) hue-rotate(180deg);
             }
             body.a11y-grayscale .a11y-panel,
+            body.a11y-grayscale .a11y-overlay,
             body.a11y-grayscale .a11y-btn {
                 filter: grayscale(0);
+            }
+            body.a11y-grayscale.a11y-contrast-inverted .a11y-panel,
+            body.a11y-grayscale.a11y-contrast-inverted .a11y-overlay,
+            body.a11y-grayscale.a11y-contrast-inverted .a11y-btn {
+                filter: grayscale(0) invert(1) hue-rotate(180deg);
+            }
+
+            /* Highlight links */
+            body.a11y-highlight-links a:not(.a11y-panel a) {
+                outline: 3px solid #ff0 !important;
+                outline-offset: 2px !important;
+                text-decoration: underline !important;
             }
 
             /* Stop animations */
@@ -317,32 +386,30 @@
                 scroll-behavior: auto !important;
             }
 
-            /* Highlight links */
-            body.a11y-highlight-links a {
-                outline: 3px solid #ff0 !important;
-                outline-offset: 2px !important;
-                text-decoration: underline !important;
-            }
-            body.a11y-highlight-links .a11y-panel a {
-                outline: none !important;
-            }
-
             /* Big cursor */
             body.a11y-big-cursor,
             body.a11y-big-cursor * {
                 cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Cpath d='M8 4l28 20H20l-4 16z' fill='black' stroke='white' stroke-width='2'/%3E%3C/svg%3E") 4 4, auto !important;
             }
 
-            /* Readable font */
+            /* Readable font - optimized for Hebrew */
             body.a11y-readable-font,
             body.a11y-readable-font * {
-                font-family: Arial, Helvetica, sans-serif !important;
+                font-family: 'Rubik', 'David', Arial, sans-serif !important;
+            }
+            body.a11y-readable-font .a11y-panel,
+            body.a11y-readable-font .a11y-panel * {
+                font-family: 'Varela Round', sans-serif !important;
             }
 
             /* Line height */
             body.a11y-line-height,
             body.a11y-line-height * {
                 line-height: 2 !important;
+            }
+            body.a11y-line-height .a11y-panel,
+            body.a11y-line-height .a11y-panel * {
+                line-height: 1.4 !important;
             }
 
             /* Letter spacing */
@@ -351,27 +418,47 @@
                 letter-spacing: 0.12em !important;
                 word-spacing: 0.2em !important;
             }
+            body.a11y-letter-spacing .a11y-panel,
+            body.a11y-letter-spacing .a11y-panel * {
+                letter-spacing: normal !important;
+                word-spacing: normal !important;
+            }
 
             /* Text align */
             body.a11y-align-right * { text-align: right !important; }
             body.a11y-align-left * { text-align: left !important; }
             body.a11y-align-center * { text-align: center !important; }
+            body.a11y-align-right .a11y-panel *,
+            body.a11y-align-left .a11y-panel *,
+            body.a11y-align-center .a11y-panel * {
+                text-align: right !important;
+            }
+            body.a11y-align-right .a11y-option,
+            body.a11y-align-left .a11y-option,
+            body.a11y-align-center .a11y-option,
+            body.a11y-align-right .a11y-font-label,
+            body.a11y-align-left .a11y-font-label,
+            body.a11y-align-center .a11y-font-label {
+                text-align: center !important;
+            }
         `;
         document.head.appendChild(style);
     }
 
-    // --- Build Panel HTML ---
+    // --- Wheelchair SVG ---
+    const ICON_SVG = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="4" r="2"/><path d="M19 13v-2c-1.54.02-3.09-.75-4.07-1.83l-1.29-1.43c-.17-.19-.38-.34-.61-.45-.01 0-.01-.01-.02-.01H13c-.35-.2-.75-.3-1.19-.26C10.76 7.11 10 8.04 10 9.09V15c0 1.1.9 2 2 2h5v5h2v-5.5c0-1.1-.9-2-2-2h-3v-3.45c1.29 1.07 3.25 1.94 5 1.95zm-6.17 5c-.41 1.16-1.52 2-2.83 2-1.66 0-3-1.34-3-3 0-1.31.84-2.41 2-2.83V12.1c-2.28.46-4 2.48-4 4.9 0 2.76 2.24 5 5 5 2.42 0 4.44-1.72 4.9-4h-2.07z"/></svg>';
+
+    // --- Build Panel ---
     function buildPanel() {
-        // Overlay
         const overlay = document.createElement('div');
         overlay.className = 'a11y-overlay';
         overlay.addEventListener('click', closePanel);
         document.body.appendChild(overlay);
 
-        // Panel
         const panel = document.createElement('div');
         panel.className = 'a11y-panel';
         panel.setAttribute('role', 'dialog');
+        panel.setAttribute('aria-modal', 'true');
         panel.setAttribute('aria-label', 'הגדרות נגישות');
         panel.innerHTML = `
             <div class="a11y-panel-header">
@@ -387,83 +474,65 @@
                         <button class="a11y-font-btn" data-action="font-up" aria-label="הגדלת טקסט">א+</button>
                     </div>
                 </div>
-
                 <div class="a11y-section">
                     <div class="a11y-section-title">תצוגה</div>
                     <div class="a11y-grid">
                         <button class="a11y-option" data-action="contrast-high">
-                            <span class="a11y-option-icon">🔲</span>
-                            ניגודיות גבוהה
+                            <span class="a11y-option-icon">🔲</span>ניגודיות גבוהה
                         </button>
                         <button class="a11y-option" data-action="contrast-inverted">
-                            <span class="a11y-option-icon">🔄</span>
-                            היפוך צבעים
+                            <span class="a11y-option-icon">🔄</span>היפוך צבעים
                         </button>
                         <button class="a11y-option" data-action="grayscale">
-                            <span class="a11y-option-icon">⚫</span>
-                            גווני אפור
+                            <span class="a11y-option-icon">⚫</span>גווני אפור
                         </button>
                         <button class="a11y-option" data-action="links">
-                            <span class="a11y-option-icon">🔗</span>
-                            הדגשת קישורים
+                            <span class="a11y-option-icon">🔗</span>הדגשת קישורים
                         </button>
                     </div>
                 </div>
-
                 <div class="a11y-section">
                     <div class="a11y-section-title">קריאות</div>
                     <div class="a11y-grid">
                         <button class="a11y-option" data-action="font">
-                            <span class="a11y-option-icon">Aa</span>
-                            גופן קריא
+                            <span class="a11y-option-icon">Aa</span>גופן קריא
                         </button>
                         <button class="a11y-option" data-action="lineHeight">
-                            <span class="a11y-option-icon">↕</span>
-                            ריווח שורות
+                            <span class="a11y-option-icon">↕</span>ריווח שורות
                         </button>
                         <button class="a11y-option" data-action="letterSpacing">
-                            <span class="a11y-option-icon">↔</span>
-                            ריווח אותיות
+                            <span class="a11y-option-icon">↔</span>ריווח אותיות
                         </button>
                         <button class="a11y-option" data-action="animations">
-                            <span class="a11y-option-icon">⏸</span>
-                            ביטול אנימציות
+                            <span class="a11y-option-icon">⏸</span>ביטול אנימציות
                         </button>
                     </div>
                 </div>
-
                 <div class="a11y-section">
                     <div class="a11y-section-title">ניווט</div>
                     <div class="a11y-grid">
                         <button class="a11y-option" data-action="cursor">
-                            <span class="a11y-option-icon">🖱️</span>
-                            סמן מוגדל
+                            <span class="a11y-option-icon">🖱️</span>סמן מוגדל
                         </button>
                         <button class="a11y-option" data-action="align-right">
-                            <span class="a11y-option-icon">⫸</span>
-                            ישור לימין
+                            <span class="a11y-option-icon">⫸</span>ישור לימין
                         </button>
                         <button class="a11y-option" data-action="align-left">
-                            <span class="a11y-option-icon">⫷</span>
-                            ישור לשמאל
+                            <span class="a11y-option-icon">⫷</span>ישור לשמאל
                         </button>
                         <button class="a11y-option" data-action="align-center">
-                            <span class="a11y-option-icon">☰</span>
-                            ישור למרכז
+                            <span class="a11y-option-icon">☰</span>ישור למרכז
                         </button>
                     </div>
                 </div>
-
                 <button class="a11y-reset" data-action="reset">↩ איפוס הגדרות</button>
             </div>
         `;
 
         document.body.appendChild(panel);
 
-        // Close button
         panel.querySelector('.a11y-close').addEventListener('click', closePanel);
 
-        // All option buttons
         panel.querySelectorAll('[data-action]').forEach(btn => {
             btn.addEventListener('click', function () {
                 handleAction(this.dataset.action);
@@ -473,20 +542,70 @@
         // Floating button
         const btn = document.createElement('button');
         btn.className = 'a11y-btn';
-        btn.innerHTML = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="4" r="2"/><path d="M19 13v-2c-1.54.02-3.09-.75-4.07-1.83l-1.29-1.43c-.17-.19-.38-.34-.61-.45-.01 0-.01-.01-.02-.01H13c-.35-.2-.75-.3-1.19-.26C10.76 7.11 10 8.04 10 9.09V15c0 1.1.9 2 2 2h5v5h2v-5.5c0-1.1-.9-2-2-2h-3v-3.45c1.29 1.07 3.25 1.94 5 1.95zm-6.17 5c-.41 1.16-1.52 2-2.83 2-1.66 0-3-1.34-3-3 0-1.31.84-2.41 2-2.83V12.1c-2.28.46-4 2.48-4 4.9 0 2.76 2.24 5 5 5 2.42 0 4.44-1.72 4.9-4h-2.07z"/></svg>';
+        btn.innerHTML = ICON_SVG;
         btn.setAttribute('aria-label', 'הגדרות נגישות');
         btn.addEventListener('click', togglePanel);
         document.body.appendChild(btn);
+
+        // Keyboard handling
+        document.addEventListener('keydown', function (e) {
+            const panelEl = document.querySelector('.a11y-panel');
+            if (!panelEl || !panelEl.classList.contains('open')) return;
+
+            // Escape closes panel
+            if (e.key === 'Escape') {
+                closePanel();
+                document.querySelector('.a11y-btn').focus();
+                return;
+            }
+
+            // Focus trap - Tab stays inside panel
+            if (e.key === 'Tab') {
+                const focusable = panelEl.querySelectorAll('button');
+                if (focusable.length === 0) return;
+                const first = focusable[0];
+                const last = focusable[focusable.length - 1];
+
+                if (e.shiftKey) {
+                    if (document.activeElement === first) {
+                        e.preventDefault();
+                        last.focus();
+                    }
+                } else {
+                    if (document.activeElement === last) {
+                        e.preventDefault();
+                        first.focus();
+                    }
+                }
+            }
+        });
     }
 
+    // --- Panel open/close ---
+    let previouslyFocused = null;
+
     function togglePanel() {
-        document.querySelector('.a11y-panel').classList.toggle('open');
+        const panel = document.querySelector('.a11y-panel');
+        const isOpen = panel.classList.toggle('open');
         document.querySelector('.a11y-overlay').classList.toggle('open');
+        document.body.style.overflow = isOpen ? 'hidden' : '';
+
+        if (isOpen) {
+            previouslyFocused = document.activeElement;
+            const firstBtn = panel.querySelector('.a11y-close');
+            if (firstBtn) firstBtn.focus();
+        }
     }
 
     function closePanel() {
         document.querySelector('.a11y-panel').classList.remove('open');
         document.querySelector('.a11y-overlay').classList.remove('open');
+        document.body.style.overflow = '';
+
+        if (previouslyFocused && previouslyFocused.focus) {
+            previouslyFocused.focus();
+            previouslyFocused = null;
+        }
     }
 
     // --- Actions ---
@@ -548,37 +667,21 @@
     function applySettings() {
         const body = document.body;
 
-        // Font size
         const pct = 100 + (settings.fontSize * 15);
         document.documentElement.style.fontSize = pct + '%';
 
-        // Contrast
         body.classList.remove('a11y-contrast-high', 'a11y-contrast-inverted');
         if (settings.contrast === 'high') body.classList.add('a11y-contrast-high');
         if (settings.contrast === 'inverted') body.classList.add('a11y-contrast-inverted');
 
-        // Grayscale
         body.classList.toggle('a11y-grayscale', settings.grayscale);
-
-        // Animations
         body.classList.toggle('a11y-no-animations', !settings.animations);
-
-        // Links
         body.classList.toggle('a11y-highlight-links', settings.links);
-
-        // Cursor
         body.classList.toggle('a11y-big-cursor', settings.cursor);
-
-        // Readable font
         body.classList.toggle('a11y-readable-font', settings.font);
-
-        // Line height
         body.classList.toggle('a11y-line-height', settings.lineHeight);
-
-        // Letter spacing
         body.classList.toggle('a11y-letter-spacing', settings.letterSpacing);
 
-        // Text align
         body.classList.remove('a11y-align-right', 'a11y-align-left', 'a11y-align-center');
         if (settings.textAlign !== 'none') {
             body.classList.add('a11y-align-' + settings.textAlign);
@@ -590,11 +693,9 @@
         const panel = document.querySelector('.a11y-panel');
         if (!panel) return;
 
-        // Font label
         const label = panel.querySelector('#a11yFontLabel');
         if (label) label.textContent = (100 + settings.fontSize * 15) + '%';
 
-        // Toggle active states
         const map = {
             'contrast-high': settings.contrast === 'high',
             'contrast-inverted': settings.contrast === 'inverted',
@@ -621,7 +722,7 @@
     // --- Init ---
     function init() {
         injectCSS();
-        applySettings(); // apply BEFORE panel (instant, no flash)
+        applySettings();
 
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', function () {
