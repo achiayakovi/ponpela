@@ -47,38 +47,35 @@
                 right: 20px;
                 top: 50%;
                 transform: translateY(-50%);
-                width: 50px;
-                height: 50px;
-                background: #2d7a8e;
-                color: white;
+                width: 44px;
+                height: 44px;
+                background: none;
                 border: none;
-                border-radius: 50%;
                 cursor: pointer;
-                box-shadow: 0 4px 15px rgba(45,122,142,0.5);
                 z-index: 10000;
-                transition: box-shadow 0.2s;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 padding: 0;
+                filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
             }
             .a11y-btn svg {
-                width: 28px;
-                height: 28px;
-                fill: white;
+                width: 38px;
+                height: 38px;
+                fill: #2d7a8e;
             }
-            .a11y-btn:hover {
-                box-shadow: 0 6px 20px rgba(45,122,142,0.7);
+            .a11y-btn:hover svg {
+                fill: #1d5a6e;
             }
             @media (max-width: 768px) {
                 .a11y-btn {
                     right: 15px;
-                    width: 45px;
-                    height: 45px;
+                    width: 38px;
+                    height: 38px;
                 }
                 .a11y-btn svg {
-                    width: 24px;
-                    height: 24px;
+                    width: 32px;
+                    height: 32px;
                 }
             }
 
@@ -279,9 +276,8 @@
                 background-color: #2d7a8e !important;
                 color: white !important;
             }
-            body.a11y-contrast-high .a11y-btn {
-                background-color: #ffff00 !important;
-                color: #000 !important;
+            body.a11y-contrast-high .a11y-btn svg {
+                fill: #ffff00 !important;
             }
 
             /* Inverted contrast */
