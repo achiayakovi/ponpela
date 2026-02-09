@@ -42,6 +42,11 @@
         style.id = 'ponpela-a11y-css';
         style.textContent = `
 
+            /* ========== Content Wrapper (receives filters) ========== */
+            .a11y-content-wrapper {
+                min-height: 100vh;
+            }
+
             /* ========== Widget UI ========== */
 
             .a11y-btn {
@@ -119,7 +124,6 @@
             .a11y-panel.open {
                 display: block;
             }
-            /* Lock all panel children to fixed styles */
             .a11y-panel * {
                 font-family: 'Varela Round', sans-serif !important;
                 line-height: 1.4 !important;
@@ -261,20 +265,37 @@
             }
 
             /* ========== Applied Styles ========== */
+            /* Filters go on wrapper, NOT body - prevents position:fixed breakage */
 
-            /* High contrast */
+            /* High contrast - on body (no filter, just colors) */
             body.a11y-contrast-high,
-            body.a11y-contrast-high * {
+            body.a11y-contrast-high .a11y-content-wrapper,
+            body.a11y-contrast-high .a11y-content-wrapper * {
                 background-color: #000 !important;
                 color: #ffff00 !important;
                 border-color: #ffff00 !important;
             }
-            body.a11y-contrast-high a,
-            body.a11y-contrast-high a * {
+            body.a11y-contrast-high .a11y-content-wrapper a,
+            body.a11y-contrast-high .a11y-content-wrapper a * {
                 color: #00ffff !important;
             }
-            body.a11y-contrast-high img {
+            body.a11y-contrast-high .a11y-content-wrapper img {
                 background-color: transparent !important;
+            }
+            /* Bottom nav in high contrast */
+            body.a11y-contrast-high .bottom-nav {
+                border-top: 2px solid #ffff00 !important;
+                box-shadow: none !important;
+            }
+            body.a11y-contrast-high .bottom-nav a {
+                border-left: 1px solid #333 !important;
+            }
+            body.a11y-contrast-high .bottom-nav a:last-child {
+                border-left: none !important;
+            }
+            body.a11y-contrast-high .bottom-nav a.active {
+                background-color: #222 !important;
+                border-top: 3px solid #ffff00 !important;
             }
             /* Protect widget from high contrast */
             body.a11y-contrast-high .a11y-btn {
@@ -335,39 +356,25 @@
                 color: white !important;
             }
 
-            /* Inverted contrast */
-            body.a11y-contrast-inverted {
+            /* Inverted contrast - on WRAPPER only */
+            .a11y-content-wrapper.a11y-filter-inverted {
                 filter: invert(1) hue-rotate(180deg);
             }
-            body.a11y-contrast-inverted img,
-            body.a11y-contrast-inverted video {
-                filter: invert(1) hue-rotate(180deg);
-            }
-            body.a11y-contrast-inverted .a11y-panel,
-            body.a11y-contrast-inverted .a11y-overlay,
-            body.a11y-contrast-inverted .a11y-btn,
-            body.a11y-contrast-inverted .bottom-nav {
+            .a11y-content-wrapper.a11y-filter-inverted img,
+            .a11y-content-wrapper.a11y-filter-inverted video {
                 filter: invert(1) hue-rotate(180deg);
             }
 
-            /* Grayscale */
-            body.a11y-grayscale {
+            /* Grayscale - on WRAPPER only */
+            .a11y-content-wrapper.a11y-filter-grayscale {
                 filter: grayscale(100%);
             }
-            body.a11y-grayscale.a11y-contrast-inverted {
+            .a11y-content-wrapper.a11y-filter-grayscale.a11y-filter-inverted {
                 filter: grayscale(100%) invert(1) hue-rotate(180deg);
             }
-            body.a11y-grayscale .a11y-panel,
-            body.a11y-grayscale .a11y-overlay,
-            body.a11y-grayscale .a11y-btn,
-            body.a11y-grayscale .bottom-nav {
-                filter: grayscale(0);
-            }
-            body.a11y-grayscale.a11y-contrast-inverted .a11y-panel,
-            body.a11y-grayscale.a11y-contrast-inverted .a11y-overlay,
-            body.a11y-grayscale.a11y-contrast-inverted .a11y-btn,
-            body.a11y-grayscale.a11y-contrast-inverted .bottom-nav {
-                filter: grayscale(0) invert(1) hue-rotate(180deg);
+            .a11y-content-wrapper.a11y-filter-grayscale.a11y-filter-inverted img,
+            .a11y-content-wrapper.a11y-filter-grayscale.a11y-filter-inverted video {
+                filter: invert(1) hue-rotate(180deg);
             }
 
             /* Highlight links */
@@ -375,22 +382,6 @@
                 outline: 3px solid #ff0 !important;
                 outline-offset: 2px !important;
                 text-decoration: underline !important;
-            }
-
-            /* Bottom nav - high contrast structure */
-            body.a11y-contrast-high .bottom-nav {
-                border-top: 2px solid #ffff00 !important;
-                box-shadow: none !important;
-            }
-            body.a11y-contrast-high .bottom-nav a {
-                border-left: 1px solid #ffff00 !important;
-            }
-            body.a11y-contrast-high .bottom-nav a:last-child {
-                border-left: none !important;
-            }
-            body.a11y-contrast-high .bottom-nav a.active {
-                background-color: #333 !important;
-                border-top: 3px solid #ffff00 !important;
             }
 
             /* Stop animations */
@@ -467,8 +458,24 @@
     // --- Wheelchair SVG ---
     const ICON_SVG = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="4" r="2"/><path d="M19 13v-2c-1.54.02-3.09-.75-4.07-1.83l-1.29-1.43c-.17-.19-.38-.34-.61-.45-.01 0-.01-.01-.02-.01H13c-.35-.2-.75-.3-1.19-.26C10.76 7.11 10 8.04 10 9.09V15c0 1.1.9 2 2 2h5v5h2v-5.5c0-1.1-.9-2-2-2h-3v-3.45c1.29 1.07 3.25 1.94 5 1.95zm-6.17 5c-.41 1.16-1.52 2-2.83 2-1.66 0-3-1.34-3-3 0-1.31.84-2.41 2-2.83V12.1c-2.28.46-4 2.48-4 4.9 0 2.76 2.24 5 5 5 2.42 0 4.44-1.72 4.9-4h-2.07z"/></svg>';
 
+    // --- Wrap page content ---
+    function wrapContent() {
+        // Wrap all existing body children in a wrapper div
+        // Widget elements (panel, overlay, btn) will be appended AFTER this wrapper
+        const wrapper = document.createElement('div');
+        wrapper.className = 'a11y-content-wrapper';
+        while (document.body.firstChild) {
+            wrapper.appendChild(document.body.firstChild);
+        }
+        document.body.appendChild(wrapper);
+        return wrapper;
+    }
+
     // --- Build Panel ---
     function buildPanel() {
+        const wrapper = wrapContent();
+
+        // These go OUTSIDE the wrapper = immune to filters
         const overlay = document.createElement('div');
         overlay.className = 'a11y-overlay';
         overlay.addEventListener('click', closePanel);
@@ -558,7 +565,7 @@
             });
         });
 
-        // Floating button
+        // Floating button - OUTSIDE wrapper
         const btn = document.createElement('button');
         btn.className = 'a11y-btn';
         btn.innerHTML = ICON_SVG;
@@ -571,14 +578,13 @@
             const panelEl = document.querySelector('.a11y-panel');
             if (!panelEl || !panelEl.classList.contains('open')) return;
 
-            // Escape closes panel
             if (e.key === 'Escape') {
                 closePanel();
                 document.querySelector('.a11y-btn').focus();
                 return;
             }
 
-            // Focus trap - Tab stays inside panel
+            // Focus trap
             if (e.key === 'Tab') {
                 const focusable = panelEl.querySelectorAll('button');
                 if (focusable.length === 0) return;
@@ -702,15 +708,23 @@
     // --- Apply Settings ---
     function applySettings() {
         const body = document.body;
+        const wrapper = document.querySelector('.a11y-content-wrapper');
 
+        // Font size
         const pct = 100 + (settings.fontSize * 15);
         document.documentElement.style.fontSize = pct + '%';
 
-        body.classList.remove('a11y-contrast-high', 'a11y-contrast-inverted');
+        // High contrast - on body (colors only, no filter)
+        body.classList.remove('a11y-contrast-high');
         if (settings.contrast === 'high') body.classList.add('a11y-contrast-high');
-        if (settings.contrast === 'inverted') body.classList.add('a11y-contrast-inverted');
 
-        body.classList.toggle('a11y-grayscale', settings.grayscale);
+        // Filters - on WRAPPER (inverted, grayscale)
+        if (wrapper) {
+            wrapper.classList.toggle('a11y-filter-inverted', settings.contrast === 'inverted');
+            wrapper.classList.toggle('a11y-filter-grayscale', settings.grayscale);
+        }
+
+        // Body classes for non-filter features
         body.classList.toggle('a11y-no-animations', !settings.animations);
         body.classList.toggle('a11y-highlight-links', settings.links);
         body.classList.toggle('a11y-big-cursor', settings.cursor);
@@ -758,15 +772,16 @@
     // --- Init ---
     function init() {
         injectCSS();
-        applySettings();
 
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', function () {
                 buildPanel();
+                applySettings();
                 updateUI();
             });
         } else {
             buildPanel();
+            applySettings();
             updateUI();
         }
     }
