@@ -689,9 +689,32 @@
                 height: 45px;
             }
         }
+        /* Accessibility */
+        .skip-to-content {
+            position: absolute;
+            top: -100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2d7a8e;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 0 0 8px 8px;
+            z-index: 9999;
+            font-weight: 600;
+            text-decoration: none;
+            transition: top 0.2s ease;
+        }
+        .skip-to-content:focus {
+            top: 0;
+        }
+        *:focus-visible {
+            outline: 3px solid #2d7a8e;
+            outline-offset: 2px;
+        }
     </style>
 </head>
 <body>
+    <a href="#main-content" class="skip-to-content">דלג לתוכן הראשי</a>
     <header>
         <div class="bsd">בס"ד</div>
         <div class="container">
@@ -704,7 +727,7 @@
     </header>
 
     <nav>
-        <a href="account.html" class="account-link">
+        <a href="account.html" class="account-link" aria-label="אזור אישי">
             👤 <span class="account-text">איזור אישי</span>
         </a>
         <ul class="nav-menu">
@@ -717,7 +740,7 @@
         </ul>
     </nav>
 
-    <main>
+    <main id="main-content">
         <div class="container">
             <div class="business-hero">
                 <h1>משאבת חלב חשמלית פונפלה</h1>
@@ -738,7 +761,7 @@
             <section class="contact-section">
                 <h2>צרו קשר</h2>
                 <p>מלאו את הפרטים ונחזור אליכם בהקדם</p>
-                <div id="success-message" style="display: none;">
+                <div id="success-message" role="status" aria-live="polite" style="display: none;">
                     ✓ תודה על פנייתך! ניצור איתך קשר בקרוב.
                 </div>
                 <form class="contact-form" method="POST" action="https://formsubmit.co/info@ponpela.co.il" onsubmit="showThankYou(event)">
@@ -778,11 +801,11 @@
                         </svg>
                         וואטסאפ
                     </a>
-                    <a href="mailto:info@ponpela.co.il" class="email">
+                    <a href="/cdn-cgi/l/email-protection#e48d8a828ba4948b8a94818885ca878bca8d88" class="email">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="white" style="vertical-align: middle; margin-left: 5px;">
                             <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
                         </svg>
-                        info@ponpela.co.il
+                        <span class="__cf_email__" data-cfemail="563f3830391626393826333a37783539783f3a">[email&#160;protected]</span>
                     </a>
                 </div>
             </section>
@@ -805,7 +828,7 @@
         </div>
     </footer>
 
-    <script>
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
         function showThankYou(event) {
             event.preventDefault();
             
@@ -959,7 +982,7 @@ updateFooterAndButtons();
                     } else {
                         accountLink.style.top = '150px';
                     }
-                }
+                               }
             }
         }
 
@@ -967,5 +990,6 @@ updateFooterAndButtons();
         window.addEventListener('resize', updateAccountButtonPosition);
         updateAccountButtonPosition();
     </script>
+    <script src="accessibility.js"></script>
 </body>
 </html>

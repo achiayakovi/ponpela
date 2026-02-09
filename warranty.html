@@ -220,6 +220,7 @@
         .form-group select:focus {
             outline: none;
             border-color: #2d7a8e;
+            box-shadow: 0 0 0 3px rgba(45, 122, 142, 0.2);
         }
 
         .name-group {
@@ -730,9 +731,32 @@
                 padding: 10px 15px;
             }
         }
+        /* Accessibility */
+        .skip-to-content {
+            position: absolute;
+            top: -100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2d7a8e;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 0 0 8px 8px;
+            z-index: 9999;
+            font-weight: 600;
+            text-decoration: none;
+            transition: top 0.2s ease;
+        }
+        .skip-to-content:focus {
+            top: 0;
+        }
+        *:focus-visible {
+            outline: 3px solid #2d7a8e;
+            outline-offset: 2px;
+        }
     </style>
 </head>
 <body>
+    <a href="#main-content" class="skip-to-content">דלג לתוכן הראשי</a>
     <header>
         <div class="bsd">בס"ד</div>
         <div class="container">
@@ -745,7 +769,7 @@
     </header>
 
     <nav>
-        <a href="account.html" class="account-link">
+        <a href="account.html" class="account-link" aria-label="אזור אישי">
             👤 <span class="account-text">איזור אישי</span>
         </a>
         <div class="container">
@@ -760,7 +784,7 @@
         </div>
     </nav>
 
-    <main>
+    <main id="main-content">
         <div class="container">
             <div class="warranty-card">
                 <h1>אחריות פונפלה</h1>
@@ -795,8 +819,8 @@
                         <div class="form-group">
                             <label>שם מלא *</label>
                             <div class="name-group">
-                                <input type="text" id="first-name" required placeholder="שם פרטי">
-                                <input type="text" id="last-name" required placeholder="שם משפחה">
+                                <input type="text" id="first-name" required placeholder="שם פרטי" aria-label="שם פרטי">
+                                <input type="text" id="last-name" required placeholder="שם משפחה" aria-label="שם משפחה">
                             </div>
                         </div>
 
@@ -821,8 +845,8 @@
                                     <div class="calendar-header">
                                         <button type="button" class="calendar-nav-btn" onclick="changeMonth(-1)">◀</button>
                                         <div class="calendar-selectors">
-                                            <select class="calendar-select" id="month-select" onchange="updateCalendar()"></select>
-                                            <select class="calendar-select" id="year-select" onchange="updateCalendar()"></select>
+                                            <select class="calendar-select" id="month-select" onchange="updateCalendar()" aria-label="בחירת חודש"></select>
+                                            <select class="calendar-select" id="year-select" onchange="updateCalendar()" aria-label="בחירת שנה"></select>
                                         </div>
                                         <button type="button" class="calendar-nav-btn" onclick="changeMonth(1)">▶</button>
                                     </div>
@@ -1335,5 +1359,6 @@
         // Initialize calendar on load
         initCalendar();
     </script>
+    <script src="accessibility.js"></script>
 </body>
 </html>

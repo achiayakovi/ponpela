@@ -377,6 +377,7 @@
         .form-group input:focus {
             outline: none;
             border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
         }
 
         .btn {
@@ -679,9 +680,32 @@
             margin-bottom: 15px;
             display: none;
         }
+        /* Accessibility */
+        .skip-to-content {
+            position: absolute;
+            top: -100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2d7a8e;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 0 0 8px 8px;
+            z-index: 9999;
+            font-weight: 600;
+            text-decoration: none;
+            transition: top 0.2s ease;
+        }
+        .skip-to-content:focus {
+            top: 0;
+        }
+        *:focus-visible {
+            outline: 3px solid #2d7a8e;
+            outline-offset: 2px;
+        }
     </style>
 </head>
 <body>
+    <a href="#main-content" class="skip-to-content">דלג לתוכן הראשי</a>
     <div class="toast-container" id="toastContainer"></div>
 
     <header>
@@ -696,7 +720,7 @@
     </header>
 
     <nav>
-        <a href="account.html" class="account-link">
+        <a href="account.html" class="account-link" aria-label="אזור אישי">
             👤 <span class="account-text">איזור אישי</span>
         </a>
         <div class="container">
@@ -711,7 +735,7 @@
         </div>
     </nav>
 
-    <main>
+    <main id="main-content">
         <div class="container">
             <section class="account-section">
                 <!-- Auth Forms -->
@@ -1274,5 +1298,6 @@
         checkAuth();
         updateCartBadge();
     </script>
+    <script src="accessibility.js"></script>
 </body>
 </html>
