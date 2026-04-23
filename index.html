@@ -1341,8 +1341,8 @@
                 <div id="success-message" style="display: none;">
                     ✓ תודה על פנייתך! ניצור איתך קשר בקרוב.
                 </div>
-                <form class="contact-form" name="contact" method="POST" action="https://formsubmit.co/info@ponpela.co.il" onsubmit="showThankYou(event)">
-                    <input type="hidden" name="_subject" value="פנייה חדשה מאתר פונפלה">
+<form class="contact-form" name="contact" onsubmit="showThankYou(event)">
+    <input type="hidden" name="_subject" value="פנייה חדשה מאתר פונפלה">
                     <input type="hidden" name="_captcha" value="false">
                     <input type="hidden" name="_template" value="table">
                     <div class="form-group">
@@ -1424,31 +1424,26 @@
         });
 
         // Show thank you message on form submit
-        function showThankYou(event) {
-            event.preventDefault(); // מונע ריענון העמוד
-            
-            // שליחת הטופס ב-AJAX
-            const form = event.target;
-            const formData = new FormData(form);
-            
-            fetch(form.action, {
+function showThankYou(event) {
+            event.preventDefault();
+            fetch('https://ponpela-backend-production.up.railway.app/api/contact', {
                 method: 'POST',
-                body: formData,
-                headers: {
-                    'Accept': 'application/json'
-                }
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: document.getElementById('name').value,
+                    phone: document.getElementById('phone').value,
+                    email: document.getElementById('email').value,
+                    message: document.getElementById('message').value
+                })
             }).then(() => {
-                // הצגת הודעת תודה
                 document.getElementById('success-message').style.display = 'block';
                 document.querySelector('.contact-form').style.display = 'none';
                 document.getElementById('contact').scrollIntoView({ behavior: 'smooth' });
             }).catch(() => {
-                // גם אם יש שגיאה, נציג הודעה
                 document.getElementById('success-message').style.display = 'block';
                 document.querySelector('.contact-form').style.display = 'none';
                 document.getElementById('contact').scrollIntoView({ behavior: 'smooth' });
             });
-            
             return false;
         }
 
