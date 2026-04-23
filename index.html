@@ -1426,6 +1426,7 @@
         // Show thank you message on form submit
 function showThankYou(event) {
             event.preventDefault();
+    document.querySelector('.btn-submit').disabled = true;
             fetch('https://ponpela-backend-production.up.railway.app/api/contact', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
