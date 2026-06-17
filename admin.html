@@ -559,6 +559,10 @@
 
     <script>
         const API_URL = 'https://ponpela-backend-production.up.railway.app';
+        // HTML-escape user-supplied text rendered via innerHTML (prevents stored XSS)
+        function escapeHtml(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+        // For values placed inside an inline on* handler JS string: JS-escape then HTML-escape
+        function escapeJsAttr(s) { return escapeHtml(String(s == null ? '' : s).replace(/\\/g, '\\\\').replace(/'/g, "\\'")); }
         let allWarranties = [];
         let allUsers = [];
         let currentProduct = null;
@@ -685,9 +689,9 @@
                         </tr>
                         ${warranties.map(w => `
                             <tr>
-                                <td class="clickable" onclick="editMachineNumber(${w.id}, '${w.machine_number}')">${w.machine_number}</td>
-                                <td>${w.customer_name}</td>
-                                <td>${w.customer_phone}</td>
+                                <td class="clickable" onclick="editMachineNumber(${w.id}, '${escapeJsAttr(w.machine_number)}')">${escapeHtml(w.machine_number)}</td>
+                                <td>${escapeHtml(w.customer_name)}</td>
+                                <td>${escapeHtml(w.customer_phone)}</td>
                                 <td class="clickable" onclick="openEditDatesModal(${w.id}, '${w.purchase_date}', '${w.expiry_date}')">${new Date(w.purchase_date).toLocaleDateString('he-IL')}</td>
                                 <td>${new Date(w.expiry_date).toLocaleDateString('he-IL')}</td>
                                 <td>
@@ -930,7 +934,7 @@
                             </tr>
                             ${products.map(p => `
                                 <tr>
-                                    <td>${p.name}</td>
+                                    <td>${escapeHtml(p.name)}</td>
                                     <td>${p.sku || '-'}</td>
                                     <td>${p.category || '-'}</td>
                                     <td>
@@ -1111,7 +1115,7 @@
                             ${orders.map(o => `
                                 <tr>
                                     <td>#${o.id}</td>
-                                    <td>${o.full_name || o.email}</td>
+                                    <td>${escapeHtml(o.full_name || o.email)}</td>
                                     <td>₪${o.total_amount}</td>
                                     <td>
                                         <select class="status-select" onchange="updateOrderStatus(${o.id}, this.value)">
@@ -1161,10 +1165,10 @@
                 
                 const details = `
                     <div>
-                        <p><strong>לקוח:</strong> ${order.full_name}</p>
-                        <p><strong>אימייל:</strong> ${order.email}</p>
-                        <p><strong>טלפון:</strong> ${order.phone || '-'}</p>
-                        <p><strong>כתובת:</strong> ${order.shipping_address || '-'}</p>
+                        <p><strong>לקוח:</strong> ${escapeHtml(order.full_name)}</p>
+                        <p><strong>אימייל:</strong> ${escapeHtml(order.email)}</p>
+                        <p><strong>טלפון:</strong> ${escapeHtml(order.phone || '-')}</p>
+                        <p><strong>כתובת:</strong> ${escapeHtml(order.shipping_address || '-')}</p>
                         <p><strong>סכום:</strong> ₪${order.total_amount}</p>
                         <p><strong>סטטוס:</strong> ${order.status}</p>
                         <h4 style="margin-top: 20px;">מוצרים:</h4>
@@ -1172,7 +1176,7 @@
                             <tr><th>מוצר</th><th>כמות</th><th>מחיר</th></tr>
                             ${order.items.map(item => `
                                 <tr>
-                                    <td>${item.product_name}</td>
+                                    <td>${escapeHtml(item.product_name)}</td>
                                     <td>${item.quantity}</td>
                                     <td>₪${item.price}</td>
                                 </tr>
@@ -1221,13 +1225,13 @@
                             </tr>
                             ${users.map(u => `
                                 <tr>
-                                    <td>${u.full_name}</td>
-                                    <td>${u.email}</td>
-                                    <td>${u.phone || '-'}</td>
+                                    <td>${escapeHtml(u.full_name)}</td>
+                                    <td>${escapeHtml(u.email)}</td>
+                                    <td>${escapeHtml(u.phone || '-')}</td>
                                     <td>${u.is_admin ? '✓' : '✗'}</td>
                                     <td>${new Date(u.created_at).toLocaleDateString('he-IL')}</td>
                                     <td>
-                                        <button class="btn btn-sm btn-edit" onclick="openResetPasswordModal('${u.email}', '${u.full_name}')">איפוס סיסמה</button>
+                                        <button class="btn btn-sm btn-edit" onclick="openResetPasswordModal('${escapeJsAttr(u.email)}', '${escapeJsAttr(u.full_name)}')">איפוס סיסמה</button>
                                     </td>
                                 </tr>
                             `).join('')}
@@ -1290,7 +1294,7 @@
                 
                 const select = document.getElementById('stockProductId');
                 select.innerHTML = '<option value="">בחר מוצר</option>' +
-                    products.map(p => `<option value="${p.id}">${p.name} (מלאי נוכחי: ${p.stock_quantity})</option>`).join('');
+                    products.map(p => `<option value="${p.id}">${escapeHtml(p.name)} (מלאי נוכחי: ${p.stock_quantity})</option>`).join('');
             } catch (err) {
                 console.error(err);
             }
@@ -1327,7 +1331,7 @@
                             </tr>
                             ${products.map(p => `
                                 <tr>
-                                    <td>${p.name}</td>
+                                    <td>${escapeHtml(p.name)}</td>
                                     <td>${p.sku || '-'}</td>
                                     <td style="font-weight: bold; color: ${p.stock_quantity === 0 ? 'red' : 'orange'};">
                                         ${p.stock_quantity}
@@ -1381,7 +1385,7 @@
                             ${logs.map(log => `
                                 <tr>
                                     <td>${new Date(log.created_at).toLocaleString('he-IL')}</td>
-                                    <td>${log.product_name}</td>
+                                    <td>${escapeHtml(log.product_name)}</td>
                                     <td style="color: ${log.change_amount > 0 ? 'green' : 'red'}; font-weight: bold;">
                                         ${log.change_amount > 0 ? '+' : ''}${log.change_amount}
                                     </td>
