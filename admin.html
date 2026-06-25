@@ -597,9 +597,9 @@
                     </div>
                 </div>
                 <div id="rcReturnBlock" style="display:none;">
-                    <div class="form-row">
-                        <div class="form-group"><label>מספר הזמנה</label><input type="number" id="rcReturnOrderId" placeholder="#"></div>
-                        <div class="form-group" style="display:flex; align-items:flex-end;"><button type="button" class="btn btn-primary" onclick="loadReturnOrder()">טען הזמנה</button></div>
+                    <div class="form-group"><label>חיפוש הזמנה (מספר / שם לקוח / טלפון / סריאלי)</label>
+                        <input type="text" id="rcReturnSearch" oninput="searchReturnOrders()" autocomplete="off" placeholder="הקלד לחיפוש...">
+                        <div id="rcReturnSearchResults" style="margin-top:4px;"></div>
                     </div>
                     <div id="rcReturnItems"></div>
                     <div style="margin-top:10px;"><button type="button" class="btn" onclick="toggleReceivingAdd()">ביטול</button></div>
@@ -2461,13 +2461,29 @@
             document.getElementById('rcSupplierBlock').style.display = isReturn ? 'none' : 'block';
             document.getElementById('rcReturnBlock').style.display = isReturn ? 'block' : 'none';
         }
+        // חיפוש הזמנות להחזרה (מספר/שם/טלפון/סריאלי)
+        let returnSearchTimer = null;
+        function searchReturnOrders() {
+            clearTimeout(returnSearchTimer);
+            returnSearchTimer = setTimeout(async () => {
+                const token = localStorage.getItem('adminToken');
+                const q = document.getElementById('rcReturnSearch').value.trim();
+                const box = document.getElementById('rcReturnSearchResults');
+                if (q.length < 1) { box.innerHTML = ''; return; }
+                try {
+                    const rows = await fetch(`${API_URL}/api/admin/orders/search?q=${encodeURIComponent(q)}`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json());
+                    if (!Array.isArray(rows) || !rows.length) { box.innerHTML = '<div style="padding:6px;color:#888;">אין הזמנות תואמות</div>'; return; }
+                    box.innerHTML = rows.map(o => `<div style="padding:6px;cursor:pointer;border-bottom:1px solid #eee;" onclick="loadReturnOrder(${o.id})">#${o.id} · ${escapeHtml(o.cname || '')} · ${escapeHtml(o.cphone || '')} <small style="color:#999;">(${escapeHtml(orderStatusHe(o.status))})</small></div>`).join('');
+                } catch (e) { box.innerHTML = ''; }
+            }, 250);
+        }
         // טעינת הזמנה לבחירת פריטים להחזרה
         let returnOrderData = null;
-        async function loadReturnOrder() {
+        async function loadReturnOrder(oid) {
             const token = localStorage.getItem('adminToken');
-            const oid = parseInt(document.getElementById('rcReturnOrderId').value, 10);
             const box = document.getElementById('rcReturnItems');
-            if (!oid) { box.innerHTML = '<span style="color:#c0392b;">הזן מספר הזמנה</span>'; return; }
+            document.getElementById('rcReturnSearchResults').innerHTML = '';
+            if (!oid) { box.innerHTML = '<span style="color:#c0392b;">בחר הזמנה</span>'; return; }
             try {
                 const res = await fetch(`${API_URL}/api/admin/order/${oid}`, { headers: { 'Authorization': `Bearer ${token}` } });
                 if (!res.ok) { box.innerHTML = '<span style="color:#c0392b;">הזמנה לא נמצאה</span>'; return; }
