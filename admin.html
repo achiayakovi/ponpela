@@ -2120,7 +2120,8 @@
                     const dt = new Date(b.mtime).toLocaleString('he-IL');
                     h += `<tr><td>${escapeHtml(dt)}</td><td>${(b.size / 1024).toFixed(1)}KB</td>
                         <td style="font-size:11px; color:#888;">${escapeHtml(b.name)}</td>
-                        <td><button class="btn btn-danger" onclick="restoreBackup('${escapeJsAttr(b.name)}')">♻️ שחזר</button></td></tr>`;
+                        <td><button class="btn btn-primary" onclick="restoreBackup('${escapeJsAttr(b.name)}')">♻️ שחזר</button>
+                            <button class="btn btn-danger" onclick="deleteBackup('${escapeJsAttr(b.name)}')">🗑️ מחק</button></td></tr>`;
                 });
                 content.innerHTML = h + '</tbody></table></div>';
             } catch (e) { loading.style.display = 'none'; content.innerHTML = '<p>שגיאה בטעינת גיבויים.</p>'; }
@@ -2149,6 +2150,17 @@
                 showMessage('שוחזר בהצלחה ✓ — מרענן', 'success');
                 setTimeout(() => location.reload(), 1500);
             } catch (e) { showMessage('שגיאת שחזור', 'error'); }
+        }
+        async function deleteBackup(name) {
+            if (!confirm('למחוק את הגיבוי?\n\n' + name)) return;
+            const token = localStorage.getItem('adminToken');
+            try {
+                const res = await fetch(`${API_URL}/api/admin/backups/${encodeURIComponent(name)}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+                const d = await res.json();
+                if (!res.ok) { showMessage(d.error || 'שגיאה', 'error'); return; }
+                showMessage('הגיבוי נמחק', 'success');
+                loadBackups();
+            } catch (e) { showMessage('שגיאה במחיקה', 'error'); }
         }
 
         // שיוך סריאלי לאחריות (באריזת ההזמנה)
