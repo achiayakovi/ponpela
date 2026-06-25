@@ -2352,6 +2352,7 @@
                         <td>${escapeHtml(c.status || '')}</td>
                         <td>${escapeHtml(c.handled_by_name || '')}</td>
                         <td>
+                          ${(c.source === 'תלונה' && c.source_ref) ? `<button class="btn" onclick="viewSourceComplaint(${c.source_ref})">צפה בתלונה</button>` : ''}
                           <button class="btn btn-primary" onclick="editCapa(${c.id})">ערוך</button>
                           <button class="btn btn-danger" onclick="deleteCapa(${c.id})">מחק</button>
                         </td>
@@ -2360,6 +2361,14 @@
                 html += '</tbody></table></div>';
                 content.innerHTML = html;
             } catch (err) { content.innerHTML = '<p>שגיאה בטעינה.</p>'; }
+        }
+
+        // קישור הפוך: מ-CAPA לתלונה המקורית
+        async function viewSourceComplaint(commId) {
+            if (!adminHasArea('communications')) { showMessage('אין לך הרשאה לתקשורת לקוחות', 'error'); return; }
+            switchTab('communications');
+            await loadCommunications();
+            editCommunication(commId);
         }
 
         function resetCapaForm() {
