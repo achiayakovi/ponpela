@@ -1506,14 +1506,23 @@
 
         async function updateOrderStatus(id, status) {
             const token = localStorage.getItem('adminToken');
+            let return_serials = false;
             try {
+                // בביטול — אם יש סריאלי משויך, לשאול אם להחזיר למלאי
+                if (status === 'cancelled') {
+                    const chk = await fetch(`${API_URL}/api/admin/orders/${id}/assigned-serials`, { headers: { 'Authorization': `Bearer ${token}` } });
+                    const cd = await chk.json();
+                    if (cd.count > 0) {
+                        return_serials = confirm(`להזמנה משויכים ${cd.count} סריאליים. להחזיר אותם למלאי? (אישור = חוזרים למלאי; ביטול = נשארים "נמכר")`);
+                    }
+                }
                 const res = await fetch(`${API_URL}/api/admin/orders/${id}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`
                     },
-                    body: JSON.stringify({ status })
+                    body: JSON.stringify({ status, return_serials })
                 });
                 if (!res.ok) {
                     const d = await res.json().catch(() => ({}));
