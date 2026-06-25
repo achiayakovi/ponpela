@@ -596,14 +596,16 @@
             <div id="suppliersContent" style="margin-bottom:24px;"></div>
 
             <h3>תעודות ספק</h3>
+            <div style="background:#eef; padding:10px; border-radius:8px; margin-bottom:10px;">
+                <strong>סוגי תעודה:</strong> <span id="docTypesList"></span>
+                <input type="text" id="newDocType" placeholder="סוג חדש" style="padding:5px;">
+                <button type="button" class="btn" onclick="addDocType()">+ הוסף סוג</button>
+            </div>
             <form onsubmit="uploadSupplierDoc(event)" style="background:#f8f9fa; padding:16px; border-radius:8px; margin-bottom:14px;">
                 <input type="hidden" id="docId">
                 <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end;">
                     <div><label>ספק<br><select id="docSupplierId" onchange="loadSupplierDocs()" style="padding:8px;"></select></label></div>
-                    <div><label>סוג<br><select id="docType" style="padding:8px;">
-                        <option value="FDA">FDA</option><option value="ISO">ISO</option><option value="CoC">CoC</option>
-                        <option value="הצהרה">הצהרה</option><option value="אחר">אחר</option>
-                    </select></label></div>
+                    <div><label>סוג<br><select id="docType" style="padding:8px;"></select></label></div>
                     <div><label>מספר תעודה<br><input type="text" id="docNumber" style="padding:8px;"></label></div>
                     <div><label>הנפקה<br><input type="date" id="docIssue" style="padding:8px;"></label></div>
                     <div><label>תפוגה<br><input type="date" id="docExpiry" style="padding:8px;"></label></div>
@@ -2489,10 +2491,50 @@
         let suppliersData = [];
         let supplierDocsData = [];
 
+        async function loadDocTypes() {
+            const token = localStorage.getItem('adminToken');
+            try {
+                const types = await fetch(`${API_URL}/api/admin/supplier-doc-types`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json());
+                const sel = document.getElementById('docType');
+                const cur = sel.value;
+                sel.innerHTML = types.map(t => `<option value="${escapeHtml(t.name)}">${escapeHtml(t.name)}</option>`).join('');
+                if (cur) sel.value = cur;
+                document.getElementById('docTypesList').innerHTML = types.map(t =>
+                    `<span style="background:#fff; border:1px solid #ccd; border-radius:12px; padding:2px 8px; margin:0 3px; white-space:nowrap;">${escapeHtml(t.name)} <a href="#" onclick="deleteDocType(${t.id});return false;" style="color:#c0392b; text-decoration:none;">✕</a></span>`).join(' ');
+            } catch (err) { /* שקט */ }
+        }
+
+        async function addDocType() {
+            const token = localStorage.getItem('adminToken');
+            const name = document.getElementById('newDocType').value.trim();
+            if (!name) return;
+            try {
+                const res = await fetch(`${API_URL}/api/admin/supplier-doc-types`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ name })
+                });
+                const d = await res.json();
+                if (!res.ok) { showMessage(d.error || 'שגיאה', 'error'); return; }
+                document.getElementById('newDocType').value = '';
+                loadDocTypes();
+            } catch (err) { showMessage('שגיאה בהוספת סוג', 'error'); }
+        }
+
+        async function deleteDocType(id) {
+            if (!confirm('למחוק את סוג התעודה?')) return;
+            const token = localStorage.getItem('adminToken');
+            try {
+                const res = await fetch(`${API_URL}/api/admin/supplier-doc-types/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+                if (!res.ok) { showMessage('שגיאה במחיקה', 'error'); return; }
+                loadDocTypes();
+            } catch (err) { showMessage('שגיאה במחיקה', 'error'); }
+        }
+
         async function loadSuppliers() {
             const token = localStorage.getItem('adminToken');
             const content = document.getElementById('suppliersContent');
             const sel = document.getElementById('docSupplierId');
+            loadDocTypes();
             try {
                 // באנר תעודות שפג/עומד לפוג
                 const exp = await fetch(`${API_URL}/api/admin/expiring-docs`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json());
