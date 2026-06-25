@@ -251,6 +251,13 @@
         /* יישור כל שדות הטופס לימין (RTL) — כולל email/number/date שמתיישרים לשמאל כברירת מחדל */
         input, textarea, select { text-align: right; }
         input[type="checkbox"], input[type="radio"] { text-align: initial; }
+        /* מראה מעוגל אחיד לכל שדה טקסט/textarea (כולל המודולים הוותיקים עם inline padding) — לא דורס רוחב/padding מקומיים */
+        input[type="text"], input[type="email"], input[type="password"], input[type="number"],
+        input[type="date"], input[type="tel"], input[type="search"], textarea {
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
         /* כפתורי דירוג עגולים 1–5 */
         .fb-row { margin-bottom: 14px; }
         .fb-row .fb-lbl { display: block; margin-bottom: 6px; font-weight: 600; color: #2c3e50; }
@@ -439,7 +446,7 @@
                 <div style="margin-top:12px; border-top:1px solid #e0e0e0; padding-top:12px;">
                     <label>הוספת מוצרים:</label><br>
                     <div style="display:flex; gap:10px; align-items:flex-end; margin-top:6px;">
-                        <select id="moProduct" style="padding:8px;"></select>
+                        <select id="moProduct"></select>
                         <input type="number" id="moQty" value="1" min="1" style="padding:8px; width:80px;">
                         <button type="button" class="btn" onclick="addManualItem()">הוסף פריט</button>
                     </div>
