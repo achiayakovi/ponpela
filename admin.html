@@ -226,6 +226,18 @@
             border-radius: 8px;
             font-size: 1rem;
             font-family: inherit;
+            box-sizing: border-box;
+        }
+        /* בוררים: ביטול הסגנון הנייטיבי כדי שה‑border-radius יחול נקי + חץ מותאם */
+        .form-group select {
+            -webkit-appearance: none;
+            appearance: none;
+            background-color: #fff;
+            cursor: pointer;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%2212%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23888%22 stroke-width=%223%22><path d=%22M6 9l6 6 6-6%22/></svg>');
+            background-repeat: no-repeat;
+            background-position: left 12px center;
+            padding-left: 34px;
         }
         .form-group textarea {
             min-height: 100px;
@@ -615,7 +627,7 @@
                 </div>
             </form>
             <div style="margin-bottom:10px;">
-                <select id="commFilterType" onchange="loadCommunications()" style="padding:10px; border:2px solid #e0e0e0; border-radius:8px; font-family:inherit;">
+                <select id="commFilterType" onchange="loadCommunications()" style="padding:12px; border:2px solid #e0e0e0; border-radius:8px; font-family:inherit; font-size:1rem; background:#fff; cursor:pointer; -webkit-appearance:none; appearance:none; background-image:url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%2212%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23888%22 stroke-width=%223%22><path d=%22M6 9l6 6 6-6%22/></svg>'); background-repeat:no-repeat; background-position:left 12px center; padding-left:34px;">
                     <option value="">כל הסוגים</option>
                     <option value="שיחה">שיחה</option><option value="מכירה">מכירה</option>
                     <option value="תלונה">תלונה</option><option value="משוב">משוב</option><option value="אחר">אחר</option>
@@ -855,7 +867,7 @@
                 </div>
                 <div class="form-group"><label>כותרת</label><input type="text" id="rclTitle"></div>
                 <div class="form-group"><label>סיבה</label><textarea id="rclReason" rows="2"></textarea></div>
-                <div class="form-group"><label>היקף (אצוות/סריאליים)</label><textarea id="rclScope" rows="2"></textarea></div>
+                <div class="form-group"><label>היקף — סריאליים (טווח: 100-105 · בודדים מופרדים בפסיק)</label><textarea id="rclScope" rows="2" placeholder="לדוגמה: 100-105, 120, 130-132"></textarea><small style="color:#888;">הלקוחות המשויכים לסריאליים האלה יתווספו אוטומטית לקמפיין.</small></div>
                 <div class="form-group"><label>הערות</label><textarea id="rclNotes" rows="2"></textarea></div>
                 <div><button type="submit" class="btn btn-primary">שמור</button> <button type="button" class="btn" onclick="toggleRecallAdd()">ביטול</button></div>
             </form>
@@ -3836,30 +3848,14 @@
         // ===== ריקול =====
         let rclData=[], expRcl=null, edRcl=null;
         function toggleRecallAdd(){const f=document.getElementById('recallAddForm');f.style.display=f.style.display==='none'?'block':'none';}
-        async function findAndAddRecall(rid){const t=localStorage.getItem('adminToken');
-            const body={from:document.getElementById('rclFaFrom_'+rid).value||null,to:document.getElementById('rclFaTo_'+rid).value||null,list:document.getElementById('rclFaList_'+rid).value||null};
-            if(!body.from&&!body.to&&!body.list){showMessage('יש להזין טווח או רשימה','error');return;}
-            try{const r=await fetch(`${API_URL}/api/admin/recalls/${rid}/find-and-add`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${t}`},body:JSON.stringify(body)});const d=await r.json();if(!r.ok){showMessage(d.error||'שגיאה','error');return;}
-                showMessage(`נבדקו ${d.checked} · נמצאו ${d.found} · נוספו ${d.added} (דילוג ${d.skipped})`,'success');
-                ['rclFaFrom_'+rid,'rclFaTo_'+rid,'rclFaList_'+rid].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
-                loadRecallItems(rid);}catch(err){showMessage('שגיאה באיתור','error');}}
         async function loadRecalls(){const t=localStorage.getItem('adminToken');try{const r=await fetch(`${API_URL}/api/admin/recalls`,{headers:{'Authorization':`Bearer ${t}`}});rclData=await r.json();renderRecalls();}catch(e){document.getElementById('recallsContent').innerHTML='<p>שגיאה בטעינה.</p>';}}
         function renderRecalls(){const c=document.getElementById('recallsContent');if(!Array.isArray(rclData)||!rclData.length){c.innerHTML='<p>אין קמפיינים.</p>';return;}
             let h='<div class="table-container"><table><thead><tr><th></th><th>תאריך</th><th>כותרת</th><th>סטטוס</th><th>ע"י</th></tr></thead><tbody>';
             rclData.forEach(r2=>{if(edRcl===r2.id){h+=`<tr><td colspan="5" style="padding:0;">${recallEditForm(r2)}</td></tr>`;return;}
                 const d=r2.recall_date?new Date(r2.recall_date).toLocaleDateString('he-IL'):'';const open=expRcl===r2.id;
                 h+=`<tr style="cursor:pointer;" onclick="toggleRclExpand(${r2.id})"><td>${open?'▲':'▼'}</td><td>${escapeHtml(d)}</td><td>${escapeHtml(r2.title||'')}</td><td>${escapeHtml(r2.status||'')}</td><td>${escapeHtml(r2.handled_by_name||'')}</td></tr>`;
-                if(open){h+=`<tr><td colspan="5" style="background:#f8f9fa; padding:10px 14px;"><div style="margin-bottom:8px;"><strong>סיבה:</strong> ${escapeHtml(r2.reason||'—')}</div><div style="margin-bottom:8px;"><strong>היקף:</strong> ${escapeHtml(r2.scope||'—')}</div><div style="margin-bottom:8px;"><strong>הערות:</strong> ${escapeHtml(r2.notes||'—')}</div>
-                    <div onclick="event.stopPropagation();" style="margin:10px 0; background:#eef; padding:12px; border-radius:8px;">
-                        <strong>🔍 איתור והוספה לקמפיין</strong> (לפי טווח/רשימת סריאליים — מאתר את הלקוחות המשויכים ומוסיף אוטומטית)
-                        <div class="form-row" style="margin-top:8px;">
-                            <div class="form-group"><label>טווח מ-</label><input type="number" id="rclFaFrom_${r2.id}"></div>
-                            <div class="form-group"><label>עד</label><input type="number" id="rclFaTo_${r2.id}"></div>
-                        </div>
-                        <div class="form-group"><label>או רשימה (מופרדת בפסיק/שורה)</label><textarea id="rclFaList_${r2.id}" rows="2"></textarea></div>
-                        <button class="btn btn-primary" onclick="findAndAddRecall(${r2.id})">🔍 אתר והוסף לקמפיין</button>
-                    </div>
-                    <div style="margin:10px 0;"><strong>לקוחות בקמפיין:</strong><div id="rclItems_${r2.id}" onclick="event.stopPropagation();">טוען...</div></div>
+                if(open){h+=`<tr><td colspan="5" style="background:#f8f9fa; padding:10px 14px;"><div style="margin-bottom:8px;"><strong>סיבה:</strong> ${escapeHtml(r2.reason||'—')}</div><div style="margin-bottom:8px;"><strong>היקף (סריאליים):</strong> ${escapeHtml(r2.scope||'—')}</div><div style="margin-bottom:8px;"><strong>הערות:</strong> ${escapeHtml(r2.notes||'—')}</div>
+                    <div style="margin:10px 0;"><strong>לקוחות בקמפיין:</strong> <span style="color:#888; font-size:13px;">(נוספים אוטומטית מהיקף הסריאליים — לעריכה לחץ "ערוך")</span><div id="rclItems_${r2.id}" onclick="event.stopPropagation();">טוען...</div></div>
                     <div><button class="btn btn-primary" onclick="event.stopPropagation();startEditRcl(${r2.id})">ערוך</button> <button class="btn btn-danger" onclick="event.stopPropagation();deleteRcl(${r2.id})">מחק</button></div></td></tr>`;}});
             h+='</tbody></table></div>';c.innerHTML=h;
             if(expRcl) loadRecallItems(expRcl);}
@@ -3882,16 +3878,16 @@
             return `<div style="padding:16px; background:#fafbfc;"><div class="form-row"><div class="form-group"><label>תאריך</label><input type="date" id="rcl_date_${r2.id}" value="${dt}"></div><div class="form-group"><label>סטטוס</label><select id="rcl_status_${r2.id}">${['פתוח','בתהליך','הושלם'].map(x=>opt(x,r2.status)).join('')}</select></div></div>
                 <div class="form-group"><label>כותרת</label><input type="text" id="rcl_title_${r2.id}" value="${escapeHtml(r2.title||'')}"></div>
                 <div class="form-group"><label>סיבה</label><textarea id="rcl_reason_${r2.id}" rows="2">${escapeHtml(r2.reason||'')}</textarea></div>
-                <div class="form-group"><label>היקף</label><textarea id="rcl_scope_${r2.id}" rows="2">${escapeHtml(r2.scope||'')}</textarea></div>
+                <div class="form-group"><label>היקף — סריאליים (טווח: 100-105 · בודדים בפסיק)</label><textarea id="rcl_scope_${r2.id}" rows="2" placeholder="לדוגמה: 100-105, 120">${escapeHtml(r2.scope||'')}</textarea><small style="color:#888;">סריאליים חדשים יוסיפו לקוחות אוטומטית (קיימים לא ישוכפלו).</small></div>
                 <div class="form-group"><label>הערות</label><textarea id="rcl_notes_${r2.id}" rows="2">${escapeHtml(r2.notes||'')}</textarea></div>
                 <div><button class="btn btn-success" onclick="saveRclInline(${r2.id})">שמור</button> <button class="btn" onclick="cancelEditRcl()">בטל</button></div></div>`;}
         function toggleRclExpand(id){if(edRcl===id)return;edRcl=null;expRcl=expRcl===id?null:id;renderRecalls();}
         function startEditRcl(id){expRcl=id;edRcl=id;renderRecalls();}
         function cancelEditRcl(){edRcl=null;renderRecalls();}
         async function addRecall(e){e.preventDefault();const t=localStorage.getItem('adminToken');const body={recall_date:document.getElementById('rclDate').value||null,status:document.getElementById('rclStatus').value,title:document.getElementById('rclTitle').value.trim(),reason:document.getElementById('rclReason').value.trim(),scope:document.getElementById('rclScope').value.trim(),notes:document.getElementById('rclNotes').value.trim()};
-            try{const r=await fetch(`${API_URL}/api/admin/recalls`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${t}`},body:JSON.stringify(body)});if(!r.ok){const d=await r.json();showMessage(d.error||'שגיאה','error');return;}showMessage('נשמר','success');['rclDate','rclTitle','rclReason','rclScope','rclNotes'].forEach(i=>document.getElementById(i).value='');document.getElementById('recallAddForm').style.display='none';loadRecalls();}catch(err){showMessage('שגיאה בשמירה','error');}}
+            try{const r=await fetch(`${API_URL}/api/admin/recalls`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${t}`},body:JSON.stringify(body)});const d=await r.json();if(!r.ok){showMessage(d.error||'שגיאה','error');return;}showMessage(`נשמר · נוספו ${d.added||0} לקוחות מההיקף`,'success');['rclDate','rclTitle','rclReason','rclScope','rclNotes'].forEach(i=>document.getElementById(i).value='');document.getElementById('recallAddForm').style.display='none';loadRecalls();}catch(err){showMessage('שגיאה בשמירה','error');}}
         async function saveRclInline(id){const t=localStorage.getItem('adminToken');const body={recall_date:document.getElementById('rcl_date_'+id).value||null,status:document.getElementById('rcl_status_'+id).value,title:document.getElementById('rcl_title_'+id).value.trim(),reason:document.getElementById('rcl_reason_'+id).value.trim(),scope:document.getElementById('rcl_scope_'+id).value.trim(),notes:document.getElementById('rcl_notes_'+id).value.trim()};
-            try{const r=await fetch(`${API_URL}/api/admin/recalls/${id}`,{method:'PUT',headers:{'Content-Type':'application/json','Authorization':`Bearer ${t}`},body:JSON.stringify(body)});if(!r.ok){const d=await r.json();showMessage(d.error||'שגיאה','error');return;}showMessage('עודכן','success');edRcl=null;loadRecalls();}catch(err){showMessage('שגיאה בשמירה','error');}}
+            try{const r=await fetch(`${API_URL}/api/admin/recalls/${id}`,{method:'PUT',headers:{'Content-Type':'application/json','Authorization':`Bearer ${t}`},body:JSON.stringify(body)});const d=await r.json();if(!r.ok){showMessage(d.error||'שגיאה','error');return;}showMessage(`עודכן · נוספו ${d.added||0} לקוחות מההיקף`,'success');edRcl=null;loadRecalls();}catch(err){showMessage('שגיאה בשמירה','error');}}
         async function deleteRcl(id){if(!confirm('למחוק?'))return;const t=localStorage.getItem('adminToken');try{const r=await fetch(`${API_URL}/api/admin/recalls/${id}`,{method:'DELETE',headers:{'Authorization':`Bearer ${t}`}});if(!r.ok){showMessage('שגיאה','error');return;}showMessage('נמחק','success');expRcl=null;loadRecalls();}catch(err){showMessage('שגיאה','error');}}
 
         function showMessage(text, type) {
