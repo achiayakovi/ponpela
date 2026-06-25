@@ -3240,8 +3240,8 @@
                     const ver = editing ? `<input id="et_ver_${t.id}" value="${escapeHtml(t.verification||'')}" ${stop} style="padding:6px; width:100%; box-sizing:border-box;">` : escapeHtml(t.verification||'—');
                     const notes = editing ? `<textarea id="et_notes_${t.id}" rows="2" ${stop} style="padding:6px; width:100%; box-sizing:border-box;">${escapeHtml(t.notes||'')}</textarea>` : escapeHtml(t.notes||'—');
                     const actions = editing
-                        ? `<button class="btn btn-success" ${stop} onclick="event.stopPropagation();saveTrainingInline(${t.id})">שמור</button> <button class="btn" ${stop} onclick="event.stopPropagation();cancelEditTraining()">בטל</button>`
-                        : `<button class="btn btn-primary" ${stop} onclick="event.stopPropagation();startEditTraining(${t.id})">ערוך</button> <button class="btn btn-danger" ${stop} onclick="event.stopPropagation();deleteTraining(${t.id})">מחק</button>`;
+                        ? `<button class="btn btn-success" onclick="event.stopPropagation();saveTrainingInline(${t.id})">שמור</button> <button class="btn" onclick="event.stopPropagation();cancelEditTraining()">בטל</button>`
+                        : `<button class="btn btn-primary" onclick="event.stopPropagation();startEditTraining(${t.id})">ערוך</button> <button class="btn btn-danger" onclick="event.stopPropagation();deleteTraining(${t.id})">מחק</button>`;
                     html += `<tr><td colspan="6" style="background:#f8f9fa; padding:10px 14px;">
                         <div style="margin-bottom:8px;"><strong>אימות:</strong> ${ver}</div>
                         <div style="margin-bottom:8px;"><strong>הערות:</strong> ${notes}</div>
