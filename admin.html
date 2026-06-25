@@ -1181,6 +1181,35 @@
         </div>
     </div>
 
+    <div class="modal" id="editOrderModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>עריכת הזמנה <span id="editOrderTitle"></span></h3>
+                <button class="close-modal" onclick="closeEditOrder()">×</button>
+            </div>
+            <div style="padding:4px 2px;">
+                <div id="editItemsList" style="margin-bottom:12px;"></div>
+                <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:14px; padding:10px; background:#f6f7fb; border-radius:8px;">
+                    <select id="editProductSel" style="flex:1; min-width:180px;"></select>
+                    <input type="number" id="editProductQty" value="1" min="1" style="width:70px;">
+                    <button class="btn" onclick="addEditItem()">+ הוסף מוצר</button>
+                </div>
+                <div style="margin-bottom:14px;">
+                    <strong>אופן קבלה:</strong>
+                    <label style="margin-right:10px;"><input type="radio" name="editDelivery" value="משלוח"> משלוח</label>
+                    <label style="margin-right:10px;"><input type="radio" name="editDelivery" value="איסוף"> איסוף</label>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #eee; padding-top:12px;">
+                    <strong style="font-size:17px;">סה"כ: ₪<span id="editTotal">0</span></strong>
+                    <div>
+                        <button class="btn btn-success" onclick="saveEditOrder()">שמור</button>
+                        <button class="btn" onclick="closeEditOrder()">ביטול</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         const API_URL = 'https://ponpela-backend-production.up.railway.app';
         // HTML-escape user-supplied text rendered via innerHTML (prevents stored XSS)
@@ -1943,7 +1972,11 @@
                         <div id="assignSearchResults" style="margin-top:4px;"></div>
                     </div>
                 </div>` : ''}
-                <h4 style="margin:18px 0 8px;">מוצרים</h4>
+                <h4 style="margin:18px 0 8px;">מוצרים
+                    ${(order.status === 'pending' || order.status === 'preparing')
+                        ? `<button class="btn" onclick='openEditOrder(${order.id})' style="padding:3px 12px; font-size:13px; margin-right:10px;">✏️ ערוך הזמנה</button>`
+                        : ''}
+                </h4>
                 <div class="table-container"><table><thead><tr><th>מוצר</th><th>כמות</th><th>מחיר</th></tr></thead><tbody>
                     ${order.items.map(item => `<tr><td>${escapeHtml(item.product_name)}</td><td>${item.quantity}</td><td>₪${item.price}</td></tr>`).join('')}
                 </tbody></table></div>
@@ -1986,6 +2019,76 @@
 
         function closeOrderModal() {
             document.getElementById('orderModal').classList.remove('active');
+        }
+
+        // ===== עריכת הזמנה =====
+        let editOrderId = null, editItems = [], editProductsList = [];
+        async function openEditOrder(id) {
+            const token = localStorage.getItem('adminToken');
+            try {
+                // טוען מוצרים (פעם אחת) + פרטי ההזמנה הטריים
+                if (!editProductsList.length) {
+                    editProductsList = await fetch(`${API_URL}/api/admin/all-products`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json());
+                }
+                const order = await fetch(`${API_URL}/api/admin/order/${id}`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json());
+                if (order.status !== 'pending' && order.status !== 'preparing') { showMessage('ניתן לערוך רק לפני שילוח', 'error'); return; }
+                editOrderId = id;
+                editItems = order.items.map(it => ({ product_id: it.product_id, quantity: it.quantity, name: it.product_name, price: parseFloat(it.price) }));
+                document.getElementById('editOrderTitle').textContent = '#' + id;
+                document.getElementById('editProductSel').innerHTML = editProductsList.map(p =>
+                    `<option value="${p.id}">${escapeHtml(p.name)} — ₪${p.sale_price || p.price} (מלאי ${p.stock_quantity})</option>`).join('');
+                const dm = order.delivery_method === 'איסוף' ? 'איסוף' : 'משלוח';
+                document.querySelectorAll('input[name="editDelivery"]').forEach(r => r.checked = (r.value === dm));
+                renderEditItems();
+                document.getElementById('editOrderModal').classList.add('active');
+            } catch (err) { showMessage('שגיאה בטעינת ההזמנה', 'error'); }
+        }
+        function renderEditItems() {
+            const box = document.getElementById('editItemsList');
+            if (!editItems.length) { box.innerHTML = '<span style="color:#888;">אין פריטים — הוסף לפחות אחד</span>'; }
+            else box.innerHTML = editItems.map((it, i) => `
+                <div style="display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px solid #f0f0f0;">
+                    <span style="flex:1;">${escapeHtml(it.name)}</span>
+                    <button class="btn" onclick="changeEditQty(${i},-1)" style="padding:2px 9px;">−</button>
+                    <span style="min-width:24px; text-align:center;">${it.quantity}</span>
+                    <button class="btn" onclick="changeEditQty(${i},1)" style="padding:2px 9px;">+</button>
+                    <span style="min-width:64px; text-align:left;">₪${(it.price * it.quantity).toFixed(0)}</span>
+                    <button class="btn btn-danger" onclick="removeEditItem(${i})" style="padding:2px 8px;">הסר</button>
+                </div>`).join('');
+            document.getElementById('editTotal').textContent = editItems.reduce((s, it) => s + it.price * it.quantity, 0).toFixed(0);
+        }
+        function changeEditQty(i, d) { editItems[i].quantity = Math.max(1, editItems[i].quantity + d); renderEditItems(); }
+        function removeEditItem(i) { editItems.splice(i, 1); renderEditItems(); }
+        function addEditItem() {
+            const pid = parseInt(document.getElementById('editProductSel').value, 10);
+            const qty = parseInt(document.getElementById('editProductQty').value, 10) || 1;
+            const p = editProductsList.find(x => x.id === pid);
+            if (!p) return;
+            const existing = editItems.find(it => it.product_id === pid);
+            if (existing) existing.quantity += qty;
+            else editItems.push({ product_id: pid, quantity: qty, name: p.name, price: parseFloat(p.sale_price || p.price) });
+            renderEditItems();
+        }
+        function closeEditOrder() { document.getElementById('editOrderModal').classList.remove('active'); editOrderId = null; editItems = []; }
+        async function saveEditOrder() {
+            if (!editItems.length) { showMessage('הזמנה חייבת לכלול לפחות מוצר אחד', 'error'); return; }
+            const token = localStorage.getItem('adminToken');
+            const body = {
+                items: editItems.map(it => ({ product_id: it.product_id, quantity: it.quantity })),
+                delivery_method: (document.querySelector('input[name="editDelivery"]:checked') || {}).value || 'משלוח'
+            };
+            try {
+                const res = await fetch(`${API_URL}/api/admin/orders/${editOrderId}/items`, {
+                    method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify(body)
+                });
+                const d = await res.json();
+                if (!res.ok) { showMessage(d.error || 'שגיאה', 'error'); return; }
+                showMessage('ההזמנה עודכנה (₪' + d.total_amount + ')', 'success');
+                closeEditOrder();
+                closeOrderModal();
+                loadOrders();
+            } catch (err) { showMessage('שגיאה בשמירה', 'error'); }
         }
 
         // שיוך סריאלי לאחריות (באריזת ההזמנה)
