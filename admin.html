@@ -531,53 +531,43 @@
         <!-- Communications Section -->
         <div id="communicationsSection" class="section">
             <h2>תקשורת לקוחות</h2>
-            <form onsubmit="saveCommunication(event)" style="background:#f8f9fa; padding:16px; border-radius:8px; margin-bottom:20px;">
-                <input type="hidden" id="commId">
-                <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end;">
-                    <div><label>סוג<br><select id="commType" onchange="onCommTypeChange()" style="padding:8px;">
-                        <option value="שיחה">שיחה</option>
-                        <option value="מכירה">מכירה</option>
-                        <option value="תלונה">תלונה</option>
-                        <option value="אחר">אחר</option>
-                    </select></label></div>
-                    <div><label>תאריך<br><input type="date" id="commDate" style="padding:8px;"></label></div>
-                    <div style="position:relative;"><label>חיפוש לקוח (שם/טלפון/סריאלי)<br>
-                        <input type="text" id="custSearch" placeholder="הקלד לחיפוש..." oninput="searchCustomer()" autocomplete="off" style="padding:8px; width:220px;"></label>
-                        <div id="custResults" style="display:none; position:absolute; z-index:10; background:#fff; border:1px solid #ccc; border-radius:6px; width:260px; max-height:220px; overflow:auto;"></div>
-                    </div>
+            <button class="btn btn-primary" onclick="toggleCommAdd()" style="margin-bottom:14px;">➕ רשומה חדשה</button>
+            <form id="commAddForm" onsubmit="addCommunication(event)" style="display:none; background:#fafbfc; padding:16px; border-radius:8px; margin-bottom:20px;">
+                <div class="form-row">
+                    <div class="form-group"><label>סוג</label><select id="commType" onchange="onCommTypeChange()">
+                        <option value="שיחה">שיחה</option><option value="מכירה">מכירה</option>
+                        <option value="תלונה">תלונה</option><option value="אחר">אחר</option></select></div>
+                    <div class="form-group"><label>תאריך</label><input type="date" id="commDate"></div>
                 </div>
-                <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end; margin-top:10px;">
-                    <input type="hidden" id="commUserId">
-                    <div><label>שם לקוח<br><input type="text" id="commName" style="padding:8px;"></label></div>
-                    <div><label>טלפון<br><input type="text" id="commPhone" style="padding:8px;"></label></div>
-                    <div><label>סריאלי<br><input type="text" id="commSerial" style="padding:8px;"></label></div>
+                <div class="form-group" style="position:relative;"><label>חיפוש לקוח (שם/טלפון/סריאלי)</label>
+                    <input type="text" id="custSearch" placeholder="הקלד לחיפוש..." oninput="searchCustomer()" autocomplete="off">
+                    <div id="custResults" style="display:none; position:absolute; z-index:10; background:#fff; border:1px solid #ccc; border-radius:6px; width:100%; max-height:220px; overflow:auto;"></div>
                 </div>
-                <div style="margin-top:10px;"><label>תיאור / תוכן<br><textarea id="commDesc" rows="2" style="padding:8px; width:100%; box-sizing:border-box;"></textarea></label></div>
+                <input type="hidden" id="commUserId">
+                <div class="form-row">
+                    <div class="form-group"><label>שם לקוח</label><input type="text" id="commName"></div>
+                    <div class="form-group"><label>טלפון</label><input type="text" id="commPhone"></div>
+                </div>
+                <div class="form-group"><label>סריאלי</label><input type="text" id="commSerial"></div>
+                <div class="form-group"><label>תיאור / תוכן</label><textarea id="commDesc" rows="2"></textarea></div>
 
                 <!-- שדות תלונה (מוצגים רק כשהסוג=תלונה) -->
-                <div id="complaintFields" style="display:none; border-top:1px solid #e0e0e0; margin-top:12px; padding-top:12px;">
-                    <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end;">
-                        <div><label>סיווג<br><select id="commClassification" onchange="checkEventWarn()" style="padding:8px;">
-                            <option value="">—</option>
-                            <option value="פגם">פגם</option>
-                            <option value="שימוש שגוי">שימוש שגוי</option>
-                            <option value="אירוע">אירוע (Vigilance)</option>
-                            <option value="אחר">אחר</option>
-                        </select></label></div>
-                        <div><label>סטטוס<br><select id="commStatus" style="padding:8px;">
-                            <option value="פתוחה">פתוחה</option>
-                            <option value="בטיפול">בטיפול</option>
-                            <option value="סגורה">סגורה</option>
-                        </select></label></div>
+                <div id="complaintFields" style="display:none; border-top:1px solid #e0e0e0; margin-top:6px; padding-top:12px;">
+                    <div class="form-row">
+                        <div class="form-group"><label>סיווג</label><select id="commClassification" onchange="checkEventWarn()">
+                            <option value="">—</option><option value="פגם">פגם</option><option value="שימוש שגוי">שימוש שגוי</option>
+                            <option value="אירוע">אירוע (Vigilance)</option><option value="אחר">אחר</option></select></div>
+                        <div class="form-group"><label>סטטוס</label><select id="commStatus">
+                            <option value="פתוחה">פתוחה</option><option value="בטיפול">בטיפול</option><option value="סגורה">סגורה</option></select></div>
                     </div>
-                    <div style="margin-top:10px;"><label>מענה ראשוני<br><textarea id="commResponse" rows="2" style="padding:8px; width:100%; box-sizing:border-box;"></textarea></label></div>
-                    <div style="margin-top:10px;"><label>החלטת סגירה<br><textarea id="commResolution" rows="2" style="padding:8px; width:100%; box-sizing:border-box;"></textarea></label></div>
+                    <div class="form-group"><label>מענה ראשוני</label><textarea id="commResponse" rows="2"></textarea></div>
+                    <div class="form-group"><label>החלטת סגירה</label><textarea id="commResolution" rows="2"></textarea></div>
                     <div id="commEventWarn" style="display:none; background:#fdecea; color:#c0392b; padding:8px; border-radius:6px; margin-top:8px;">⚠️ אירוע בר-דיווח — חובת דיווח לאמ"ר תוך 48 שעות (Vigilance).</div>
                 </div>
 
-                <div style="margin-top:14px;">
+                <div>
                     <button type="submit" class="btn btn-primary">שמור</button>
-                    <button type="button" class="btn" onclick="resetCommForm()">נקה</button>
+                    <button type="button" class="btn" onclick="toggleCommAdd()">ביטול</button>
                 </div>
             </form>
             <div style="margin-bottom:10px;">
@@ -2427,53 +2417,92 @@
             document.getElementById('custSearch').value = '';
         }
 
+        let expandedCommId = null, editingCommId = null;
+        function toggleCommAdd() {
+            const f = document.getElementById('commAddForm');
+            f.style.display = f.style.display === 'none' ? 'block' : 'none';
+        }
+
         async function loadCommunications() {
             const token = localStorage.getItem('adminToken');
-            const content = document.getElementById('communicationsContent');
             const type = document.getElementById('commFilterType').value;
             try {
                 const res = await fetch(`${API_URL}/api/admin/communications${type ? '?type='+encodeURIComponent(type) : ''}`, { headers: { 'Authorization': `Bearer ${token}` } });
                 commData = await res.json();
-                if (!Array.isArray(commData) || commData.length === 0) { content.innerHTML = '<p>אין רשומות.</p>'; return; }
-                let html = '<div class="table-container"><table><thead><tr><th>תאריך</th><th>סוג</th><th>לקוח</th><th>טלפון</th><th>סריאלי</th><th>סיווג</th><th>סטטוס</th><th>CAPA</th><th>ע"י</th><th>פעולות</th></tr></thead><tbody>';
-                commData.forEach(c => {
-                    const d = c.comm_date ? new Date(c.comm_date).toLocaleDateString('he-IL') : '';
+                renderComm();
+            } catch (err) { document.getElementById('communicationsContent').innerHTML = '<p>שגיאה בטעינה.</p>'; }
+        }
+
+        function renderComm() {
+            const content = document.getElementById('communicationsContent');
+            if (!Array.isArray(commData) || commData.length === 0) { content.innerHTML = '<p>אין רשומות.</p>'; return; }
+            let html = '<div class="table-container"><table><thead><tr><th></th><th>תאריך</th><th>סוג</th><th>לקוח</th><th>טלפון</th><th>סטטוס</th><th>ע"י</th></tr></thead><tbody>';
+            commData.forEach(c => {
+                if (editingCommId === c.id) { html += `<tr><td colspan="7" style="padding:0;">${commEditForm(c)}</td></tr>`; return; }
+                const d = c.comm_date ? new Date(c.comm_date).toLocaleDateString('he-IL') : '';
+                const open = expandedCommId === c.id;
+                html += `<tr style="cursor:pointer;" onclick="toggleCommExpand(${c.id})">
+                    <td>${open?'▲':'▼'}</td><td>${escapeHtml(d)}</td><td>${escapeHtml(c.type||'')}</td><td>${escapeHtml(c.customer_name||'')}</td>
+                    <td>${escapeHtml(c.customer_phone||'')}</td><td>${c.type==='תלונה'?escapeHtml(c.status||''):''}</td><td>${escapeHtml(c.handled_by_name||'')}</td></tr>`;
+                if (open) {
                     const capaBtn = c.type === 'תלונה'
-                        ? (c.capa_id ? `CAPA #${c.capa_id}` : `<button class="btn btn-primary" onclick="openCapaFromComm(${c.id})">פתח CAPA</button>`)
+                        ? (c.capa_id ? `<strong>CAPA #${c.capa_id}</strong>` : `<button class="btn btn-primary" onclick="event.stopPropagation();openCapaFromComm(${c.id})">פתח CAPA</button>`)
                         : '';
-                    html += `<tr>
-                        <td>${escapeHtml(d)}</td>
-                        <td>${escapeHtml(c.type || '')}</td>
-                        <td>${escapeHtml(c.customer_name || '')}</td>
-                        <td>${escapeHtml(c.customer_phone || '')}</td>
-                        <td>${escapeHtml(c.serial_number || '')}</td>
-                        <td>${escapeHtml(c.classification || '')}</td>
-                        <td>${c.type === 'תלונה' ? escapeHtml(c.status || '') : ''}</td>
-                        <td>${capaBtn}</td>
-                        <td>${escapeHtml(c.handled_by_name || '')}</td>
-                        <td>
-                          <button class="btn btn-primary" onclick="editCommunication(${c.id})">ערוך</button>
-                          <button class="btn btn-danger" onclick="deleteCommunication(${c.id})">מחק</button>
-                        </td>
-                    </tr>`;
-                });
-                html += '</tbody></table></div>';
-                content.innerHTML = html;
-            } catch (err) { content.innerHTML = '<p>שגיאה בטעינה.</p>'; }
+                    html += `<tr><td colspan="7" style="background:#f8f9fa; padding:10px 14px;">
+                        ${c.serial_number ? `<div style="margin-bottom:8px;"><strong>סריאלי:</strong> ${escapeHtml(c.serial_number)}</div>` : ''}
+                        <div style="margin-bottom:8px;"><strong>תיאור:</strong> ${escapeHtml(c.description||'—')}</div>
+                        ${c.type==='תלונה' ? `
+                          <div style="margin-bottom:8px;"><strong>סיווג:</strong> ${escapeHtml(c.classification||'—')}</div>
+                          <div style="margin-bottom:8px;"><strong>מענה ראשוני:</strong> ${escapeHtml(c.initial_response||'—')}</div>
+                          <div style="margin-bottom:8px;"><strong>החלטת סגירה:</strong> ${escapeHtml(c.resolution||'—')}</div>
+                          <div style="margin-bottom:8px;"><strong>CAPA:</strong> ${capaBtn}</div>` : ''}
+                        <div><button class="btn btn-primary" onclick="event.stopPropagation();startEditComm(${c.id})">ערוך</button>
+                        <button class="btn btn-danger" onclick="event.stopPropagation();deleteCommunication(${c.id})">מחק</button></div></td></tr>`;
+                }
+            });
+            html += '</tbody></table></div>';
+            content.innerHTML = html;
         }
 
-        function resetCommForm() {
-            ['commId','commName','commPhone','commSerial','commDesc','commResponse','commResolution','commUserId','commDate','custSearch'].forEach(id => document.getElementById(id).value = '');
-            document.getElementById('commType').value = 'שיחה';
-            document.getElementById('commClassification').value = '';
-            document.getElementById('commStatus').value = 'פתוחה';
-            onCommTypeChange();
+        function commEditForm(c) {
+            const dt = c.comm_date ? c.comm_date.slice(0,10) : '';
+            const opt = (v, cur) => `<option value="${v}" ${cur===v?'selected':''}>${v}</option>`;
+            const isComplaint = c.type === 'תלונה';
+            return `<div style="padding:16px; background:#fafbfc;">
+                <div class="form-row">
+                    <div class="form-group"><label>סוג</label><select id="ecm_type_${c.id}" onchange="onEditCommType(${c.id})">${['שיחה','מכירה','תלונה','אחר'].map(v=>opt(v,c.type)).join('')}</select></div>
+                    <div class="form-group"><label>תאריך</label><input type="date" id="ecm_date_${c.id}" value="${dt}"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>שם לקוח</label><input type="text" id="ecm_name_${c.id}" value="${escapeHtml(c.customer_name||'')}"></div>
+                    <div class="form-group"><label>טלפון</label><input type="text" id="ecm_phone_${c.id}" value="${escapeHtml(c.customer_phone||'')}"></div>
+                </div>
+                <div class="form-group"><label>סריאלי</label><input type="text" id="ecm_serial_${c.id}" value="${escapeHtml(c.serial_number||'')}"></div>
+                <div class="form-group"><label>תיאור / תוכן</label><textarea id="ecm_desc_${c.id}" rows="2">${escapeHtml(c.description||'')}</textarea></div>
+                <div id="ecm_complaint_${c.id}" style="display:${isComplaint?'block':'none'}; border-top:1px solid #e0e0e0; padding-top:12px;">
+                    <div class="form-row">
+                        <div class="form-group"><label>סיווג</label><select id="ecm_class_${c.id}"><option value="">—</option>${['פגם','שימוש שגוי','אירוע','אחר'].map(v=>opt(v,c.classification)).join('')}</select></div>
+                        <div class="form-group"><label>סטטוס</label><select id="ecm_status_${c.id}">${['פתוחה','בטיפול','סגורה'].map(v=>opt(v,c.status)).join('')}</select></div>
+                    </div>
+                    <div class="form-group"><label>מענה ראשוני</label><textarea id="ecm_response_${c.id}" rows="2">${escapeHtml(c.initial_response||'')}</textarea></div>
+                    <div class="form-group"><label>החלטת סגירה</label><textarea id="ecm_resolution_${c.id}" rows="2">${escapeHtml(c.resolution||'')}</textarea></div>
+                </div>
+                <div><button class="btn btn-success" onclick="saveCommInline(${c.id})">שמור</button>
+                <button class="btn" onclick="cancelEditComm()">בטל</button></div>
+            </div>`;
+        }
+        function onEditCommType(id) {
+            const isComplaint = document.getElementById('ecm_type_'+id).value === 'תלונה';
+            document.getElementById('ecm_complaint_'+id).style.display = isComplaint ? 'block' : 'none';
         }
 
-        async function saveCommunication(e) {
+        function toggleCommExpand(id) { if (editingCommId === id) return; editingCommId = null; expandedCommId = (expandedCommId === id) ? null : id; renderComm(); }
+        function startEditComm(id) { expandedCommId = id; editingCommId = id; renderComm(); }
+        function cancelEditComm() { editingCommId = null; renderComm(); }
+
+        async function addCommunication(e) {
             e.preventDefault();
             const token = localStorage.getItem('adminToken');
-            const id = document.getElementById('commId').value;
             const body = {
                 comm_date: document.getElementById('commDate').value || null,
                 type: document.getElementById('commType').value,
@@ -2488,36 +2517,38 @@
                 status: document.getElementById('commStatus').value
             };
             try {
-                const url = id ? `${API_URL}/api/admin/communications/${id}` : `${API_URL}/api/admin/communications`;
-                const res = await fetch(url, {
-                    method: id ? 'PUT' : 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify(body)
-                });
+                const res = await fetch(`${API_URL}/api/admin/communications`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(body) });
                 if (!res.ok) { const dd = await res.json(); showMessage(dd.error || 'שגיאה', 'error'); return; }
                 showMessage('נשמר', 'success');
-                resetCommForm();
+                ['commName','commPhone','commSerial','commDesc','commResponse','commResolution','commUserId','commDate'].forEach(id => document.getElementById(id).value = '');
+                document.getElementById('commType').value = 'שיחה';
+                document.getElementById('commClassification').value = '';
+                document.getElementById('commStatus').value = 'פתוחה';
+                onCommTypeChange();
+                document.getElementById('commAddForm').style.display = 'none';
                 loadCommunications();
             } catch (err) { showMessage('שגיאה בשמירה', 'error'); }
         }
 
-        function editCommunication(id) {
-            const c = commData.find(x => x.id === id);
-            if (!c) return;
-            document.getElementById('commId').value = c.id;
-            document.getElementById('commType').value = c.type || 'שיחה';
-            document.getElementById('commDate').value = c.comm_date ? c.comm_date.slice(0, 10) : '';
-            document.getElementById('commName').value = c.customer_name || '';
-            document.getElementById('commPhone').value = c.customer_phone || '';
-            document.getElementById('commSerial').value = c.serial_number || '';
-            document.getElementById('commUserId').value = c.user_id || '';
-            document.getElementById('commDesc').value = c.description || '';
-            document.getElementById('commClassification').value = c.classification || '';
-            document.getElementById('commStatus').value = c.status || 'פתוחה';
-            document.getElementById('commResponse').value = c.initial_response || '';
-            document.getElementById('commResolution').value = c.resolution || '';
-            onCommTypeChange();
-            window.scrollTo(0, 0);
+        async function saveCommInline(id) {
+            const token = localStorage.getItem('adminToken');
+            const body = {
+                comm_date: document.getElementById('ecm_date_'+id).value || null,
+                type: document.getElementById('ecm_type_'+id).value,
+                customer_name: document.getElementById('ecm_name_'+id).value.trim(),
+                customer_phone: document.getElementById('ecm_phone_'+id).value.trim(),
+                serial_number: document.getElementById('ecm_serial_'+id).value.trim(),
+                description: document.getElementById('ecm_desc_'+id).value.trim(),
+                classification: document.getElementById('ecm_class_'+id).value || null,
+                initial_response: document.getElementById('ecm_response_'+id).value.trim(),
+                resolution: document.getElementById('ecm_resolution_'+id).value.trim(),
+                status: document.getElementById('ecm_status_'+id).value
+            };
+            try {
+                const res = await fetch(`${API_URL}/api/admin/communications/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(body) });
+                if (!res.ok) { const dd = await res.json(); showMessage(dd.error || 'שגיאה', 'error'); return; }
+                showMessage('עודכן', 'success'); editingCommId = null; loadCommunications();
+            } catch (err) { showMessage('שגיאה בשמירה', 'error'); }
         }
 
         async function deleteCommunication(id) {
@@ -2526,7 +2557,7 @@
             try {
                 const res = await fetch(`${API_URL}/api/admin/communications/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
                 if (!res.ok) { showMessage('שגיאה במחיקה', 'error'); return; }
-                showMessage('נמחק', 'success'); loadCommunications();
+                showMessage('נמחק', 'success'); expandedCommId = null; loadCommunications();
             } catch (err) { showMessage('שגיאה במחיקה', 'error'); }
         }
 
