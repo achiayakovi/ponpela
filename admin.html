@@ -1314,53 +1314,71 @@
             }
         }
 
+        let displayedWarranties = [], expandedWarrantyId = null, editingWarrantyId = null;
+        const WARRANTY_STATUSES = [['ממתין לאישור','ממתין'],['בתוקף','בתוקף'],['נדחה','נדחה'],['פג תוקף','פג תוקף']];
+        function warrantyStatusSelect(w){
+            return `<select class="status-select" onchange="updateStatus(${w.id}, this.value)">${WARRANTY_STATUSES.map(([v,t])=>`<option value="${v}" ${w.status===v?'selected':''}>${t}</option>`).join('')}</select>`;
+        }
         function renderWarranties(warranties) {
+            displayedWarranties = warranties;
             const content = document.getElementById('warrantiesContent');
-            
-            if (warranties.length === 0) {
-                content.innerHTML = '<p class="empty-state">אין אחריות</p>';
-                return;
-            }
-
-            content.innerHTML = `
-                <div class="table-container">
-                    <table>
-                        <tr>
-                            <th>מספר מכשיר</th>
-                            <th>שם</th>
-                            <th>טלפון</th>
-                            <th>תאריך רכישה</th>
-                            <th>תוקף</th>
-                            <th>סטטוס</th>
-                            <th>משתמש</th>
-                            <th>פעולות</th>
-                        </tr>
-                        ${warranties.map(w => `
-                            <tr>
-                                <td class="clickable" onclick="editMachineNumber(${w.id}, '${escapeJsAttr(w.machine_number)}')">${escapeHtml(w.machine_number)}</td>
-                                <td>${escapeHtml(w.customer_name)}</td>
-                                <td>${escapeHtml(w.customer_phone)}</td>
-                                <td class="clickable" onclick="openEditDatesModal(${w.id}, '${w.purchase_date}', '${w.expiry_date}')">${new Date(w.purchase_date).toLocaleDateString('he-IL')}</td>
-                                <td>${new Date(w.expiry_date).toLocaleDateString('he-IL')}</td>
-                                <td>
-                                    <select class="status-select" onchange="updateStatus(${w.id}, this.value)">
-                                        <option value="ממתין לאישור" ${w.status === 'ממתין לאישור' ? 'selected' : ''}>ממתין</option>
-                                        <option value="בתוקף" ${w.status === 'בתוקף' ? 'selected' : ''}>בתוקף</option>
-                                        <option value="נדחה" ${w.status === 'נדחה' ? 'selected' : ''}>נדחה</option>
-                                        <option value="פג תוקף" ${w.status === 'פג תוקף' ? 'selected' : ''}>פג תוקף</option>
-                                    </select>
-                                </td>
-                                <td>
-                                    <span class="clickable" onclick="openAssignUserModal(${w.id}, ${w.user_id})">${w.user_id ? 'שויך' : 'לא שויך'}</span>
-                                </td>
-                                <td>
-                                    <button class="btn btn-sm btn-delete" onclick="deleteWarranty(${w.id})">מחק</button>
-                                </td>
-                            </tr>
-                        `).join('')}
-                    </table>
-                </div>
-            `;
+            if (!warranties.length) { content.innerHTML = '<p class="empty-state">אין אחריות</p>'; return; }
+            let h = '<div class="table-container"><table><thead><tr><th></th><th>מספר מכשיר</th><th>שם</th><th>טלפון</th><th>סטטוס</th><th>משתמש</th></tr></thead><tbody>';
+            warranties.forEach(w => {
+                if (editingWarrantyId === w.id) { h += `<tr><td colspan="6" style="padding:0;">${warrantyEditForm(w)}</td></tr>`; return; }
+                const open = expandedWarrantyId === w.id;
+                h += `<tr style="cursor:pointer;" onclick="toggleWarrantyExpand(${w.id})">
+                    <td>${open ? '▲' : '▼'}</td>
+                    <td>${escapeHtml(w.machine_number || '')}</td>
+                    <td>${escapeHtml(w.customer_name || '')}</td>
+                    <td>${escapeHtml(w.customer_phone || '')}</td>
+                    <td onclick="event.stopPropagation();">${warrantyStatusSelect(w)}</td>
+                    <td>${w.user_id ? 'שויך' : 'לא שויך'}</td></tr>`;
+                if (open) {
+                    h += `<tr><td colspan="6" style="background:#f8f9fa; padding:10px 14px;">
+                        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:2px 24px;">
+                            <div style="padding:4px 0;"><span style="color:#888;">תאריך רכישה: </span>${new Date(w.purchase_date).toLocaleDateString('he-IL')}</div>
+                            <div style="padding:4px 0;"><span style="color:#888;">תוקף: </span>${new Date(w.expiry_date).toLocaleDateString('he-IL')}</div>
+                            <div style="padding:4px 0;"><span style="color:#888;">משתמש משויך: </span>${w.user_id ? ('#' + w.user_id) : 'לא שויך'}</div>
+                        </div>
+                        <div style="margin-top:10px;"><button class="btn btn-primary" onclick="event.stopPropagation();startEditWarranty(${w.id})">ערוך</button>
+                        <button class="btn btn-danger" onclick="event.stopPropagation();deleteWarranty(${w.id})">מחק</button></div></td></tr>`;
+                }
+            });
+            h += '</tbody></table></div>';
+            content.innerHTML = h;
+        }
+        function warrantyEditForm(w) {
+            const pd = w.purchase_date ? String(w.purchase_date).split('T')[0] : '';
+            const ed = w.expiry_date ? String(w.expiry_date).split('T')[0] : '';
+            const userOpts = '<option value="">ללא משתמש</option>' + (allUsers || []).map(u => `<option value="${u.id}" ${w.user_id === u.id ? 'selected' : ''}>${escapeHtml(u.full_name)} (${escapeHtml(u.email)})</option>`).join('');
+            return `<div style="padding:16px; background:#fafbfc;">
+                <div class="form-row"><div class="form-group"><label>מספר מכשיר</label><input type="text" id="wa_machine_${w.id}" value="${escapeHtml(w.machine_number || '')}"></div>
+                <div class="form-group"><label>משתמש משויך</label><select id="wa_user_${w.id}">${userOpts}</select></div></div>
+                <div class="form-row"><div class="form-group"><label>תאריך רכישה</label><input type="date" id="wa_pd_${w.id}" value="${pd}"></div>
+                <div class="form-group"><label>תוקף</label><input type="date" id="wa_ed_${w.id}" value="${ed}"></div></div>
+                <div><button class="btn btn-success" onclick="saveWarrantyInline(${w.id})">שמור</button> <button class="btn" onclick="cancelEditWarranty()">בטל</button></div></div>`;
+        }
+        function toggleWarrantyExpand(id){ if(editingWarrantyId===id) return; editingWarrantyId=null; expandedWarrantyId = expandedWarrantyId===id ? null : id; renderWarranties(displayedWarranties); }
+        function startEditWarranty(id){ expandedWarrantyId=id; editingWarrantyId=id; renderWarranties(displayedWarranties); }
+        function cancelEditWarranty(){ editingWarrantyId=null; renderWarranties(displayedWarranties); }
+        async function saveWarrantyInline(id) {
+            const token = localStorage.getItem('adminToken');
+            const w = (allWarranties || []).find(x => x.id === id) || {};
+            const machine = document.getElementById('wa_machine_' + id).value.trim();
+            const pd = document.getElementById('wa_pd_' + id).value;
+            const ed = document.getElementById('wa_ed_' + id).value;
+            const userId = document.getElementById('wa_user_' + id).value || null;
+            const H = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+            try {
+                if (machine && machine !== (w.machine_number || '')) {
+                    const r = await fetch(`${API_URL}/api/admin/warranty/${id}/machine-number`, { method: 'PUT', headers: H, body: JSON.stringify({ machine_number: machine }) });
+                    if (!r.ok) { const d = await r.json().catch(() => ({})); showMessage(d.error || 'שגיאה במספר מכשיר', 'error'); return; }
+                }
+                if (pd && ed) await fetch(`${API_URL}/api/admin/warranty/${id}/dates`, { method: 'PUT', headers: H, body: JSON.stringify({ purchase_date: pd, expiry_date: ed }) });
+                await fetch(`${API_URL}/api/admin/warranty/${id}/assign-user`, { method: 'PUT', headers: H, body: JSON.stringify({ user_id: userId }) });
+                showMessage('עודכן', 'success'); editingWarrantyId = null; loadWarranties();
+            } catch (err) { showMessage('שגיאה בשמירה', 'error'); }
         }
 
         function filterWarranties() {
@@ -1546,77 +1564,53 @@
             }
         }
 
-        // Products
+        // Products — שורות נפתחות (עריכה במודאל הקיים בשל ריבוי השדות)
+        let productsData = [], expandedProductId = null;
         async function loadProducts() {
             const token = localStorage.getItem('adminToken');
             const loading = document.getElementById('productsLoading');
-            const content = document.getElementById('productsContent');
-            
             loading.style.display = 'block';
-            content.innerHTML = '';
-
+            document.getElementById('productsContent').innerHTML = '';
             try {
-                const res = await fetch(`${API_URL}/api/admin/all-products`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                const products = await res.json();
+                const res = await fetch(`${API_URL}/api/admin/all-products`, { headers: { 'Authorization': `Bearer ${token}` } });
+                productsData = await res.json();
                 loading.style.display = 'none';
-                
-                if (products.length === 0) {
-                    content.innerHTML = '<p class="empty-state">אין מוצרים</p>';
-                    return;
-                }
-
-                content.innerHTML = `
-                    <div class="table-container">
-                        <table>
-                            <tr>
-                                <th>שם</th>
-                                <th>SKU</th>
-                                <th>קטגוריה</th>
-                                <th>מחיר</th>
-                                <th>מלאי</th>
-                                <th>סטטוס</th>
-                                <th>תג</th>
-                                <th>פעולות</th>
-                            </tr>
-                            ${products.map(p => `
-                                <tr>
-                                    <td>${escapeHtml(p.name)}</td>
-                                    <td>${p.sku || '-'}</td>
-                                    <td>${p.category || '-'}</td>
-                                    <td>
-                                        ${p.sale_price ? 
-                                            `<span style="text-decoration: line-through; color: gray;">₪${p.price}</span><br>
-                                             <span style="color: red; font-weight: bold;">₪${p.sale_price}</span>` :
-                                            `₪${p.price}`}
-                                    </td>
-                                    <td style="font-weight: bold; color: ${
-                                        p.stock_quantity === 0 ? 'red' : 
-                                        p.stock_quantity <= 10 ? 'orange' : 
-                                        'green'
-                                    };">
-                                        ${p.stock_quantity}
-                                    </td>
-                                    <td>
-                                        ${p.stock_quantity === 0 ? 
-                                            '<span style="color: red;">🔴 אזל</span>' : 
-                                            '<span style="color: green;">🟢 במלאי</span>'}
-                                    </td>
-                                    <td>${p.badge ? `<span style="background: #667eea; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8em;">${p.badge}</span>` : '-'}</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-edit" onclick="editProduct(${p.id})">ערוך</button>
-                                        <button class="btn btn-sm btn-delete" onclick="deleteProduct(${p.id})">מחק</button>
-                                    </td>
-                                </tr>
-                            `).join('')}
-                        </table>
-                    </div>
-                `;
+                renderProducts();
             } catch (err) {
                 loading.innerHTML = 'שגיאה';
             }
         }
+        function renderProducts() {
+            const content = document.getElementById('productsContent');
+            if (!Array.isArray(productsData) || !productsData.length) { content.innerHTML = '<p class="empty-state">אין מוצרים</p>'; return; }
+            let h = '<div class="table-container"><table><thead><tr><th></th><th>שם</th><th>מחיר</th><th>מלאי</th><th>סטטוס</th></tr></thead><tbody>';
+            productsData.forEach(p => {
+                const open = expandedProductId === p.id;
+                const stockColor = p.stock_quantity === 0 ? 'red' : p.stock_quantity <= 10 ? 'orange' : 'green';
+                const priceHtml = p.sale_price ? `<span style="text-decoration:line-through;color:gray;">₪${p.price}</span> <span style="color:red;font-weight:bold;">₪${p.sale_price}</span>` : `₪${p.price}`;
+                h += `<tr style="cursor:pointer;" onclick="toggleProductExpand(${p.id})">
+                    <td>${open ? '▲' : '▼'}</td>
+                    <td>${escapeHtml(p.name)}</td>
+                    <td>${priceHtml}</td>
+                    <td style="font-weight:bold;color:${stockColor};">${p.stock_quantity}</td>
+                    <td>${p.stock_quantity === 0 ? '<span style="color:red;">אזל</span>' : '<span style="color:green;">במלאי</span>'}</td></tr>`;
+                if (open) {
+                    h += `<tr><td colspan="5" style="background:#f8f9fa; padding:10px 14px;">
+                        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:2px 24px;">
+                            <div style="padding:3px 0;"><span style="color:#888;">SKU: </span>${escapeHtml(p.sku || '-')}</div>
+                            <div style="padding:3px 0;"><span style="color:#888;">קטגוריה: </span>${escapeHtml(p.category || '-')}</div>
+                            <div style="padding:3px 0;"><span style="color:#888;">תג: </span>${p.badge ? escapeHtml(p.badge) : '-'}</div>
+                            <div style="padding:3px 0;"><span style="color:#888;">אחריות: </span>${p.has_warranty ? 'כן' : 'לא'}</div>
+                        </div>
+                        ${p.short_description ? `<div style="margin-top:6px;"><span style="color:#888;">תיאור קצר: </span>${escapeHtml(p.short_description)}</div>` : ''}
+                        <div style="margin-top:10px;"><button class="btn btn-primary" onclick="event.stopPropagation();editProduct(${p.id})">ערוך</button>
+                        <button class="btn btn-danger" onclick="event.stopPropagation();deleteProduct(${p.id})">מחק</button></div></td></tr>`;
+                }
+            });
+            h += '</tbody></table></div>';
+            content.innerHTML = h;
+        }
+        function toggleProductExpand(id){ expandedProductId = expandedProductId === id ? null : id; renderProducts(); }
 
         function openProductModal(product = null) {
             const modal = document.getElementById('productModal');
@@ -1921,51 +1915,48 @@
         }
 
         // Users
+        // Users — שורות נפתחות
+        let usersData = [], expandedUserId = null;
         async function loadUsers() {
             const token = localStorage.getItem('adminToken');
             const loading = document.getElementById('usersLoading');
-            const content = document.getElementById('usersContent');
-            
             loading.style.display = 'block';
-            content.innerHTML = '';
-
+            document.getElementById('usersContent').innerHTML = '';
             try {
-                const res = await fetch(`${API_URL}/api/admin/users`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                const users = await res.json();
+                const res = await fetch(`${API_URL}/api/admin/users`, { headers: { 'Authorization': `Bearer ${token}` } });
+                usersData = await res.json();
                 loading.style.display = 'none';
-
-                content.innerHTML = `
-                    <div class="table-container">
-                        <table>
-                            <tr>
-                                <th>שם</th>
-                                <th>אימייל</th>
-                                <th>טלפון</th>
-                                <th>אדמין</th>
-                                <th>תאריך הצטרפות</th>
-                                <th>פעולות</th>
-                            </tr>
-                            ${users.map(u => `
-                                <tr>
-                                    <td>${escapeHtml(u.full_name)}</td>
-                                    <td>${escapeHtml(u.email)}</td>
-                                    <td>${escapeHtml(u.phone || '-')}</td>
-                                    <td>${u.is_admin ? '✓' : '✗'}</td>
-                                    <td>${new Date(u.created_at).toLocaleDateString('he-IL')}</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-edit" onclick="openResetPasswordModal('${escapeJsAttr(u.email)}', '${escapeJsAttr(u.full_name)}')">איפוס סיסמה</button>
-                                    </td>
-                                </tr>
-                            `).join('')}
-                        </table>
-                    </div>
-                `;
+                renderUsersList();
             } catch (err) {
                 loading.innerHTML = 'שגיאה';
             }
         }
+        function renderUsersList() {
+            const content = document.getElementById('usersContent');
+            if (!Array.isArray(usersData) || !usersData.length) { content.innerHTML = '<p class="empty-state">אין לקוחות</p>'; return; }
+            let h = '<div class="table-container"><table><thead><tr><th></th><th>שם</th><th>אימייל</th><th>טלפון</th><th>אדמין</th></tr></thead><tbody>';
+            usersData.forEach(u => {
+                const open = expandedUserId === u.id;
+                h += `<tr style="cursor:pointer;" onclick="toggleUserExpand(${u.id})">
+                    <td>${open ? '▲' : '▼'}</td>
+                    <td>${escapeHtml(u.full_name || '')}</td>
+                    <td>${escapeHtml(u.email || '')}</td>
+                    <td>${escapeHtml(u.phone || '-')}</td>
+                    <td>${u.is_admin ? '✓' : '✗'}</td></tr>`;
+                if (open) {
+                    h += `<tr><td colspan="5" style="background:#f8f9fa; padding:10px 14px;">
+                        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:2px 24px;">
+                            <div style="padding:3px 0;"><span style="color:#888;">כתובת: </span>${escapeHtml(u.address || '-')}</div>
+                            <div style="padding:3px 0;"><span style="color:#888;">תאריך הצטרפות: </span>${new Date(u.created_at).toLocaleDateString('he-IL')}</div>
+                            <div style="padding:3px 0;"><span style="color:#888;">אדמין: </span>${u.is_admin ? 'כן' : 'לא'}</div>
+                        </div>
+                        <div style="margin-top:10px;"><button class="btn btn-primary" onclick="event.stopPropagation();openResetPasswordModal('${escapeJsAttr(u.email)}', '${escapeJsAttr(u.full_name)}')">איפוס סיסמה</button></div></td></tr>`;
+                }
+            });
+            h += '</tbody></table></div>';
+            content.innerHTML = h;
+        }
+        function toggleUserExpand(id){ expandedUserId = expandedUserId === id ? null : id; renderUsersList(); }
 
         function openResetPasswordModal(email, name) {
             document.getElementById('resetUserEmail').value = email;
