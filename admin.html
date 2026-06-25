@@ -491,7 +491,8 @@
             </div>
 
             <div style="background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
-                <h3>עדכון מלאי חנות ידני</h3>
+                <h3>🏬 עדכון מלאי מחסן ידני</h3>
+                <p style="color:#888; margin:0 0 10px;">שינוי המלאי הפיזי במחסן (+/-) עם הערה. הקנייה מורידה מהמחסן אוטומטית.</p>
                 <form id="updateStockForm" onsubmit="updateStock(event)" style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;">
                     <div class="form-group" style="flex: 2; margin-bottom: 0;">
                         <label>בחר מוצר</label>
@@ -2066,7 +2067,7 @@
                 
                 const select = document.getElementById('stockProductId');
                 select.innerHTML = '<option value="">בחר מוצר</option>' +
-                    products.map(p => `<option value="${p.id}">${escapeHtml(p.name)} (מלאי נוכחי: ${p.stock_quantity})</option>`).join('');
+                    products.map(p => `<option value="${p.id}">${escapeHtml(p.name)} (מחסן: ${p.warehouse_qty ?? 0})</option>`).join('');
             } catch (err) {
                 console.error(err);
             }
