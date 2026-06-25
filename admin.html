@@ -649,6 +649,7 @@
                     <div class="form-group"><label>תאריך</label><input type="date" id="commDate"></div>
                 </div>
                 <div id="feedbackFields" style="display:none;">
+                    <div style="background:#eef; padding:8px 12px; border-radius:8px; margin-bottom:12px; font-size:14px;">סולם הדירוג: <strong style="color:#c0392b;">1 = גרוע</strong> · <strong style="color:#27ae60;">5 = מצוין</strong></div>
                     <div class="fb-row" data-topic="שירות"><span class="fb-lbl">שירות</span><div class="fb-nums">
                         <button type="button" class="fb-btn" value="1" onclick="pickFb(this)">1</button><button type="button" class="fb-btn" value="2" onclick="pickFb(this)">2</button><button type="button" class="fb-btn" value="3" onclick="pickFb(this)">3</button><button type="button" class="fb-btn" value="4" onclick="pickFb(this)">4</button><button type="button" class="fb-btn" value="5" onclick="pickFb(this)">5</button>
                     </div></div>
@@ -2936,6 +2937,7 @@
                     <div class="form-group"><label>תאריך</label><input type="date" id="ecm_date_${c.id}" value="${dt}"></div>
                 </div>
                 <div id="ecm_feedback_${c.id}" style="display:${c.type==='משוב'?'block':'none'};">
+                    <div style="background:#eef; padding:8px 12px; border-radius:8px; margin-bottom:12px; font-size:14px;">סולם הדירוג: <strong style="color:#c0392b;">1 = גרוע</strong> · <strong style="color:#27ae60;">5 = מצוין</strong></div>
                     ${['שירות','מהירות הגעת המוצר','קלות ההזמנה'].map(topic=>{
                         const fs=c.feedback_scores||{}; const cur=(fs[topic]!=null?fs[topic]:(c.feedback_topic===topic?c.score:''));
                         return `<div class="fb-row" data-topic="${topic}"><span class="fb-lbl">${topic}</span><div class="fb-nums">${[1,2,3,4,5].map(v=>`<button type="button" class="fb-btn ${String(cur)===String(v)?'sel':''}" value="${v}" onclick="pickFb(this)">${v}</button>`).join('')}</div></div>`;
