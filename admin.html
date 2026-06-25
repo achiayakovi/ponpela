@@ -251,9 +251,8 @@
         /* יישור כל שדות הטופס לימין (RTL) — כולל email/number/date שמתיישרים לשמאל כברירת מחדל */
         input, textarea, select { text-align: right; }
         input[type="checkbox"], input[type="radio"] { text-align: initial; }
-        /* מראה מעוגל אחיד לכל שדה טקסט/textarea (כולל המודולים הוותיקים עם inline padding) — לא דורס רוחב/padding מקומיים */
-        input[type="text"], input[type="email"], input[type="password"], input[type="number"],
-        input[type="date"], input[type="tel"], input[type="search"], textarea {
+        /* מראה מעוגל אחיד לכל שדה טקסט/textarea (כולל input ללא type מפורש ומודולים ותיקים) — לא דורס רוחב/padding מקומיים */
+        input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="submit"]):not([type="button"]):not([type="hidden"]), textarea {
             border: 2px solid #e0e0e0;
             border-radius: 8px;
             box-sizing: border-box;
@@ -1726,64 +1725,64 @@
             }
         }
 
-        // Orders
+        // Orders — תבנית שורות נפתחות (לחיצה על שורה פותחת פירוט inline)
+        let ordersData = [];
+        let expandedOrderId = null;
         async function loadOrders() {
             const token = localStorage.getItem('adminToken');
             const loading = document.getElementById('ordersLoading');
-            const content = document.getElementById('ordersContent');
-            
             loading.style.display = 'block';
-            content.innerHTML = '';
-
+            document.getElementById('ordersContent').innerHTML = '';
             try {
-                const res = await fetch(`${API_URL}/api/admin/orders`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                const orders = await res.json();
+                const res = await fetch(`${API_URL}/api/admin/orders`, { headers: { 'Authorization': `Bearer ${token}` } });
+                ordersData = await res.json();
                 loading.style.display = 'none';
-                
-                if (orders.length === 0) {
-                    content.innerHTML = '<p class="empty-state">אין הזמנות</p>';
-                    return;
-                }
-
-                content.innerHTML = `
-                    <div class="table-container">
-                        <table>
-                            <tr>
-                                <th>מספר</th>
-                                <th>לקוח</th>
-                                <th>סכום</th>
-                                <th>סטטוס</th>
-                                <th>תאריך</th>
-                                <th>פעולות</th>
-                            </tr>
-                            ${orders.map(o => `
-                                <tr>
-                                    <td>#${o.id}</td>
-                                    <td>${escapeHtml(o.full_name || o.email)}</td>
-                                    <td>₪${o.total_amount}</td>
-                                    <td>
-                                        <select class="status-select" onchange="updateOrderStatus(${o.id}, this.value)">
-                                            <option value="pending" ${o.status === 'pending' ? 'selected' : ''}>ממתין</option>
-                                            <option value="preparing" ${o.status === 'preparing' ? 'selected' : ''}>הכנת הזמנה</option>
-                                            <option value="dispatched" ${o.status === 'dispatched' ? 'selected' : ''}>${o.delivery_method === 'איסוף' ? 'מוכן לאיסוף' : 'נשלח'}</option>
-                                            <option value="completed" ${o.status === 'completed' ? 'selected' : ''}>הושלם</option>
-                                            <option value="cancelled" ${o.status === 'cancelled' ? 'selected' : ''}>בוטל</option>
-                                        </select>
-                                    </td>
-                                    <td>${new Date(o.created_at).toLocaleDateString('he-IL')}</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-edit" onclick="viewOrder(${o.id})">צפה</button>
-                                    </td>
-                                </tr>
-                            `).join('')}
-                        </table>
-                    </div>
-                `;
+                renderOrders();
             } catch (err) {
                 loading.innerHTML = 'שגיאה';
             }
+        }
+        function orderStatusSelect(o) {
+            return `<select class="status-select" onchange="updateOrderStatus(${o.id}, this.value)">
+                <option value="pending" ${o.status === 'pending' ? 'selected' : ''}>ממתין</option>
+                <option value="preparing" ${o.status === 'preparing' ? 'selected' : ''}>הכנת הזמנה</option>
+                <option value="dispatched" ${o.status === 'dispatched' ? 'selected' : ''}>${o.delivery_method === 'איסוף' ? 'מוכן לאיסוף' : 'נשלח'}</option>
+                <option value="completed" ${o.status === 'completed' ? 'selected' : ''}>הושלם</option>
+                <option value="cancelled" ${o.status === 'cancelled' ? 'selected' : ''}>בוטל</option>
+            </select>`;
+        }
+        function renderOrders() {
+            const content = document.getElementById('ordersContent');
+            if (!Array.isArray(ordersData) || ordersData.length === 0) { content.innerHTML = '<p class="empty-state">אין הזמנות</p>'; return; }
+            let h = '<div class="table-container"><table><thead><tr><th></th><th>מספר</th><th>לקוח</th><th>סכום</th><th>סטטוס</th><th>תאריך</th></tr></thead><tbody>';
+            ordersData.forEach(o => {
+                const open = expandedOrderId === o.id;
+                h += `<tr style="cursor:pointer;" onclick="toggleOrderExpand(${o.id})">
+                    <td>${open ? '▲' : '▼'}</td>
+                    <td>#${o.id}</td>
+                    <td>${escapeHtml(o.full_name || o.email || o.guest_name || '')}</td>
+                    <td>₪${o.total_amount}</td>
+                    <td onclick="event.stopPropagation();">${orderStatusSelect(o)}</td>
+                    <td>${new Date(o.created_at).toLocaleDateString('he-IL')}</td></tr>`;
+                if (open) h += `<tr><td colspan="6" style="background:#f8f9fa; padding:10px 14px;"><div id="orderDetail_${o.id}" onclick="event.stopPropagation();">טוען...</div></td></tr>`;
+            });
+            h += '</tbody></table></div>';
+            content.innerHTML = h;
+            if (expandedOrderId) loadOrderDetail(expandedOrderId);
+        }
+        function toggleOrderExpand(id) {
+            expandedOrderId = expandedOrderId === id ? null : id;
+            renderOrders();
+        }
+        async function loadOrderDetail(id) {
+            const token = localStorage.getItem('adminToken');
+            const box = document.getElementById('orderDetail_' + id);
+            if (!box) return;
+            try {
+                const res = await fetch(`${API_URL}/api/admin/order/${id}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const order = await res.json();
+                box.innerHTML = orderDetailsHtml(order);
+            } catch (err) { box.innerHTML = '<span style="color:#c0392b;">שגיאה בטעינת פרטים</span>'; }
         }
 
         async function updateOrderStatus(id, status) {
@@ -1825,9 +1824,16 @@
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const order = await res.json();
-                
-                const isGuest = !order.user_id;
-                const details = `
+                document.getElementById('orderDetails').innerHTML = orderDetailsHtml(order);
+                document.getElementById('orderModal').classList.add('active');
+            } catch (err) {
+                showMessage('שגיאה', 'error');
+            }
+        }
+        // בונה את פרטי ההזמנה — משמש גם את השורה הנפתחת inline וגם את המודאל (תאימות)
+        function orderDetailsHtml(order) {
+            const isGuest = !order.user_id;
+            return `
                     <div>
                         <p><strong>לקוח:</strong> ${escapeHtml(order.full_name || order.guest_name || '-')} ${isGuest ? '<span style="color:#e67e22;">(אורח)</span>' : ''}</p>
                         <p><strong>אימייל:</strong> ${escapeHtml(order.email || order.guest_email || '-')}</p>
@@ -1865,12 +1871,6 @@
                         ).join('')}` : ''}
                     </div>
                 `;
-                
-                document.getElementById('orderDetails').innerHTML = details;
-                document.getElementById('orderModal').classList.add('active');
-            } catch (err) {
-                showMessage('שגיאה', 'error');
-            }
         }
 
         function closeOrderModal() {
@@ -1891,7 +1891,7 @@
                 const d = await res.json();
                 if (!res.ok) { showMessage(d.error || 'שגיאה בשיוך', 'error'); return; }
                 showMessage('הסריאלי שויך לאחריות', 'success');
-                viewOrder(orderId); // רענון המודל
+                loadOrderDetail(orderId); // רענון הפירוט הנפתח
             } catch (err) { showMessage('שגיאה בשיוך', 'error'); }
         }
 
@@ -3500,7 +3500,7 @@
                 });
                 if (!res.ok) { const d = await res.json(); showMessage(d.error || 'שגיאה', 'error'); return; }
                 showMessage('ההזמנה שויכה ללקוח', 'success');
-                viewOrder(orderId);
+                loadOrderDetail(orderId);
             } catch (err) { showMessage('שגיאה בשיוך', 'error'); }
         }
 
