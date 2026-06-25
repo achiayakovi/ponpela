@@ -2871,11 +2871,14 @@
                 if (!s.n) { panel.innerHTML = '<div style="background:#eef; padding:12px; border-radius:8px; margin-bottom:12px;">אין משובים עם דירוג עדיין.</div>'; return; }
                 const bar = (n, tot) => { const pct = tot ? Math.round(n / tot * 100) : 0; return `<div style="display:flex; align-items:center; gap:8px; margin:2px 0;"><span style="width:40px;">${n}</span><div style="background:#667eea; height:14px; width:${pct}%; border-radius:4px; min-width:2px;"></div></div>`; };
                 const dist = (o) => `<div style="margin-top:6px;"><div>★5 ${bar(o.s5,o.n)}</div><div>★4 ${bar(o.s4,o.n)}</div><div>★3 ${bar(o.s3,o.n)}</div><div>★2 ${bar(o.s2,o.n)}</div><div>★1 ${bar(o.s1,o.n)}</div></div>`;
-                const topics = (s.by_topic||[]).map(tp=>`<div style="background:#fff; border:1px solid #dde; padding:10px 12px; border-radius:8px; flex:1; min-width:180px;">
-                    <strong>${escapeHtml(tp.topic)}</strong> — ממוצע <span style="color:#5a4ed1; font-weight:bold;">${tp.avg}</span>/5 · ${tp.n}${dist(tp)}</div>`).join('');
+                const card = (tp) => `<div style="background:#fff; border:1px solid #dde; padding:10px 12px; border-radius:8px; flex:1; min-width:180px;">
+                    <strong>${escapeHtml(tp.topic)}</strong> — ממוצע <span style="color:#5a4ed1; font-weight:bold;">${tp.avg}</span>/5 · ${tp.n}${dist(tp)}</div>`;
+                const topics = (s.by_topic||[]).map(card).join('');
+                const stages = (s.by_stage||[]).map(card).join('');
                 panel.innerHTML = `<div style="background:#eef; padding:14px; border-radius:8px; margin-bottom:14px;">
-                    <strong>סיכום שביעות רצון (כללי)</strong> — ממוצע <span style="font-size:1.3rem; color:#5a4ed1; font-weight:bold;">${s.avg}</span>/5 · ${s.n} דירוגים
+                    <strong>סיכום שביעות רצון (כל המשובים)</strong> — ממוצע <span style="font-size:1.3rem; color:#5a4ed1; font-weight:bold;">${s.avg}</span>/5 · ${s.n} דירוגים
                     ${dist(s)}
+                    ${stages?`<div style="margin-top:12px;"><strong>לפי שלב סקר:</strong><div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:8px;">${stages}</div></div>`:''}
                     ${topics?`<div style="margin-top:12px;"><strong>לפי נושא:</strong><div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:8px;">${topics}</div></div>`:''}
                 </div>`;
             } catch (err) { panel.style.display = 'none'; }
@@ -2908,7 +2911,7 @@
                     html += `<tr><td colspan="7" style="background:#f8f9fa; padding:10px 14px;">
                         ${c.serial_number ? `<div style="margin-bottom:8px;"><strong>סריאלי:</strong> ${escapeHtml(c.serial_number)}</div>` : ''}
                         <div style="margin-bottom:8px;"><strong>תיאור:</strong> ${escapeHtml(c.description||'—')}</div>
-                        ${c.type==='משוב' ? `<div style="margin-bottom:8px;"><strong>דירוגים:</strong> ${fbDetailHtml(c)}${c.score?` · <strong>ממוצע:</strong> ★${c.score}`:''}</div>` : ''}
+                        ${c.type==='משוב' ? `<div style="margin-bottom:8px;">${c.survey_stage?`<strong>שלב:</strong> ${escapeHtml(c.survey_stage)} · `:''}<strong>דירוגים:</strong> ${fbDetailHtml(c)}${c.score?` · <strong>ממוצע:</strong> ★${c.score}`:''}</div>` : ''}
                         ${c.type==='תלונה' ? `
                           <div style="margin-bottom:8px;"><strong>סיווג:</strong> ${escapeHtml(c.classification||'—')}</div>
                           <div style="margin-bottom:8px;"><strong>מענה ראשוני:</strong> ${escapeHtml(c.initial_response||'—')}</div>
