@@ -3221,48 +3221,44 @@
         function renderTraining() {
             const content = document.getElementById('trainingContent');
             if (!Array.isArray(trainingData) || trainingData.length === 0) { content.innerHTML = '<p>אין רשומות.</p>'; return; }
+            const stop = 'onclick="event.stopPropagation()"';
             let html = '<div class="table-container"><table><thead><tr><th></th><th>עובד</th><th>נושא</th><th>תאריך</th><th>סטטוס</th><th>ע"י</th></tr></thead><tbody>';
             trainingData.forEach(t => {
                 const d = t.training_date ? new Date(t.training_date).toLocaleDateString('he-IL') : '';
+                const dt = t.training_date ? t.training_date.slice(0,10) : '';
                 const open = expandedTrainingId === t.id;
+                const editing = editingTrainingId === t.id;
+                // תאי השורה עצמם הופכים ל-inputs בעת עריכה (אותם שדות, אותו מקום)
+                const cEmp = editing ? `<input id="et_emp_${t.id}" value="${escapeHtml(t.employee_name||'')}" ${stop} style="padding:5px; width:110px;">` : escapeHtml(t.employee_name||'');
+                const cTopic = editing ? `<input id="et_topic_${t.id}" value="${escapeHtml(t.topic||'')}" ${stop} style="padding:5px; width:160px;">` : escapeHtml(t.topic||'');
+                const cDate = editing ? `<input type="date" id="et_date_${t.id}" value="${dt}" ${stop} style="padding:5px;">` : escapeHtml(d);
+                const cStatus = editing ? `<select id="et_status_${t.id}" ${stop} style="padding:5px;"><option value="הושלם" ${t.status==='הושלם'?'selected':''}>הושלם</option><option value="מתוכנן" ${t.status==='מתוכנן'?'selected':''}>מתוכנן</option></select>` : escapeHtml(t.status||'');
                 html += `<tr style="cursor:pointer;" onclick="toggleTrainingExpand(${t.id})">
-                    <td>${open ? '▲' : '▼'}</td><td>${escapeHtml(t.employee_name||'')}</td><td>${escapeHtml(t.topic||'')}</td>
-                    <td>${escapeHtml(d)}</td><td>${escapeHtml(t.status||'')}</td><td>${escapeHtml(t.handled_by_name||'')}</td></tr>`;
+                    <td>${open ? '▲' : '▼'}</td><td>${cEmp}</td><td>${cTopic}</td><td>${cDate}</td><td>${cStatus}</td><td>${escapeHtml(t.handled_by_name||'')}</td></tr>`;
                 if (open) {
-                    html += `<tr><td colspan="6" style="background:#f8f9fa;">${editingTrainingId === t.id ? trainingEditForm(t) : trainingDetail(t)}</td></tr>`;
+                    // ההרחבה מוסיפה רק את השדות שלא בשורה: אימות + הערות (+ פעולות)
+                    const ver = editing ? `<input id="et_ver_${t.id}" value="${escapeHtml(t.verification||'')}" ${stop} style="padding:6px; width:100%; box-sizing:border-box;">` : escapeHtml(t.verification||'—');
+                    const notes = editing ? `<textarea id="et_notes_${t.id}" rows="2" ${stop} style="padding:6px; width:100%; box-sizing:border-box;">${escapeHtml(t.notes||'')}</textarea>` : escapeHtml(t.notes||'—');
+                    const actions = editing
+                        ? `<button class="btn btn-success" ${stop} onclick="event.stopPropagation();saveTrainingInline(${t.id})">שמור</button> <button class="btn" ${stop} onclick="event.stopPropagation();cancelEditTraining()">בטל</button>`
+                        : `<button class="btn btn-primary" ${stop} onclick="event.stopPropagation();startEditTraining(${t.id})">ערוך</button> <button class="btn btn-danger" ${stop} onclick="event.stopPropagation();deleteTraining(${t.id})">מחק</button>`;
+                    html += `<tr><td colspan="6" style="background:#f8f9fa; padding:10px 14px;">
+                        <div style="margin-bottom:8px;"><strong>אימות:</strong> ${ver}</div>
+                        <div style="margin-bottom:8px;"><strong>הערות:</strong> ${notes}</div>
+                        <div>${actions}</div></td></tr>`;
                 }
             });
             html += '</tbody></table></div>';
             content.innerHTML = html;
         }
 
-        // תצוגה ועריכה חולקות אותו פריסת שדות — בעריכה אותם שדות הופכים ל-inputs
-        function trainingFields(t, edit) {
-            const dt = t.training_date ? t.training_date.slice(0,10) : '';
-            const f = (label, view, input) => `<div style="margin-bottom:8px;"><strong>${label}:</strong> ${edit ? input : (view || '—')}</div>`;
-            return `<div style="padding:10px 14px;">
-                ${f('עובד', escapeHtml(t.employee_name||''), `<input type="text" id="et_emp_${t.id}" value="${escapeHtml(t.employee_name||'')}" style="padding:6px;">`)}
-                ${f('נושא', escapeHtml(t.topic||''), `<input type="text" id="et_topic_${t.id}" value="${escapeHtml(t.topic||'')}" style="padding:6px; width:300px; max-width:100%;">`)}
-                ${f('תאריך', escapeHtml(t.training_date ? new Date(t.training_date).toLocaleDateString('he-IL') : ''), `<input type="date" id="et_date_${t.id}" value="${dt}" style="padding:6px;">`)}
-                ${f('סטטוס', escapeHtml(t.status||''), `<select id="et_status_${t.id}" style="padding:6px;"><option value="הושלם" ${t.status==='הושלם'?'selected':''}>הושלם</option><option value="מתוכנן" ${t.status==='מתוכנן'?'selected':''}>מתוכנן</option></select>`)}
-                ${f('אימות', escapeHtml(t.verification||''), `<input type="text" id="et_ver_${t.id}" value="${escapeHtml(t.verification||'')}" style="padding:6px; width:100%; box-sizing:border-box;">`)}
-                ${f('הערות', escapeHtml(t.notes||''), `<textarea id="et_notes_${t.id}" rows="2" style="padding:6px; width:100%; box-sizing:border-box;">${escapeHtml(t.notes||'')}</textarea>`)}
-                <div style="margin-top:6px;">
-                    ${edit
-                        ? `<button class="btn btn-success" onclick="saveTrainingInline(${t.id})">שמור</button> <button class="btn" onclick="cancelEditTraining()">בטל</button>`
-                        : `<button class="btn btn-primary" onclick="startEditTraining(${t.id})">ערוך</button> <button class="btn btn-danger" onclick="deleteTraining(${t.id})">מחק</button>`}
-                </div>
-            </div>`;
-        }
-        function trainingDetail(t) { return trainingFields(t, false); }
-        function trainingEditForm(t) { return trainingFields(t, true); }
-
         function toggleTrainingExpand(id) {
-            if (editingTrainingId && editingTrainingId !== id) editingTrainingId = null;
+            if (editingTrainingId === id) return; // בעריכה — לא לכווץ בטעות
+            editingTrainingId = null;
             expandedTrainingId = (expandedTrainingId === id) ? null : id;
             renderTraining();
         }
-        function startEditTraining(id) { editingTrainingId = id; renderTraining(); }
+        function startEditTraining(id) { expandedTrainingId = id; editingTrainingId = id; renderTraining(); }
         function cancelEditTraining() { editingTrainingId = null; renderTraining(); }
 
         async function addTraining(e) {
