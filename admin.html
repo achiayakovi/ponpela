@@ -2518,7 +2518,7 @@
                 if (!res.ok) { showMessage(d.error || 'שגיאה', 'error'); return; }
                 showMessage(`נקלטה החזרה של ${d.units} יחידות`, 'success');
                 document.getElementById('rcReturnItems').innerHTML = '';
-                document.getElementById('rcReturnOrderId').value = '';
+                document.getElementById('rcReturnSearch').value = '';
                 document.getElementById('receivingAddForm').style.display = 'none';
                 loadReceivingList(); loadSerials();
             } catch (err) { showMessage('שגיאה בקליטת החזרה', 'error'); }
