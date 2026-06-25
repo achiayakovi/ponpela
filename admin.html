@@ -462,14 +462,20 @@
 
         <!-- Procedures Section -->
         <div id="proceduresSection" class="section">
-            <h2>📋 נהלים</h2>
+            <h2>נהלים</h2>
             <p style="color:#7f8c8d; margin-bottom:16px;">המאסטר (Word) מנוהל ב-Git. כאן מעלים את ה-PDF המאושר להצגה לעובדים.</p>
-            <form onsubmit="uploadProcedure(event)" style="background:#f8f9fa; padding:16px; border-radius:8px; margin-bottom:20px; display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end;">
-                <div><label>קוד נוהל<br><input type="text" id="procCode" placeholder="#5" style="padding:8px;"></label></div>
-                <div><label>כותרת *<br><input type="text" id="procTitle" required placeholder="בקרת רשומות" style="padding:8px;"></label></div>
-                <div><label>גרסה<br><input type="text" id="procVersion" placeholder="1.0" style="padding:8px;"></label></div>
-                <div><label>קובץ PDF *<br><input type="file" id="procFile" accept="application/pdf" required style="padding:8px;"></label></div>
-                <button type="submit" class="btn btn-primary">העלה גרסה</button>
+            <button class="btn btn-primary" onclick="toggleProcedureAdd()" style="margin-bottom:14px;">➕ העלאת נוהל / גרסה</button>
+            <form id="procedureAddForm" onsubmit="uploadProcedure(event)" style="display:none; background:#fafbfc; padding:16px; border-radius:8px; margin-bottom:20px;">
+                <div class="form-row">
+                    <div class="form-group"><label>קוד נוהל</label><input type="text" id="procCode" placeholder="#5"></div>
+                    <div class="form-group"><label>גרסה</label><input type="text" id="procVersion" placeholder="1.0"></div>
+                </div>
+                <div class="form-group"><label>כותרת *</label><input type="text" id="procTitle" required placeholder="בקרת רשומות"></div>
+                <div class="form-group"><label>קובץ PDF *</label><input type="file" id="procFile" accept="application/pdf" required></div>
+                <div>
+                    <button type="submit" class="btn btn-primary">העלה גרסה</button>
+                    <button type="button" class="btn" onclick="toggleProcedureAdd()">ביטול</button>
+                </div>
             </form>
             <div id="proceduresLoading" class="loading">טוען...</div>
             <div id="proceduresContent"></div>
@@ -1976,6 +1982,8 @@
             });
         }
 
+        function toggleProcedureAdd() { const f = document.getElementById('procedureAddForm'); f.style.display = f.style.display === 'none' ? 'block' : 'none'; }
+
         async function uploadProcedure(e) {
             e.preventDefault();
             const token = localStorage.getItem('adminToken');
@@ -1999,6 +2007,7 @@
                 if (!res.ok) { showMessage(data.error || 'שגיאה בהעלאה', 'error'); return; }
                 showMessage(data.updated ? 'הנוהל עודכן' : 'הנוהל הועלה', 'success');
                 e.target.reset();
+                document.getElementById('procedureAddForm').style.display = 'none';
                 loadProcedures();
             } catch (err) {
                 showMessage('שגיאה בהעלאת הקובץ', 'error');
