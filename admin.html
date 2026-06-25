@@ -461,6 +461,15 @@
                 </div>
             </div>
 
+            <div id="ordersFilter" style="margin:10px 0; display:none; align-items:center; gap:8px;">
+                <label style="font-size:14px; color:#555;">מסנן סקר:</label>
+                <select id="surveyFilter" onchange="renderOrders()" style="padding:6px 10px; border-radius:8px; border:1px solid #ccc;">
+                    <option value="all">הכל</option>
+                    <option value="pending">טרם הגיבו</option>
+                    <option value="notsent">לא נשלחו</option>
+                    <option value="done">הגיבו</option>
+                </select>
+            </div>
             <div id="ordersLoading" class="loading">טוען...</div>
             <div id="ordersContent"></div>
         </div>
@@ -1768,6 +1777,7 @@
                 const res = await fetch(`${API_URL}/api/admin/orders`, { headers: { 'Authorization': `Bearer ${token}` } });
                 ordersData = await res.json();
                 loading.style.display = 'none';
+                document.getElementById('ordersFilter').style.display = 'flex';
                 renderOrders();
             } catch (err) {
                 loading.innerHTML = 'שגיאה';
@@ -1782,11 +1792,43 @@
                 <option value="cancelled" ${o.status === 'cancelled' ? 'selected' : ''}>בוטל</option>
             </select>`;
         }
+        // מצב סקר לשלב: done / pending (נשלח, טרם הגיב) / notsent
+        function surveyStageState(o, stage) {
+            if (o['survey_' + stage + '_done']) return 'done';
+            if (o['survey_' + stage + '_sent_at']) return 'pending';
+            return 'notsent';
+        }
+        // חיווי מפורט לשלב: 🟢 הגיב · 📞 יצאה שיחה · 📧 נשלח מייל · ⚪ לא נשלח (+ כפתור חיוג אם טרם הגיב)
+        function surveyStageCell(o, stage, label) {
+            const state = surveyStageState(o, stage);
+            const hasEmail = !!(o.email || o.guest_email);
+            const callAt = o['survey_' + stage + '_call_at'];
+            const sentAt = o['survey_' + stage + '_sent_at'];
+            const dt = callAt || sentAt;
+            const dstr = dt ? new Date(dt).toLocaleDateString('he-IL') : '';
+            let icon;
+            if (state === 'done') icon = '🟢 הגיב';
+            else if (callAt) icon = `📞 שיחה · ${dstr}`;
+            else if (state === 'pending') icon = hasEmail ? `📧 מייל · ${dstr}` : `📞 שיחה · ${dstr}`;
+            else icon = '⚪ לא נשלח';
+            const btn = state !== 'done'
+                ? ` <button onclick="event.stopPropagation(); surveyCall(${o.id},'${stage}')" style="font-size:11px; padding:2px 7px; border-radius:6px; border:1px solid #5060c0; background:#fff; color:#5060c0; cursor:pointer;">חייג</button>`
+                : '';
+            return `<div style="font-size:12px; white-space:nowrap;"><b>${label}:</b> ${icon}${btn}</div>`;
+        }
         function renderOrders() {
             const content = document.getElementById('ordersContent');
+            const filter = (document.getElementById('surveyFilter') || {}).value || 'all';
             if (!Array.isArray(ordersData) || ordersData.length === 0) { content.innerHTML = '<p class="empty-state">אין הזמנות</p>'; return; }
-            let h = '<div class="table-container"><table><thead><tr><th></th><th>מספר</th><th>לקוח</th><th>סכום</th><th>סטטוס</th><th>תאריך</th></tr></thead><tbody>';
-            ordersData.forEach(o => {
+            // מסנן לפי מצב הסקר (כל שלב נחשב — מתאים אם אחד מהשלבים תואם)
+            const rows = ordersData.filter(o => {
+                if (filter === 'all') return true;
+                const states = [surveyStageState(o, 'purchase'), surveyStageState(o, 'day30')];
+                return states.includes(filter);
+            });
+            if (rows.length === 0) { content.innerHTML = '<p class="empty-state">אין הזמנות תואמות</p>'; return; }
+            let h = '<div class="table-container"><table><thead><tr><th></th><th>מספר</th><th>לקוח</th><th>סכום</th><th>סטטוס</th><th>סקר</th><th>תאריך</th></tr></thead><tbody>';
+            rows.forEach(o => {
                 const open = expandedOrderId === o.id;
                 h += `<tr style="cursor:pointer;" onclick="toggleOrderExpand(${o.id})">
                     <td>${open ? '▲' : '▼'}</td>
@@ -1794,12 +1836,28 @@
                     <td>${escapeHtml(o.full_name || o.email || o.guest_name || '')}</td>
                     <td>₪${o.total_amount}</td>
                     <td onclick="event.stopPropagation();">${orderStatusSelect(o)}</td>
+                    <td onclick="event.stopPropagation();">${surveyStageCell(o, 'purchase', 'רכישה')}${surveyStageCell(o, 'day30', '30 יום')}</td>
                     <td>${new Date(o.created_at).toLocaleDateString('he-IL')}</td></tr>`;
-                if (open) h += `<tr><td colspan="6" style="background:#f8f9fa; padding:10px 14px;"><div id="orderDetail_${o.id}" onclick="event.stopPropagation();">טוען...</div></td></tr>`;
+                if (open) h += `<tr><td colspan="7" style="background:#f8f9fa; padding:10px 14px;"><div id="orderDetail_${o.id}" onclick="event.stopPropagation();">טוען...</div></td></tr>`;
             });
             h += '</tbody></table></div>';
             content.innerHTML = h;
             if (expandedOrderId) loadOrderDetail(expandedOrderId);
+        }
+        // חיוג סקר ידני — מפעיל שיחה לשלב; חוסם אם כבר הגיב (מטופל גם בשרת)
+        async function surveyCall(id, stage) {
+            const label = stage === 'day30' ? '30 יום' : 'רכישה';
+            if (!confirm(`לחייג סקר ${label} להזמנה #${id}?`)) return;
+            const token = localStorage.getItem('adminToken');
+            try {
+                const res = await fetch(`${API_URL}/api/admin/orders/${id}/survey-call/${stage}`, {
+                    method: 'POST', headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const d = await res.json();
+                if (!res.ok) { alert(d.error || 'שגיאה'); return; }
+                alert(`יצאה שיחת סקר ל-${d.phone}`);
+                loadOrders();
+            } catch (err) { alert('שגיאה בחיוג'); }
         }
         function toggleOrderExpand(id) {
             expandedOrderId = expandedOrderId === id ? null : id;
