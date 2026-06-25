@@ -248,6 +248,9 @@
             grid-template-columns: 1fr 1fr;
             gap: 15px;
         }
+        /* יישור כל שדות הטופס לימין (RTL) — כולל email/number/date שמתיישרים לשמאל כברירת מחדל */
+        input, textarea, select { text-align: right; }
+        input[type="checkbox"], input[type="radio"] { text-align: initial; }
         /* כפתורי דירוג עגולים 1–5 */
         .fb-row { margin-bottom: 14px; }
         .fb-row .fb-lbl { display: block; margin-bottom: 6px; font-weight: 600; color: #2c3e50; }
