@@ -420,7 +420,7 @@
             <form onsubmit="createAdminUser(event)" style="background:#f8f9fa; padding:16px; border-radius:8px; margin-bottom:20px; display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end;">
                 <div><label>שם משתמש *<br><input type="text" id="newAdminUsername" required style="padding:8px;"></label></div>
                 <div><label>שם מלא<br><input type="text" id="newAdminFullName" style="padding:8px;"></label></div>
-                <div><label>סיסמה *<br><input type="password" id="newAdminPassword" required minlength="6" style="padding:8px;"></label></div>
+                <div><label>סיסמה *<br><input type="password" id="newAdminPassword" required minlength="4" style="padding:8px;"></label></div>
                 <label style="white-space:nowrap;"><input type="checkbox" id="newAdminSuper"> מנהל-על</label>
                 <button type="submit" class="btn btn-primary">+ צור משתמש ניהול</button>
             </form>
@@ -1760,9 +1760,9 @@
         }
 
         async function resetAdminPassword(uid, username) {
-            const pw = prompt(`סיסמה חדשה ל-${username} (לפחות 6 תווים):`);
+            const pw = prompt(`סיסמה חדשה ל-${username} (לפחות 4 תווים):`);
             if (!pw) return;
-            if (pw.length < 6) { showMessage('סיסמה קצרה מדי', 'error'); return; }
+            if (pw.length < 4) { showMessage('סיסמה קצרה מדי', 'error'); return; }
             const token = localStorage.getItem('adminToken');
             try {
                 const res = await fetch(`${API_URL}/api/admin/admin-users/${uid}/password`, {
