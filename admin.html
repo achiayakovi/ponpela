@@ -649,6 +649,7 @@
                     <div class="form-group"><label>תאריך</label><input type="date" id="commDate"></div>
                 </div>
                 <div id="feedbackFields" style="display:none;">
+                    <div class="form-group"><label>שלב הסקר</label><select id="commSurveyStage"><option value="">— ללא —</option><option value="רכישה">רכישה</option><option value="30 יום">30 יום (איכות מוצר)</option></select></div>
                     <div style="background:#eef; padding:8px 12px; border-radius:8px; margin-bottom:12px; font-size:14px;">סולם הדירוג: <strong style="color:#c0392b;">1 = גרוע</strong> · <strong style="color:#27ae60;">5 = מצוין</strong></div>
                     <div class="fb-row" data-topic="שירות"><span class="fb-lbl">שירות</span><div class="fb-nums">
                         <button type="button" class="fb-btn" value="1" onclick="pickFb(this)">1</button><button type="button" class="fb-btn" value="2" onclick="pickFb(this)">2</button><button type="button" class="fb-btn" value="3" onclick="pickFb(this)">3</button><button type="button" class="fb-btn" value="4" onclick="pickFb(this)">4</button><button type="button" class="fb-btn" value="5" onclick="pickFb(this)">5</button>
@@ -2937,6 +2938,7 @@
                     <div class="form-group"><label>תאריך</label><input type="date" id="ecm_date_${c.id}" value="${dt}"></div>
                 </div>
                 <div id="ecm_feedback_${c.id}" style="display:${c.type==='משוב'?'block':'none'};">
+                    <div class="form-group"><label>שלב הסקר</label><select id="ecm_stage_${c.id}">${['','רכישה','30 יום'].map(s=>`<option value="${s}" ${c.survey_stage===s?'selected':''}>${s||'— ללא —'}</option>`).join('')}</select></div>
                     <div style="background:#eef; padding:8px 12px; border-radius:8px; margin-bottom:12px; font-size:14px;">סולם הדירוג: <strong style="color:#c0392b;">1 = גרוע</strong> · <strong style="color:#27ae60;">5 = מצוין</strong></div>
                     ${['שירות','מהירות הגעת המוצר','קלות ההזמנה'].map(topic=>{
                         const fs=c.feedback_scores||{}; const cur=(fs[topic]!=null?fs[topic]:(c.feedback_topic===topic?c.score:''));
@@ -2999,7 +3001,7 @@
                         if (sel) scores[row.dataset.topic] = parseInt(sel.value, 10);
                     });
                     if (!Object.keys(scores).length) { showMessage('בחר דירוג לפחות לנושא אחד', 'error'); return; }
-                    const res = await post({ ...common, type: 'משוב', feedback_scores: scores, status: 'סגורה' });
+                    const res = await post({ ...common, type: 'משוב', feedback_scores: scores, survey_stage: document.getElementById('commSurveyStage').value || null, status: 'סגורה' });
                     if (!res.ok) { const dd = await res.json(); showMessage(dd.error || 'שגיאה', 'error'); return; }
                     showMessage('נשמר', 'success');
                     document.querySelectorAll('#feedbackFields .fb-btn.sel').forEach(b => b.classList.remove('sel'));
@@ -3035,7 +3037,8 @@
                 initial_response: document.getElementById('ecm_response_'+id).value.trim(),
                 resolution: document.getElementById('ecm_resolution_'+id).value.trim(),
                 status: document.getElementById('ecm_status_'+id).value,
-                feedback_scores: (function(){const o={};document.querySelectorAll('#ecm_feedback_'+id+' .fb-row').forEach(r=>{const b=r.querySelector('.fb-btn.sel');if(b)o[r.dataset.topic]=parseInt(b.value,10);});return o;})()
+                feedback_scores: (function(){const o={};document.querySelectorAll('#ecm_feedback_'+id+' .fb-row').forEach(r=>{const b=r.querySelector('.fb-btn.sel');if(b)o[r.dataset.topic]=parseInt(b.value,10);});return o;})(),
+                survey_stage: (document.getElementById('ecm_stage_'+id) ? document.getElementById('ecm_stage_'+id).value : '') || null
             };
             try {
                 const res = await fetch(`${API_URL}/api/admin/communications/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(body) });
