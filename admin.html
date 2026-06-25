@@ -316,6 +316,7 @@
             <button class="tab" data-area="products" onclick="switchTab('products')">מוצרים</button>
             <button class="tab" data-area="stock" onclick="switchTab('stock')">מלאי</button>
             <button class="tab" data-area="users" onclick="switchTab('users')">משתמשים</button>
+            <button class="tab" data-area="receiving" onclick="switchTab('receiving')">📦 קליטה</button>
             <button class="tab" data-area="procedures" onclick="switchTab('procedures')">📋 נהלים</button>
             <button class="tab" data-area="admin_users" onclick="switchTab('admin_users')">🔑 משתמשי ניהול</button>
         </div>
@@ -426,6 +427,53 @@
             </form>
             <div id="adminUsersLoading" class="loading">טוען...</div>
             <div id="adminUsersContent"></div>
+        </div>
+
+        <!-- Receiving Section -->
+        <div id="receivingSection" class="section">
+            <h2>📦 קליטה ומאגר סריאליים</h2>
+
+            <div id="serialEnforceBox" style="display:none; background:#fff3cd; border:1px solid #ffe69c; padding:12px; border-radius:8px; margin-bottom:18px;">
+                <label><input type="checkbox" id="serialEnforceChk" onchange="toggleSerialEnforce()"> <strong>אכיפת סריאלי ברישום אחריות</strong> — חסום רישום של מספר סידורי שאינו במאגר</label>
+                <div id="serialEnforceState" style="color:#7f8c8d; font-size:13px; margin-top:4px;"></div>
+                <div style="color:#856404; font-size:12px; margin-top:4px;">הדלק רק אחרי שמילאת את המאגר — אחרת לקוחות לא יוכלו לרשום אחריות.</div>
+            </div>
+
+            <h3>קליטה חדשה</h3>
+            <form onsubmit="createReceiving(event)" style="background:#f8f9fa; padding:16px; border-radius:8px; margin-bottom:20px; display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end;">
+                <div><label>תאריך<br><input type="date" id="rcDate" style="padding:8px;"></label></div>
+                <div><label>ספק<br><input type="text" id="rcSupplier" placeholder="TPH" style="padding:8px;"></label></div>
+                <div><label>מס' משלוח<br><input type="text" id="rcShipment" style="padding:8px;"></label></div>
+                <div><label>דגם<br><input type="text" id="rcModel" placeholder="S35" style="padding:8px;"></label></div>
+                <div><label>כמות מוצהרת<br><input type="number" id="rcQtyDeclared" style="padding:8px; width:110px;"></label></div>
+                <div><label>כמות שהתקבלה<br><input type="number" id="rcQtyReceived" style="padding:8px; width:110px;"></label></div>
+                <div><label>גודל מדגם<br><input type="number" id="rcSampleSize" style="padding:8px; width:90px;"></label></div>
+                <div><label>סטטוס<br><select id="rcStatus" style="padding:8px;"><option value="נקלט">נקלט</option><option value="הסגר">הסגר</option></select></label></div>
+                <div style="flex:1 1 100%;"><label>נזק / הערות בדיקת מדגם<br><input type="text" id="rcDamage" placeholder="ממצאי בדיקה / נזקים" style="padding:8px; width:100%; box-sizing:border-box;"></label></div>
+                <button type="submit" class="btn btn-primary">+ צור קליטה</button>
+            </form>
+
+            <h3>קליטות</h3>
+            <div id="receivingListContent" style="margin-bottom:24px;"></div>
+
+            <h3>הוספת סריאליים לקליטה</h3>
+            <form onsubmit="addSerials(event)" style="background:#f8f9fa; padding:16px; border-radius:8px; margin-bottom:24px; display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end;">
+                <div><label>קליטה<br><select id="serialsReceivingId" style="padding:8px;"></select></label></div>
+                <div><label>דגם (אופציונלי)<br><input type="text" id="serialsModel" style="padding:8px;"></label></div>
+                <div><label>טווח מ-<br><input type="number" id="serialsFrom" style="padding:8px; width:130px;"></label></div>
+                <div><label>עד<br><input type="number" id="serialsTo" style="padding:8px; width:130px;"></label></div>
+                <div style="flex:1 1 100%;"><label>או רשימה (מופרדת בפסיק/שורה) — גובר על הטווח<br><textarea id="serialsList" rows="2" style="padding:8px; width:100%; box-sizing:border-box;"></textarea></label></div>
+                <button type="submit" class="btn btn-success">הוסף סריאליים</button>
+            </form>
+
+            <h3>מאגר סריאליים <span id="serialsTotal" style="color:#7f8c8d; font-size:14px;"></span></h3>
+            <form onsubmit="addManualSerial(event)" style="display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end; margin-bottom:14px;">
+                <div><label>מספר סידורי (יחידה ישנה)<br><input type="text" id="manualSerial" style="padding:8px;"></label></div>
+                <div><label>דגם<br><input type="text" id="manualSerialModel" style="padding:8px;"></label></div>
+                <button type="submit" class="btn btn-primary">+ הזנה ידנית (legacy)</button>
+            </form>
+            <input type="text" id="serialSearch" placeholder="חיפוש סריאלי/דגם..." oninput="loadSerials()" style="padding:8px; margin-bottom:12px; width:260px;">
+            <div id="serialsListContent"></div>
         </div>
     </div>
 
@@ -708,6 +756,7 @@
             else if (tab === 'products') loadProducts();
             else if (tab === 'stock') loadStock();
             else if (tab === 'users') loadUsers();
+            else if (tab === 'receiving') loadReceiving();
             else if (tab === 'procedures') loadProcedures();
             else if (tab === 'admin_users') loadAdminUsers();
         }
@@ -1787,6 +1836,190 @@
                 if (!res.ok) { showMessage(data.error || 'שגיאה במחיקה', 'error'); return; }
                 showMessage('נמחק', 'success');
                 loadAdminUsers();
+            } catch (err) { showMessage('שגיאה במחיקה', 'error'); }
+        }
+
+        // ===== קליטה ומאגר סריאליים =====
+        function loadReceiving() {
+            loadQmsSettings();
+            loadReceivingList();
+            loadSerials();
+        }
+
+        async function loadQmsSettings() {
+            const token = localStorage.getItem('adminToken');
+            const box = document.getElementById('serialEnforceBox');
+            // המתג מוצג רק למנהל-על (רק הוא יכול לשנותו)
+            if (!(currentAdmin.qms_areas || []).includes('*')) { box.style.display = 'none'; return; }
+            try {
+                const res = await fetch(`${API_URL}/api/admin/qms-settings`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const s = await res.json();
+                box.style.display = 'block';
+                document.getElementById('serialEnforceChk').checked = !!s.serial_enforcement;
+                document.getElementById('serialEnforceState').textContent = s.serial_enforcement
+                    ? 'מצב קשיח: סריאלי לא מוכר ייחסם.' : 'מצב רך: רישום לא נחסם, סריאלי לא מוכר מסומן ומתריע.';
+            } catch (err) { box.style.display = 'none'; }
+        }
+
+        async function toggleSerialEnforce() {
+            const token = localStorage.getItem('adminToken');
+            const on = document.getElementById('serialEnforceChk').checked;
+            if (on && !confirm('להפעיל אכיפה קשיחה? מספר סידורי שאינו במאגר ייחסם ברישום אחריות. ודא שהמאגר מלא.')) {
+                document.getElementById('serialEnforceChk').checked = false; return;
+            }
+            try {
+                const res = await fetch(`${API_URL}/api/admin/qms-settings`, {
+                    method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ serial_enforcement: on })
+                });
+                if (!res.ok) { const d = await res.json(); showMessage(d.error || 'שגיאה', 'error'); return; }
+                showMessage('ההגדרה נשמרה', 'success');
+                loadQmsSettings();
+            } catch (err) { showMessage('שגיאה בשמירת הגדרה', 'error'); }
+        }
+
+        async function createReceiving(e) {
+            e.preventDefault();
+            const token = localStorage.getItem('adminToken');
+            try {
+                const res = await fetch(`${API_URL}/api/admin/receiving`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({
+                        receiving_date: document.getElementById('rcDate').value || null,
+                        supplier_name: document.getElementById('rcSupplier').value.trim(),
+                        shipment_ref: document.getElementById('rcShipment').value.trim(),
+                        model: document.getElementById('rcModel').value.trim(),
+                        quantity_declared: document.getElementById('rcQtyDeclared').value || null,
+                        quantity_received: document.getElementById('rcQtyReceived').value || null,
+                        sample_size: document.getElementById('rcSampleSize').value || null,
+                        status: document.getElementById('rcStatus').value,
+                        damage_notes: document.getElementById('rcDamage').value.trim()
+                    })
+                });
+                if (!res.ok) { const d = await res.json(); showMessage(d.error || 'שגיאה', 'error'); return; }
+                showMessage('קליטה נוצרה', 'success');
+                e.target.reset();
+                loadReceivingList();
+            } catch (err) { showMessage('שגיאה ביצירת קליטה', 'error'); }
+        }
+
+        async function loadReceivingList() {
+            const token = localStorage.getItem('adminToken');
+            const content = document.getElementById('receivingListContent');
+            const sel = document.getElementById('serialsReceivingId');
+            try {
+                const res = await fetch(`${API_URL}/api/admin/receiving`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const list = await res.json();
+                if (!Array.isArray(list) || list.length === 0) {
+                    content.innerHTML = '<p>אין קליטות עדיין.</p>'; sel.innerHTML = '<option value="">— אין קליטות —</option>'; return;
+                }
+                let html = '<div class="table-container"><table><thead><tr><th>תאריך</th><th>ספק</th><th>דגם</th><th>כמות</th><th>סטטוס</th><th>סריאליים</th><th>פעולות</th></tr></thead><tbody>';
+                let opts = '';
+                list.forEach(r => {
+                    const d = r.receiving_date ? new Date(r.receiving_date).toLocaleDateString('he-IL') : '';
+                    html += `<tr>
+                        <td>${escapeHtml(d)}</td>
+                        <td>${escapeHtml(r.supplier_name || '')}</td>
+                        <td>${escapeHtml(r.model || '')}</td>
+                        <td>${escapeHtml(String(r.quantity_received ?? r.quantity_declared ?? ''))}</td>
+                        <td>${escapeHtml(r.status || '')}</td>
+                        <td>${r.serials_count}</td>
+                        <td><button class="btn btn-danger" onclick="deleteReceiving(${r.id})">מחק</button></td>
+                    </tr>`;
+                    opts += `<option value="${r.id}">#${r.id} — ${escapeHtml(r.model || '')} ${escapeHtml(d)}</option>`;
+                });
+                html += '</tbody></table></div>';
+                content.innerHTML = html;
+                sel.innerHTML = opts;
+            } catch (err) { content.innerHTML = '<p>שגיאה בטעינת קליטות.</p>'; }
+        }
+
+        async function deleteReceiving(id) {
+            if (!confirm('למחוק את הקליטה? (הסריאליים יישארו במאגר ללא קישור)')) return;
+            const token = localStorage.getItem('adminToken');
+            try {
+                const res = await fetch(`${API_URL}/api/admin/receiving/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+                if (!res.ok) { showMessage('שגיאה במחיקה', 'error'); return; }
+                showMessage('נמחק', 'success'); loadReceivingList();
+            } catch (err) { showMessage('שגיאה במחיקה', 'error'); }
+        }
+
+        async function addSerials(e) {
+            e.preventDefault();
+            const token = localStorage.getItem('adminToken');
+            const rid = document.getElementById('serialsReceivingId').value;
+            if (!rid) { showMessage('בחר קליטה', 'error'); return; }
+            try {
+                const res = await fetch(`${API_URL}/api/admin/receiving/${rid}/serials`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({
+                        from: document.getElementById('serialsFrom').value || null,
+                        to: document.getElementById('serialsTo').value || null,
+                        list: document.getElementById('serialsList').value || null,
+                        model: document.getElementById('serialsModel').value.trim() || null
+                    })
+                });
+                const d = await res.json();
+                if (!res.ok) { showMessage(d.error || 'שגיאה', 'error'); return; }
+                showMessage(`נוספו ${d.added}, דילוג על ${d.skipped} (כפולים) מתוך ${d.total}`, 'success');
+                document.getElementById('serialsFrom').value = '';
+                document.getElementById('serialsTo').value = '';
+                document.getElementById('serialsList').value = '';
+                loadReceivingList(); loadSerials();
+            } catch (err) { showMessage('שגיאה בהוספת סריאליים', 'error'); }
+        }
+
+        async function addManualSerial(e) {
+            e.preventDefault();
+            const token = localStorage.getItem('adminToken');
+            try {
+                const res = await fetch(`${API_URL}/api/admin/serials/manual`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({
+                        serial_number: document.getElementById('manualSerial').value.trim(),
+                        model: document.getElementById('manualSerialModel').value.trim()
+                    })
+                });
+                const d = await res.json();
+                if (!res.ok) { showMessage(d.error || 'שגיאה', 'error'); return; }
+                showMessage('סריאלי נוסף', 'success');
+                e.target.reset();
+                loadSerials();
+            } catch (err) { showMessage('שגיאה בהוספת סריאלי', 'error'); }
+        }
+
+        async function loadSerials() {
+            const token = localStorage.getItem('adminToken');
+            const content = document.getElementById('serialsListContent');
+            const q = document.getElementById('serialSearch').value.trim();
+            try {
+                const res = await fetch(`${API_URL}/api/admin/serials?q=${encodeURIComponent(q)}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                document.getElementById('serialsTotal').textContent = `(סה"כ ${data.total})`;
+                const rows = data.serials || [];
+                if (rows.length === 0) { content.innerHTML = '<p>אין סריאליים.</p>'; return; }
+                let html = '<div class="table-container"><table><thead><tr><th>מספר סידורי</th><th>דגם</th><th>מקור</th><th>סטטוס</th><th>פעולות</th></tr></thead><tbody>';
+                rows.forEach(s => {
+                    html += `<tr>
+                        <td>${escapeHtml(s.serial_number)}</td>
+                        <td>${escapeHtml(s.model || '')}</td>
+                        <td>${s.is_legacy ? 'ידני (legacy)' : 'קליטה #' + (s.receiving_id || '?')}</td>
+                        <td>${escapeHtml(s.status || '')}</td>
+                        <td><button class="btn btn-danger" onclick="deleteSerial(${s.id})">מחק</button></td>
+                    </tr>`;
+                });
+                html += '</tbody></table></div>';
+                content.innerHTML = html;
+            } catch (err) { content.innerHTML = '<p>שגיאה בטעינת מאגר.</p>'; }
+        }
+
+        async function deleteSerial(id) {
+            if (!confirm('למחוק את הסריאלי מהמאגר?')) return;
+            const token = localStorage.getItem('adminToken');
+            try {
+                const res = await fetch(`${API_URL}/api/admin/serials/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+                if (!res.ok) { showMessage('שגיאה במחיקה', 'error'); return; }
+                showMessage('נמחק', 'success'); loadSerials();
             } catch (err) { showMessage('שגיאה במחיקה', 'error'); }
         }
 
