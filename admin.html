@@ -535,8 +535,12 @@
             </form>
             <div id="receivingListContent" style="margin-bottom:24px;"></div>
 
-            <h3>הוספת סריאליים לקליטה</h3>
-            <form onsubmit="addSerials(event)" style="background:#fafbfc; padding:16px; border-radius:8px; margin-bottom:24px;">
+            <h3>מאגר סריאליים <span id="serialsTotal" style="color:#7f8c8d; font-size:14px;"></span></h3>
+            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
+                <button class="btn btn-primary" onclick="toggleSerialsAdd()">➕ הוספת סריאליים מקליטה</button>
+                <button class="btn btn-primary" onclick="toggleManualSerial()">➕ הזנה ידנית (legacy)</button>
+            </div>
+            <form id="serialsAddForm" onsubmit="addSerials(event)" style="display:none; background:#fafbfc; padding:16px; border-radius:8px; margin-bottom:14px;">
                 <div class="form-row">
                     <div class="form-group"><label>קליטה</label><select id="serialsReceivingId"></select></div>
                     <div class="form-group"><label>דגם (אופציונלי)</label><input type="text" id="serialsModel"></div>
@@ -546,16 +550,16 @@
                     <div class="form-group"><label>עד</label><input type="number" id="serialsTo"></div>
                 </div>
                 <div class="form-group"><label>או רשימה (מופרדת בפסיק/שורה) — גובר על הטווח</label><textarea id="serialsList" rows="2"></textarea></div>
-                <div><button type="submit" class="btn btn-success">הוסף סריאליים</button></div>
+                <div><button type="submit" class="btn btn-success">הוסף סריאליים</button>
+                <button type="button" class="btn" onclick="toggleSerialsAdd()">ביטול</button></div>
             </form>
-
-            <h3>מאגר סריאליים <span id="serialsTotal" style="color:#7f8c8d; font-size:14px;"></span></h3>
-            <form onsubmit="addManualSerial(event)" style="background:#fafbfc; padding:16px; border-radius:8px; margin-bottom:14px;">
+            <form id="manualSerialForm" onsubmit="addManualSerial(event)" style="display:none; background:#fafbfc; padding:16px; border-radius:8px; margin-bottom:14px;">
                 <div class="form-row">
                     <div class="form-group"><label>מספר סידורי (יחידה ישנה)</label><input type="text" id="manualSerial"></div>
                     <div class="form-group"><label>דגם</label><input type="text" id="manualSerialModel"></div>
                 </div>
-                <div><button type="submit" class="btn btn-primary">+ הזנה ידנית (legacy)</button></div>
+                <div><button type="submit" class="btn btn-primary">הוסף</button>
+                <button type="button" class="btn" onclick="toggleManualSerial()">ביטול</button></div>
             </form>
             <input type="text" id="serialSearch" placeholder="חיפוש סריאלי/דגם..." oninput="loadSerials()" style="padding:11px; border:2px solid #e0e0e0; border-radius:8px; margin-bottom:12px; width:260px; font-family:inherit;">
             <div id="serialsListContent"></div>
@@ -2375,6 +2379,9 @@
             } catch (err) { showMessage('שגיאה במחיקה', 'error'); }
         }
 
+        function toggleSerialsAdd() { const f = document.getElementById('serialsAddForm'); f.style.display = f.style.display === 'none' ? 'block' : 'none'; }
+        function toggleManualSerial() { const f = document.getElementById('manualSerialForm'); f.style.display = f.style.display === 'none' ? 'block' : 'none'; }
+
         async function addSerials(e) {
             e.preventDefault();
             const token = localStorage.getItem('adminToken');
@@ -2396,6 +2403,7 @@
                 document.getElementById('serialsFrom').value = '';
                 document.getElementById('serialsTo').value = '';
                 document.getElementById('serialsList').value = '';
+                document.getElementById('serialsAddForm').style.display = 'none';
                 loadReceivingList(); loadSerials();
             } catch (err) { showMessage('שגיאה בהוספת סריאליים', 'error'); }
         }
@@ -2415,6 +2423,7 @@
                 if (!res.ok) { showMessage(d.error || 'שגיאה', 'error'); return; }
                 showMessage('סריאלי נוסף', 'success');
                 e.target.reset();
+                document.getElementById('manualSerialForm').style.display = 'none';
                 loadSerials();
             } catch (err) { showMessage('שגיאה בהוספת סריאלי', 'error'); }
         }
