@@ -626,23 +626,20 @@
             <div id="receivingListContent" style="margin-bottom:24px;"></div>
 
             <h3>מאגר סריאליים <span id="serialsTotal" style="color:#7f8c8d; font-size:14px;"></span></h3>
+            <p style="color:#888; margin:0 0 10px;">סריאליים נוספים מתוך הקליטה (הרחב קליטה למעלה). מאגר זה לצפייה, חיפוש ופעולות מרובות.</p>
             <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
-                <button class="btn btn-primary" onclick="toggleSerialsAdd()">➕ הוספת סריאליים מקליטה</button>
-                <button class="btn btn-primary" onclick="toggleManualSerial()">➕ הזנה ידנית (legacy)</button>
+                <button class="btn btn-primary" onclick="toggleManualSerial()">➕ הזנה ידנית (legacy, ללא קליטה)</button>
             </div>
-            <form id="serialsAddForm" onsubmit="addSerials(event)" style="display:none; background:#fafbfc; padding:16px; border-radius:8px; margin-bottom:14px;">
-                <div class="form-row">
-                    <div class="form-group"><label>קליטה</label><select id="serialsReceivingId"></select></div>
-                    <div class="form-group"><label>דגם (אופציונלי)</label><input type="text" id="serialsModel"></div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group"><label>טווח מ-</label><input type="number" id="serialsFrom"></div>
-                    <div class="form-group"><label>עד</label><input type="number" id="serialsTo"></div>
-                </div>
-                <div class="form-group"><label>או רשימה (מופרדת בפסיק/שורה) — גובר על הטווח</label><textarea id="serialsList" rows="2"></textarea></div>
-                <div><button type="submit" class="btn btn-success">הוסף סריאליים</button>
-                <button type="button" class="btn" onclick="toggleSerialsAdd()">ביטול</button></div>
-            </form>
+            <div style="background:#f8f9fa; padding:10px 12px; border-radius:8px; margin-bottom:12px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                <strong>פעולה מרובה —</strong>
+                <span>טווח:</span><input type="number" id="bulkFrom" placeholder="מ-" style="width:90px;"><input type="number" id="bulkTo" placeholder="עד" style="width:90px;">
+                <select id="bulkStatus"><option value="במלאי">במלאי</option><option value="נמכר">נמכר</option><option value="הסגר">הסגר</option></select>
+                <button class="btn" onclick="bulkSerial('status','range')">שנה סטטוס (טווח)</button>
+                <button class="btn btn-danger" onclick="bulkSerial('delete','range')">מחק טווח</button>
+                <span style="color:#ccc;">|</span>
+                <button class="btn" onclick="bulkSerial('status','ids')">שנה סטטוס למסומנים</button>
+                <button class="btn btn-danger" onclick="bulkSerial('delete','ids')">מחק מסומנים</button>
+            </div>
             <form id="manualSerialForm" onsubmit="addManualSerial(event)" style="display:none; background:#fafbfc; padding:16px; border-radius:8px; margin-bottom:14px;">
                 <div class="form-row">
                     <div class="form-group"><label>מספר סידורי (יחידה ישנה)</label><input type="text" id="manualSerial"></div>
@@ -2645,13 +2642,9 @@
 
         async function loadReceivingList() {
             const token = localStorage.getItem('adminToken');
-            const sel = document.getElementById('serialsReceivingId');
             try {
                 const res = await fetch(`${API_URL}/api/admin/receiving`, { headers: { 'Authorization': `Bearer ${token}` } });
                 receivingData = await res.json();
-                if (Array.isArray(receivingData) && receivingData.length) {
-                    sel.innerHTML = receivingData.map(r => `<option value="${r.id}">#${r.id} — ${escapeHtml(r.model || '')} ${r.receiving_date ? new Date(r.receiving_date).toLocaleDateString('he-IL') : ''}</option>`).join('');
-                } else { sel.innerHTML = '<option value="">— אין קליטות —</option>'; }
                 renderReceiving();
             } catch (err) { document.getElementById('receivingListContent').innerHTML = '<p>שגיאה בטעינת קליטות.</p>'; }
         }
@@ -2675,12 +2668,51 @@
                         <div style="margin-bottom:8px;"><strong>כמות מוצהרת/התקבלה:</strong> ${escapeHtml(String(r.quantity_declared??'—'))} / ${escapeHtml(String(r.quantity_received??'—'))}</div>
                         <div style="margin-bottom:8px;"><strong>גודל מדגם:</strong> ${escapeHtml(String(r.sample_size??'—'))}</div>
                         <div style="margin-bottom:8px;"><strong>נזק / ממצאי בדיקה:</strong> ${escapeHtml(r.damage_notes||'—')}</div>
+                        <div onclick="event.stopPropagation();" style="margin:10px 0; padding:10px; background:#fff; border:1px solid #dde; border-radius:8px;">
+                            <strong>סריאליים בקליטה זו:</strong>
+                            <div id="rcSerials_${r.id}">טוען...</div>
+                            <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                                <span>הוסף:</span>
+                                <input type="number" id="rcAddSerFrom_${r.id}" placeholder="מ-" style="width:90px;">
+                                <input type="number" id="rcAddSerTo_${r.id}" placeholder="עד" style="width:90px;">
+                                <input type="text" id="rcAddSerList_${r.id}" placeholder="או רשימה" style="width:160px;">
+                                <button class="btn btn-success" onclick="addSerialsToReceiving(${r.id})">הוסף סריאליים</button>
+                            </div>
+                        </div>
                         <div><button class="btn btn-primary" onclick="event.stopPropagation();startEditReceiving(${r.id})">ערוך</button>
                         <button class="btn btn-danger" onclick="event.stopPropagation();deleteReceiving(${r.id})">מחק</button></div></td></tr>`;
                 }
             });
             html += '</tbody></table></div>';
             content.innerHTML = html;
+            if (expandedReceivingId) loadReceivingSerials(expandedReceivingId);
+        }
+        async function loadReceivingSerials(rid) {
+            const token = localStorage.getItem('adminToken');
+            const box = document.getElementById('rcSerials_' + rid);
+            if (!box) return;
+            try {
+                const d = await fetch(`${API_URL}/api/admin/serials?receiving_id=${rid}`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json());
+                const list = d.serials || [];
+                if (!list.length) { box.innerHTML = '<span style="color:#888;">אין סריאליים. הוסף למטה.</span>'; return; }
+                box.innerHTML = '<div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:6px;">' +
+                    list.map(s => `<span style="background:#eef; padding:3px 8px; border-radius:10px; font-size:13px;">${escapeHtml(s.serial_number)} <small style="color:#888;">(${escapeHtml(s.status||'')})</small></span>`).join('') + '</div>';
+            } catch (e) { box.innerHTML = '<span style="color:#c0392b;">שגיאה</span>'; }
+        }
+        async function addSerialsToReceiving(rid) {
+            const token = localStorage.getItem('adminToken');
+            const from = document.getElementById('rcAddSerFrom_' + rid).value, to = document.getElementById('rcAddSerTo_' + rid).value, list = document.getElementById('rcAddSerList_' + rid).value.trim();
+            if (!list && !(from && to)) { showMessage('הזן טווח או רשימה', 'error'); return; }
+            try {
+                const res = await fetch(`${API_URL}/api/admin/receiving/${rid}/serials`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ from: from || null, to: to || null, list: list || null })
+                });
+                const d = await res.json();
+                if (!res.ok) { showMessage(d.error || 'שגיאה', 'error'); return; }
+                showMessage(`נוספו ${d.added} סריאליים (דילוג ${d.skipped})`, 'success');
+                loadReceivingSerials(rid); loadSerials(); loadReceivingList();
+            } catch (e) { showMessage('שגיאה בהוספה', 'error'); }
         }
 
         function receivingEditForm(r) {
@@ -2811,12 +2843,13 @@
         function renderSerials() {
             const content = document.getElementById('serialsListContent');
             if (serialsData.length === 0) { content.innerHTML = '<p>אין סריאליים.</p>'; return; }
-            let html = '<div class="table-container"><table><thead><tr><th>מספר סידורי</th><th>דגם</th><th>מקור</th><th>סטטוס</th><th>נוסף ע"י</th><th>פעולות</th></tr></thead><tbody>';
+            let html = '<div class="table-container"><table><thead><tr><th><input type="checkbox" onchange="document.querySelectorAll(\'.serChk\').forEach(c=>c.checked=this.checked)"></th><th>מספר סידורי</th><th>דגם</th><th>מקור</th><th>סטטוס</th><th>נוסף ע"י</th><th>פעולות</th></tr></thead><tbody>';
             serialsData.forEach(s => {
                 const src = s.is_legacy ? 'ידני (legacy)' : 'קליטה #' + (s.receiving_id || '?');
                 if (s.id === editingSerialId) {
                     const opts = SERIAL_STATUSES.map(st => `<option value="${st}" ${s.status === st ? 'selected' : ''}>${st}</option>`).join('');
                     html += `<tr>
+                        <td></td>
                         <td><input type="text" id="edSerial_${s.id}" value="${escapeHtml(s.serial_number)}" style="padding:8px; width:130px; border:2px solid #e0e0e0; border-radius:8px; font-family:inherit;"></td>
                         <td><input type="text" id="edModel_${s.id}" value="${escapeHtml(s.model || '')}" style="padding:8px; width:90px; border:2px solid #e0e0e0; border-radius:8px; font-family:inherit;"></td>
                         <td>${src}</td>
@@ -2829,6 +2862,7 @@
                     </tr>`;
                 } else {
                     html += `<tr>
+                        <td><input type="checkbox" class="serChk" value="${s.id}"></td>
                         <td>${escapeHtml(s.serial_number)}</td>
                         <td>${escapeHtml(s.model || '')}</td>
                         <td>${src}</td>
@@ -2848,6 +2882,32 @@
 
         function editSerial(id) { editingSerialId = id; renderSerials(); }
         function cancelSerialEdit() { editingSerialId = null; renderSerials(); }
+        // פעולה מרובה על סריאליים — לפי מסומנים (ids) או טווח (range); מחיקה או שינוי סטטוס
+        async function bulkSerial(action, mode) {
+            const token = localStorage.getItem('adminToken');
+            const body = { action };
+            if (action === 'status') body.status = document.getElementById('bulkStatus').value;
+            if (mode === 'ids') {
+                body.ids = Array.from(document.querySelectorAll('.serChk:checked')).map(c => parseInt(c.value, 10));
+                if (!body.ids.length) { showMessage('לא סומנו סריאליים', 'error'); return; }
+            } else {
+                body.from = document.getElementById('bulkFrom').value || null;
+                body.to = document.getElementById('bulkTo').value || null;
+                if (!body.from || !body.to) { showMessage('הזן טווח (מ-/עד)', 'error'); return; }
+            }
+            if (!confirm(action === 'delete' ? 'למחוק את הסריאליים הנבחרים?' : 'לשנות סטטוס לסריאליים הנבחרים?')) return;
+            try {
+                const res = await fetch(`${API_URL}/api/admin/serials/bulk-action`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify(body)
+                });
+                const d = await res.json();
+                if (!res.ok) { showMessage(d.error || 'שגיאה', 'error'); return; }
+                showMessage(`בוצע על ${d.affected} סריאליים`, 'success');
+                document.getElementById('bulkFrom').value = ''; document.getElementById('bulkTo').value = '';
+                loadSerials(); loadReceivingList();
+            } catch (e) { showMessage('שגיאה בפעולה מרובה', 'error'); }
+        }
 
         async function saveSerialEdit(id) {
             const token = localStorage.getItem('adminToken');
