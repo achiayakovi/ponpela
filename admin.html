@@ -1268,6 +1268,8 @@
                                     <td>
                                         <select class="status-select" onchange="updateOrderStatus(${o.id}, this.value)">
                                             <option value="pending" ${o.status === 'pending' ? 'selected' : ''}>ממתין</option>
+                                            <option value="preparing" ${o.status === 'preparing' ? 'selected' : ''}>הכנת הזמנה</option>
+                                            <option value="dispatched" ${o.status === 'dispatched' ? 'selected' : ''}>${o.delivery_method === 'איסוף' ? 'מוכן לאיסוף' : 'נשלח'}</option>
                                             <option value="completed" ${o.status === 'completed' ? 'selected' : ''}>הושלם</option>
                                             <option value="cancelled" ${o.status === 'cancelled' ? 'selected' : ''}>בוטל</option>
                                         </select>
@@ -1289,7 +1291,7 @@
         async function updateOrderStatus(id, status) {
             const token = localStorage.getItem('adminToken');
             try {
-                await fetch(`${API_URL}/api/admin/orders/${id}`, {
+                const res = await fetch(`${API_URL}/api/admin/orders/${id}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1297,6 +1299,12 @@
                     },
                     body: JSON.stringify({ status })
                 });
+                if (!res.ok) {
+                    const d = await res.json().catch(() => ({}));
+                    showMessage(d.error || 'שגיאה בעדכון סטטוס', 'error');
+                    loadOrders(); // החזרת התצוגה לסטטוס הקודם
+                    return;
+                }
                 showMessage('סטטוס עודכן', 'success');
             } catch (err) {
                 showMessage('שגיאה', 'error');
@@ -1316,9 +1324,11 @@
                         <p><strong>לקוח:</strong> ${escapeHtml(order.full_name)}</p>
                         <p><strong>אימייל:</strong> ${escapeHtml(order.email)}</p>
                         <p><strong>טלפון:</strong> ${escapeHtml(order.phone || '-')}</p>
+                        <p><strong>אופן קבלה:</strong> ${escapeHtml(order.delivery_method || 'משלוח')}</p>
                         <p><strong>כתובת:</strong> ${escapeHtml(order.shipping_address || '-')}</p>
                         <p><strong>סכום:</strong> ₪${order.total_amount}</p>
                         <p><strong>סטטוס:</strong> ${order.status}</p>
+                        ${order.notes ? `<p><strong>הערות:</strong> ${escapeHtml(order.notes)}</p>` : ''}
                         <h4 style="margin-top: 20px;">מוצרים:</h4>
                         <table style="width:100%; margin-top:10px;">
                             <tr><th>מוצר</th><th>כמות</th><th>מחיר</th></tr>
@@ -1330,6 +1340,16 @@
                                 </tr>
                             `).join('')}
                         </table>
+                        ${(order.warranties && order.warranties.length) ? `
+                        <h4 style="margin-top:20px;">אחריות / סריאלי:</h4>
+                        ${order.warranties.map(w => w.machine_number
+                            ? `<p>✓ ${escapeHtml(w.product_name || '')}: <strong>${escapeHtml(w.machine_number)}</strong> (${escapeHtml(w.status)})</p>`
+                            : `<div style="margin:8px 0; padding:8px; background:#fff3cd; border-radius:6px;">
+                                 <div style="margin-bottom:4px;">${escapeHtml(w.product_name || '')} — ממתין לסריאלי</div>
+                                 <input type="text" id="assignSerial_${w.id}" placeholder="מספר סידורי מהמאגר" style="padding:6px;">
+                                 <button class="btn btn-success" onclick="assignSerial(${w.id}, ${order.id})">שייך סריאלי</button>
+                               </div>`
+                        ).join('')}` : ''}
                     </div>
                 `;
                 
@@ -1342,6 +1362,24 @@
 
         function closeOrderModal() {
             document.getElementById('orderModal').classList.remove('active');
+        }
+
+        // שיוך סריאלי לאחריות (באריזת ההזמנה)
+        async function assignSerial(warrantyId, orderId) {
+            const token = localStorage.getItem('adminToken');
+            const serial = document.getElementById('assignSerial_' + warrantyId).value.trim();
+            if (!serial) { showMessage('הזן מספר סידורי', 'error'); return; }
+            try {
+                const res = await fetch(`${API_URL}/api/admin/warranty/${warrantyId}/assign-serial`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ serial_number: serial })
+                });
+                const d = await res.json();
+                if (!res.ok) { showMessage(d.error || 'שגיאה בשיוך', 'error'); return; }
+                showMessage('הסריאלי שויך לאחריות', 'success');
+                viewOrder(orderId); // רענון המודל
+            } catch (err) { showMessage('שגיאה בשיוך', 'error'); }
         }
 
         // Users
