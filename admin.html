@@ -572,26 +572,37 @@
             <h3>קליטות</h3>
             <button class="btn btn-primary" onclick="toggleReceivingAdd()" style="margin-bottom:14px;">➕ קליטה חדשה</button>
             <form id="receivingAddForm" onsubmit="createReceiving(event)" style="display:none; background:#fafbfc; padding:16px; border-radius:8px; margin-bottom:20px;">
-                <div class="form-row">
-                    <div class="form-group"><label>תאריך</label><input type="date" id="rcDate"></div>
-                    <div class="form-group"><label>ספק</label><input type="text" id="rcSupplier" placeholder="TPH"></div>
+                <div class="form-group"><label>סוג קליטה</label><select id="rcType" onchange="onReceivingTypeChange()"><option value="ספק">ספק</option><option value="החזרה">החזרה מהזמנה</option></select></div>
+                <div id="rcSupplierBlock">
+                    <div class="form-row">
+                        <div class="form-group"><label>תאריך</label><input type="date" id="rcDate"></div>
+                        <div class="form-group"><label>ספק</label><input type="text" id="rcSupplier" placeholder="TPH"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label>מס' משלוח</label><input type="text" id="rcShipment"></div>
+                        <div class="form-group"><label>דגם</label><input type="text" id="rcModel" placeholder="S35"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label>כמות מוצהרת</label><input type="number" id="rcQtyDeclared"></div>
+                        <div class="form-group"><label>כמות שהתקבלה</label><input type="number" id="rcQtyReceived"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label>גודל מדגם</label><input type="number" id="rcSampleSize"></div>
+                        <div class="form-group"><label>סטטוס</label><select id="rcStatus"><option value="נקלט">נקלט</option><option value="הסגר">הסגר</option></select></div>
+                    </div>
+                    <div class="form-group"><label>נזק / הערות בדיקת מדגם</label><input type="text" id="rcDamage" placeholder="ממצאי בדיקה / נזקים"></div>
+                    <div>
+                        <button type="submit" class="btn btn-primary">צור קליטה</button>
+                        <button type="button" class="btn" onclick="toggleReceivingAdd()">ביטול</button>
+                    </div>
                 </div>
-                <div class="form-row">
-                    <div class="form-group"><label>מס' משלוח</label><input type="text" id="rcShipment"></div>
-                    <div class="form-group"><label>דגם</label><input type="text" id="rcModel" placeholder="S35"></div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group"><label>כמות מוצהרת</label><input type="number" id="rcQtyDeclared"></div>
-                    <div class="form-group"><label>כמות שהתקבלה</label><input type="number" id="rcQtyReceived"></div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group"><label>גודל מדגם</label><input type="number" id="rcSampleSize"></div>
-                    <div class="form-group"><label>סטטוס</label><select id="rcStatus"><option value="נקלט">נקלט</option><option value="הסגר">הסגר</option></select></div>
-                </div>
-                <div class="form-group"><label>נזק / הערות בדיקת מדגם</label><input type="text" id="rcDamage" placeholder="ממצאי בדיקה / נזקים"></div>
-                <div>
-                    <button type="submit" class="btn btn-primary">צור קליטה</button>
-                    <button type="button" class="btn" onclick="toggleReceivingAdd()">ביטול</button>
+                <div id="rcReturnBlock" style="display:none;">
+                    <div class="form-row">
+                        <div class="form-group"><label>מספר הזמנה</label><input type="number" id="rcReturnOrderId" placeholder="#"></div>
+                        <div class="form-group" style="display:flex; align-items:flex-end;"><button type="button" class="btn btn-primary" onclick="loadReturnOrder()">טען הזמנה</button></div>
+                    </div>
+                    <div id="rcReturnItems"></div>
+                    <div style="margin-top:10px;"><button type="button" class="btn" onclick="toggleReceivingAdd()">ביטול</button></div>
                 </div>
             </form>
             <div id="receivingListContent" style="margin-bottom:24px;"></div>
@@ -2445,8 +2456,60 @@
             loadSerials();
         }
 
+        function onReceivingTypeChange() {
+            const isReturn = document.getElementById('rcType').value === 'החזרה';
+            document.getElementById('rcSupplierBlock').style.display = isReturn ? 'none' : 'block';
+            document.getElementById('rcReturnBlock').style.display = isReturn ? 'block' : 'none';
+        }
+        // טעינת הזמנה לבחירת פריטים להחזרה
+        let returnOrderData = null;
+        async function loadReturnOrder() {
+            const token = localStorage.getItem('adminToken');
+            const oid = parseInt(document.getElementById('rcReturnOrderId').value, 10);
+            const box = document.getElementById('rcReturnItems');
+            if (!oid) { box.innerHTML = '<span style="color:#c0392b;">הזן מספר הזמנה</span>'; return; }
+            try {
+                const res = await fetch(`${API_URL}/api/admin/order/${oid}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                if (!res.ok) { box.innerHTML = '<span style="color:#c0392b;">הזמנה לא נמצאה</span>'; return; }
+                returnOrderData = await res.json();
+                const warrPids = new Set((returnOrderData.warranties || []).map(w => w.product_id));
+                let h = `<div style="background:#fff; border:1px solid #dde; border-radius:8px; padding:12px;">
+                    <strong>הזמנה #${oid} — ${escapeHtml(returnOrderData.full_name || returnOrderData.guest_name || '')}</strong>
+                    <div style="margin-top:8px; color:#888;">סמן פריטים שחוזרים:</div>`;
+                // פריטי אחריות (יחידות עם סריאלי)
+                (returnOrderData.warranties || []).forEach(w => {
+                    h += `<label style="display:block; padding:5px 0;"><input type="checkbox" class="rcRetWarr" value="${w.id}"> ${escapeHtml(w.product_name || 'מוצר')} — ${w.machine_number ? '<strong>' + escapeHtml(w.machine_number) + '</strong>' : '<span style="color:#888;">ללא סריאלי</span>'} <small style="color:#888;">(אחריות תימחק)</small></label>`;
+                });
+                // פריטים ללא אחריות (מלאי בלבד)
+                (returnOrderData.items || []).filter(it => !warrPids.has(it.product_id)).forEach(it => {
+                    h += `<label style="display:block; padding:5px 0;"><input type="checkbox" class="rcRetItem" value="${it.product_id}" data-qty="${it.quantity}"> ${escapeHtml(it.product_name || 'מוצר')} ×${it.quantity} <small style="color:#888;">(החזרת מלאי)</small></label>`;
+                });
+                h += `<div style="margin-top:10px;"><button type="button" class="btn btn-success" onclick="createReturn(${oid})">צור החזרה</button></div></div>`;
+                box.innerHTML = h;
+            } catch (err) { box.innerHTML = '<span style="color:#c0392b;">שגיאה בטעינת הזמנה</span>'; }
+        }
+        async function createReturn(oid) {
+            const token = localStorage.getItem('adminToken');
+            const warranty_ids = Array.from(document.querySelectorAll('.rcRetWarr:checked')).map(c => parseInt(c.value, 10));
+            const items = Array.from(document.querySelectorAll('.rcRetItem:checked')).map(c => ({ product_id: parseInt(c.value, 10), quantity: parseInt(c.dataset.qty, 10) }));
+            if (!warranty_ids.length && !items.length) { showMessage('לא נבחרו פריטים', 'error'); return; }
+            try {
+                const res = await fetch(`${API_URL}/api/admin/receiving/return-from-order`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ order_id: oid, warranty_ids, items })
+                });
+                const d = await res.json();
+                if (!res.ok) { showMessage(d.error || 'שגיאה', 'error'); return; }
+                showMessage(`נקלטה החזרה של ${d.units} יחידות`, 'success');
+                document.getElementById('rcReturnItems').innerHTML = '';
+                document.getElementById('rcReturnOrderId').value = '';
+                document.getElementById('receivingAddForm').style.display = 'none';
+                loadReceivingList(); loadSerials();
+            } catch (err) { showMessage('שגיאה בקליטת החזרה', 'error'); }
+        }
         async function createReceiving(e) {
             e.preventDefault();
+            if (document.getElementById('rcType') && document.getElementById('rcType').value === 'החזרה') return; // החזרה נשמרת בכפתור ייעודי
             const token = localStorage.getItem('adminToken');
             try {
                 const res = await fetch(`${API_URL}/api/admin/receiving`, {
@@ -2487,17 +2550,18 @@
         function renderReceiving() {
             const content = document.getElementById('receivingListContent');
             if (!Array.isArray(receivingData) || receivingData.length === 0) { content.innerHTML = '<p>אין קליטות עדיין.</p>'; return; }
-            let html = '<div class="table-container"><table><thead><tr><th></th><th>תאריך</th><th>ספק</th><th>דגם</th><th>כמות</th><th>סטטוס</th><th>סריאליים</th><th>ע"י</th></tr></thead><tbody>';
+            let html = '<div class="table-container"><table><thead><tr><th></th><th>סוג</th><th>תאריך</th><th>ספק / מקור</th><th>דגם</th><th>כמות</th><th>סטטוס</th><th>סריאליים</th><th>ע"י</th></tr></thead><tbody>';
             receivingData.forEach(r => {
-                if (editingReceivingId === r.id) { html += `<tr><td colspan="8" style="padding:0;">${receivingEditForm(r)}</td></tr>`; return; }
+                if (editingReceivingId === r.id) { html += `<tr><td colspan="9" style="padding:0;">${receivingEditForm(r)}</td></tr>`; return; }
                 const d = r.receiving_date ? new Date(r.receiving_date).toLocaleDateString('he-IL') : '';
                 const open = expandedReceivingId === r.id;
+                const isReturn = r.receiving_type === 'החזרה';
                 html += `<tr style="cursor:pointer;" onclick="toggleReceivingExpand(${r.id})">
-                    <td>${open?'▲':'▼'}</td><td>${escapeHtml(d)}</td><td>${escapeHtml(r.supplier_name||'')}</td><td>${escapeHtml(r.model||'')}</td>
+                    <td>${open?'▲':'▼'}</td><td>${isReturn?'<span style="color:#e67e22;">החזרה</span>':'ספק'}</td><td>${escapeHtml(d)}</td><td>${escapeHtml(r.supplier_name||'')}</td><td>${escapeHtml(r.model||'')}</td>
                     <td>${escapeHtml(String(r.quantity_received ?? r.quantity_declared ?? ''))}</td><td>${escapeHtml(r.status||'')}</td>
                     <td>${r.serials_count}</td><td>${escapeHtml(r.handled_by_name||'')}</td></tr>`;
                 if (open) {
-                    html += `<tr><td colspan="8" style="background:#f8f9fa; padding:10px 14px;">
+                    html += `<tr><td colspan="9" style="background:#f8f9fa; padding:10px 14px;">
                         <div style="margin-bottom:8px;"><strong>מס' משלוח:</strong> ${escapeHtml(r.shipment_ref||'—')}</div>
                         <div style="margin-bottom:8px;"><strong>כמות מוצהרת/התקבלה:</strong> ${escapeHtml(String(r.quantity_declared??'—'))} / ${escapeHtml(String(r.quantity_received??'—'))}</div>
                         <div style="margin-bottom:8px;"><strong>גודל מדגם:</strong> ${escapeHtml(String(r.sample_size??'—'))}</div>
