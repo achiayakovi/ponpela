@@ -502,40 +502,56 @@
         <div id="receivingSection" class="section">
             <h2>קליטה ומאגר סריאליים</h2>
 
-            <h3>קליטה חדשה</h3>
-            <form onsubmit="createReceiving(event)" style="background:#f8f9fa; padding:16px; border-radius:8px; margin-bottom:20px; display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end;">
-                <div><label>תאריך<br><input type="date" id="rcDate" style="padding:8px;"></label></div>
-                <div><label>ספק<br><input type="text" id="rcSupplier" placeholder="TPH" style="padding:8px;"></label></div>
-                <div><label>מס' משלוח<br><input type="text" id="rcShipment" style="padding:8px;"></label></div>
-                <div><label>דגם<br><input type="text" id="rcModel" placeholder="S35" style="padding:8px;"></label></div>
-                <div><label>כמות מוצהרת<br><input type="number" id="rcQtyDeclared" style="padding:8px; width:110px;"></label></div>
-                <div><label>כמות שהתקבלה<br><input type="number" id="rcQtyReceived" style="padding:8px; width:110px;"></label></div>
-                <div><label>גודל מדגם<br><input type="number" id="rcSampleSize" style="padding:8px; width:90px;"></label></div>
-                <div><label>סטטוס<br><select id="rcStatus" style="padding:8px;"><option value="נקלט">נקלט</option><option value="הסגר">הסגר</option></select></label></div>
-                <div style="flex:1 1 100%;"><label>נזק / הערות בדיקת מדגם<br><input type="text" id="rcDamage" placeholder="ממצאי בדיקה / נזקים" style="padding:8px; width:100%; box-sizing:border-box;"></label></div>
-                <button type="submit" class="btn btn-primary">+ צור קליטה</button>
-            </form>
-
             <h3>קליטות</h3>
+            <button class="btn btn-primary" onclick="toggleReceivingAdd()" style="margin-bottom:14px;">➕ קליטה חדשה</button>
+            <form id="receivingAddForm" onsubmit="createReceiving(event)" style="display:none; background:#fafbfc; padding:16px; border-radius:8px; margin-bottom:20px;">
+                <div class="form-row">
+                    <div class="form-group"><label>תאריך</label><input type="date" id="rcDate"></div>
+                    <div class="form-group"><label>ספק</label><input type="text" id="rcSupplier" placeholder="TPH"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>מס' משלוח</label><input type="text" id="rcShipment"></div>
+                    <div class="form-group"><label>דגם</label><input type="text" id="rcModel" placeholder="S35"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>כמות מוצהרת</label><input type="number" id="rcQtyDeclared"></div>
+                    <div class="form-group"><label>כמות שהתקבלה</label><input type="number" id="rcQtyReceived"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>גודל מדגם</label><input type="number" id="rcSampleSize"></div>
+                    <div class="form-group"><label>סטטוס</label><select id="rcStatus"><option value="נקלט">נקלט</option><option value="הסגר">הסגר</option></select></div>
+                </div>
+                <div class="form-group"><label>נזק / הערות בדיקת מדגם</label><input type="text" id="rcDamage" placeholder="ממצאי בדיקה / נזקים"></div>
+                <div>
+                    <button type="submit" class="btn btn-primary">צור קליטה</button>
+                    <button type="button" class="btn" onclick="toggleReceivingAdd()">ביטול</button>
+                </div>
+            </form>
             <div id="receivingListContent" style="margin-bottom:24px;"></div>
 
             <h3>הוספת סריאליים לקליטה</h3>
-            <form onsubmit="addSerials(event)" style="background:#f8f9fa; padding:16px; border-radius:8px; margin-bottom:24px; display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end;">
-                <div><label>קליטה<br><select id="serialsReceivingId" style="padding:8px;"></select></label></div>
-                <div><label>דגם (אופציונלי)<br><input type="text" id="serialsModel" style="padding:8px;"></label></div>
-                <div><label>טווח מ-<br><input type="number" id="serialsFrom" style="padding:8px; width:130px;"></label></div>
-                <div><label>עד<br><input type="number" id="serialsTo" style="padding:8px; width:130px;"></label></div>
-                <div style="flex:1 1 100%;"><label>או רשימה (מופרדת בפסיק/שורה) — גובר על הטווח<br><textarea id="serialsList" rows="2" style="padding:8px; width:100%; box-sizing:border-box;"></textarea></label></div>
-                <button type="submit" class="btn btn-success">הוסף סריאליים</button>
+            <form onsubmit="addSerials(event)" style="background:#fafbfc; padding:16px; border-radius:8px; margin-bottom:24px;">
+                <div class="form-row">
+                    <div class="form-group"><label>קליטה</label><select id="serialsReceivingId"></select></div>
+                    <div class="form-group"><label>דגם (אופציונלי)</label><input type="text" id="serialsModel"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>טווח מ-</label><input type="number" id="serialsFrom"></div>
+                    <div class="form-group"><label>עד</label><input type="number" id="serialsTo"></div>
+                </div>
+                <div class="form-group"><label>או רשימה (מופרדת בפסיק/שורה) — גובר על הטווח</label><textarea id="serialsList" rows="2"></textarea></div>
+                <div><button type="submit" class="btn btn-success">הוסף סריאליים</button></div>
             </form>
 
             <h3>מאגר סריאליים <span id="serialsTotal" style="color:#7f8c8d; font-size:14px;"></span></h3>
-            <form onsubmit="addManualSerial(event)" style="display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end; margin-bottom:14px;">
-                <div><label>מספר סידורי (יחידה ישנה)<br><input type="text" id="manualSerial" style="padding:8px;"></label></div>
-                <div><label>דגם<br><input type="text" id="manualSerialModel" style="padding:8px;"></label></div>
-                <button type="submit" class="btn btn-primary">+ הזנה ידנית (legacy)</button>
+            <form onsubmit="addManualSerial(event)" style="background:#fafbfc; padding:16px; border-radius:8px; margin-bottom:14px;">
+                <div class="form-row">
+                    <div class="form-group"><label>מספר סידורי (יחידה ישנה)</label><input type="text" id="manualSerial"></div>
+                    <div class="form-group"><label>דגם</label><input type="text" id="manualSerialModel"></div>
+                </div>
+                <div><button type="submit" class="btn btn-primary">+ הזנה ידנית (legacy)</button></div>
             </form>
-            <input type="text" id="serialSearch" placeholder="חיפוש סריאלי/דגם..." oninput="loadSerials()" style="padding:8px; margin-bottom:12px; width:260px;">
+            <input type="text" id="serialSearch" placeholder="חיפוש סריאלי/דגם..." oninput="loadSerials()" style="padding:11px; border:2px solid #e0e0e0; border-radius:8px; margin-bottom:12px; width:260px; font-family:inherit;">
             <div id="serialsListContent"></div>
         </div>
 
@@ -2219,6 +2235,10 @@
         }
 
         // ===== קליטה ומאגר סריאליים =====
+        let receivingData = [];
+        let expandedReceivingId = null, editingReceivingId = null;
+        function toggleReceivingAdd() { const f = document.getElementById('receivingAddForm'); f.style.display = f.style.display === 'none' ? 'block' : 'none'; }
+
         function loadReceiving() {
             loadReceivingList();
             loadSerials();
@@ -2245,40 +2265,98 @@
                 if (!res.ok) { const d = await res.json(); showMessage(d.error || 'שגיאה', 'error'); return; }
                 showMessage('קליטה נוצרה', 'success');
                 e.target.reset();
+                document.getElementById('receivingAddForm').style.display = 'none';
                 loadReceivingList();
             } catch (err) { showMessage('שגיאה ביצירת קליטה', 'error'); }
         }
 
         async function loadReceivingList() {
             const token = localStorage.getItem('adminToken');
-            const content = document.getElementById('receivingListContent');
             const sel = document.getElementById('serialsReceivingId');
             try {
                 const res = await fetch(`${API_URL}/api/admin/receiving`, { headers: { 'Authorization': `Bearer ${token}` } });
-                const list = await res.json();
-                if (!Array.isArray(list) || list.length === 0) {
-                    content.innerHTML = '<p>אין קליטות עדיין.</p>'; sel.innerHTML = '<option value="">— אין קליטות —</option>'; return;
+                receivingData = await res.json();
+                if (Array.isArray(receivingData) && receivingData.length) {
+                    sel.innerHTML = receivingData.map(r => `<option value="${r.id}">#${r.id} — ${escapeHtml(r.model || '')} ${r.receiving_date ? new Date(r.receiving_date).toLocaleDateString('he-IL') : ''}</option>`).join('');
+                } else { sel.innerHTML = '<option value="">— אין קליטות —</option>'; }
+                renderReceiving();
+            } catch (err) { document.getElementById('receivingListContent').innerHTML = '<p>שגיאה בטעינת קליטות.</p>'; }
+        }
+
+        function renderReceiving() {
+            const content = document.getElementById('receivingListContent');
+            if (!Array.isArray(receivingData) || receivingData.length === 0) { content.innerHTML = '<p>אין קליטות עדיין.</p>'; return; }
+            let html = '<div class="table-container"><table><thead><tr><th></th><th>תאריך</th><th>ספק</th><th>דגם</th><th>כמות</th><th>סטטוס</th><th>סריאליים</th><th>ע"י</th></tr></thead><tbody>';
+            receivingData.forEach(r => {
+                if (editingReceivingId === r.id) { html += `<tr><td colspan="8" style="padding:0;">${receivingEditForm(r)}</td></tr>`; return; }
+                const d = r.receiving_date ? new Date(r.receiving_date).toLocaleDateString('he-IL') : '';
+                const open = expandedReceivingId === r.id;
+                html += `<tr style="cursor:pointer;" onclick="toggleReceivingExpand(${r.id})">
+                    <td>${open?'▲':'▼'}</td><td>${escapeHtml(d)}</td><td>${escapeHtml(r.supplier_name||'')}</td><td>${escapeHtml(r.model||'')}</td>
+                    <td>${escapeHtml(String(r.quantity_received ?? r.quantity_declared ?? ''))}</td><td>${escapeHtml(r.status||'')}</td>
+                    <td>${r.serials_count}</td><td>${escapeHtml(r.handled_by_name||'')}</td></tr>`;
+                if (open) {
+                    html += `<tr><td colspan="8" style="background:#f8f9fa; padding:10px 14px;">
+                        <div style="margin-bottom:8px;"><strong>מס' משלוח:</strong> ${escapeHtml(r.shipment_ref||'—')}</div>
+                        <div style="margin-bottom:8px;"><strong>כמות מוצהרת/התקבלה:</strong> ${escapeHtml(String(r.quantity_declared??'—'))} / ${escapeHtml(String(r.quantity_received??'—'))}</div>
+                        <div style="margin-bottom:8px;"><strong>גודל מדגם:</strong> ${escapeHtml(String(r.sample_size??'—'))}</div>
+                        <div style="margin-bottom:8px;"><strong>נזק / ממצאי בדיקה:</strong> ${escapeHtml(r.damage_notes||'—')}</div>
+                        <div><button class="btn btn-primary" onclick="event.stopPropagation();startEditReceiving(${r.id})">ערוך</button>
+                        <button class="btn btn-danger" onclick="event.stopPropagation();deleteReceiving(${r.id})">מחק</button></div></td></tr>`;
                 }
-                let html = '<div class="table-container"><table><thead><tr><th>תאריך</th><th>ספק</th><th>דגם</th><th>כמות</th><th>סטטוס</th><th>סריאליים</th><th>טופל ע"י</th><th>פעולות</th></tr></thead><tbody>';
-                let opts = '';
-                list.forEach(r => {
-                    const d = r.receiving_date ? new Date(r.receiving_date).toLocaleDateString('he-IL') : '';
-                    html += `<tr>
-                        <td>${escapeHtml(d)}</td>
-                        <td>${escapeHtml(r.supplier_name || '')}</td>
-                        <td>${escapeHtml(r.model || '')}</td>
-                        <td>${escapeHtml(String(r.quantity_received ?? r.quantity_declared ?? ''))}</td>
-                        <td>${escapeHtml(r.status || '')}</td>
-                        <td>${r.serials_count}</td>
-                        <td>${escapeHtml(r.handled_by_name || '')}</td>
-                        <td><button class="btn btn-danger" onclick="deleteReceiving(${r.id})">מחק</button></td>
-                    </tr>`;
-                    opts += `<option value="${r.id}">#${r.id} — ${escapeHtml(r.model || '')} ${escapeHtml(d)}</option>`;
-                });
-                html += '</tbody></table></div>';
-                content.innerHTML = html;
-                sel.innerHTML = opts;
-            } catch (err) { content.innerHTML = '<p>שגיאה בטעינת קליטות.</p>'; }
+            });
+            html += '</tbody></table></div>';
+            content.innerHTML = html;
+        }
+
+        function receivingEditForm(r) {
+            const dt = r.receiving_date ? r.receiving_date.slice(0,10) : '';
+            const opt = (v, cur) => `<option value="${v}" ${cur===v?'selected':''}>${v}</option>`;
+            return `<div style="padding:16px; background:#fafbfc;">
+                <div class="form-row">
+                    <div class="form-group"><label>תאריך</label><input type="date" id="erc_date_${r.id}" value="${dt}"></div>
+                    <div class="form-group"><label>ספק</label><input type="text" id="erc_supplier_${r.id}" value="${escapeHtml(r.supplier_name||'')}"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>מס' משלוח</label><input type="text" id="erc_shipment_${r.id}" value="${escapeHtml(r.shipment_ref||'')}"></div>
+                    <div class="form-group"><label>דגם</label><input type="text" id="erc_model_${r.id}" value="${escapeHtml(r.model||'')}"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>כמות מוצהרת</label><input type="number" id="erc_qd_${r.id}" value="${r.quantity_declared??''}"></div>
+                    <div class="form-group"><label>כמות שהתקבלה</label><input type="number" id="erc_qr_${r.id}" value="${r.quantity_received??''}"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>גודל מדגם</label><input type="number" id="erc_sample_${r.id}" value="${r.sample_size??''}"></div>
+                    <div class="form-group"><label>סטטוס</label><select id="erc_status_${r.id}">${['נקלט','הסגר'].map(v=>opt(v,r.status)).join('')}</select></div>
+                </div>
+                <div class="form-group"><label>נזק / ממצאי בדיקה</label><textarea id="erc_damage_${r.id}" rows="2">${escapeHtml(r.damage_notes||'')}</textarea></div>
+                <div><button class="btn btn-success" onclick="saveReceivingInline(${r.id})">שמור</button>
+                <button class="btn" onclick="cancelEditReceiving()">בטל</button></div>
+            </div>`;
+        }
+
+        function toggleReceivingExpand(id) { if (editingReceivingId === id) return; editingReceivingId = null; expandedReceivingId = (expandedReceivingId === id) ? null : id; renderReceiving(); }
+        function startEditReceiving(id) { expandedReceivingId = id; editingReceivingId = id; renderReceiving(); }
+        function cancelEditReceiving() { editingReceivingId = null; renderReceiving(); }
+
+        async function saveReceivingInline(id) {
+            const token = localStorage.getItem('adminToken');
+            const body = {
+                receiving_date: document.getElementById('erc_date_'+id).value || null,
+                supplier_name: document.getElementById('erc_supplier_'+id).value.trim(),
+                shipment_ref: document.getElementById('erc_shipment_'+id).value.trim(),
+                model: document.getElementById('erc_model_'+id).value.trim(),
+                quantity_declared: document.getElementById('erc_qd_'+id).value || null,
+                quantity_received: document.getElementById('erc_qr_'+id).value || null,
+                sample_size: document.getElementById('erc_sample_'+id).value || null,
+                status: document.getElementById('erc_status_'+id).value,
+                damage_notes: document.getElementById('erc_damage_'+id).value.trim()
+            };
+            try {
+                const res = await fetch(`${API_URL}/api/admin/receiving/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(body) });
+                if (!res.ok) { const d = await res.json(); showMessage(d.error || 'שגיאה', 'error'); return; }
+                showMessage('עודכן', 'success'); editingReceivingId = null; loadReceivingList();
+            } catch (err) { showMessage('שגיאה בשמירה', 'error'); }
         }
 
         async function deleteReceiving(id) {
