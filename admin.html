@@ -347,6 +347,43 @@
         <!-- Orders Section -->
         <div id="ordersSection" class="section">
             <h2>ניהול הזמנות</h2>
+            <button class="btn btn-primary" onclick="toggleManualOrder()" style="margin-bottom:14px;">➕ הזמנה טלפונית</button>
+
+            <div id="manualOrderForm" style="display:none; background:#f8f9fa; padding:16px; border-radius:8px; margin-bottom:20px;">
+                <h3>הזמנה טלפונית</h3>
+                <div style="position:relative; margin-bottom:8px;">
+                    <label>חיפוש לקוח קיים (שם/טלפון/סריאלי):</label><br>
+                    <input type="text" id="moCustSearch" placeholder="הקלד לחיפוש..." oninput="searchOrderCustomer()" autocomplete="off" style="padding:8px; width:260px;">
+                    <div id="moCustResults" style="display:none; position:absolute; z-index:10; background:#fff; border:1px solid #ccc; border-radius:6px; width:300px; max-height:200px; overflow:auto;"></div>
+                </div>
+                <input type="hidden" id="moUserId">
+                <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end;">
+                    <div><label>שם *<br><input type="text" id="moName" style="padding:8px;"></label></div>
+                    <div><label>טלפון *<br><input type="text" id="moPhone" style="padding:8px;"></label></div>
+                    <div><label>אימייל<br><input type="email" id="moEmail" style="padding:8px;"></label></div>
+                </div>
+                <div style="margin-top:10px; display:flex; gap:18px; align-items:center;">
+                    <label style="font-weight:normal;"><input type="radio" name="moDelivery" value="משלוח" checked onchange="onMoDeliveryChange()"> משלוח</label>
+                    <label style="font-weight:normal;"><input type="radio" name="moDelivery" value="איסוף" onchange="onMoDeliveryChange()"> איסוף עצמי</label>
+                </div>
+                <div id="moAddressGroup" style="margin-top:10px;"><label>כתובת משלוח<br><textarea id="moAddress" rows="2" style="padding:8px; width:100%; box-sizing:border-box;"></textarea></label></div>
+
+                <div style="margin-top:12px; border-top:1px solid #e0e0e0; padding-top:12px;">
+                    <label>הוספת מוצרים:</label><br>
+                    <div style="display:flex; gap:10px; align-items:flex-end; margin-top:6px;">
+                        <select id="moProduct" style="padding:8px;"></select>
+                        <input type="number" id="moQty" value="1" min="1" style="padding:8px; width:80px;">
+                        <button type="button" class="btn" onclick="addManualItem()">הוסף פריט</button>
+                    </div>
+                    <div id="moItemsList" style="margin-top:10px;"></div>
+                </div>
+                <div style="margin-top:10px;"><label>הערות<br><textarea id="moNotes" rows="2" style="padding:8px; width:100%; box-sizing:border-box;"></textarea></label></div>
+                <div style="margin-top:14px;">
+                    <button class="btn btn-success" onclick="submitManualOrder()">צור הזמנה</button>
+                    <button class="btn" onclick="toggleManualOrder()">ביטול</button>
+                </div>
+            </div>
+
             <div id="ordersLoading" class="loading">טוען...</div>
             <div id="ordersContent"></div>
         </div>
@@ -1466,11 +1503,17 @@
                 });
                 const order = await res.json();
                 
+                const isGuest = !order.user_id;
                 const details = `
                     <div>
-                        <p><strong>לקוח:</strong> ${escapeHtml(order.full_name)}</p>
-                        <p><strong>אימייל:</strong> ${escapeHtml(order.email)}</p>
-                        <p><strong>טלפון:</strong> ${escapeHtml(order.phone || '-')}</p>
+                        <p><strong>לקוח:</strong> ${escapeHtml(order.full_name || order.guest_name || '-')} ${isGuest ? '<span style="color:#e67e22;">(אורח)</span>' : ''}</p>
+                        <p><strong>אימייל:</strong> ${escapeHtml(order.email || order.guest_email || '-')}</p>
+                        <p><strong>טלפון:</strong> ${escapeHtml(order.phone || order.guest_phone || '-')}</p>
+                        ${isGuest ? `<div style="margin:8px 0; padding:8px; background:#eef; border-radius:6px;">
+                            <strong>שייך ללקוח רשום:</strong><br>
+                            <input type="text" id="assignSearchInput" oninput="assignUserSearch(${order.id})" placeholder="חפש שם/טלפון..." autocomplete="off" style="padding:6px; width:220px;">
+                            <div id="assignSearchResults"></div>
+                        </div>` : ''}
                         <p><strong>אופן קבלה:</strong> ${escapeHtml(order.delivery_method || 'משלוח')}</p>
                         <p><strong>כתובת:</strong> ${escapeHtml(order.shipping_address || '-')}</p>
                         <p><strong>סכום:</strong> ₪${order.total_amount}</p>
@@ -2752,6 +2795,136 @@
                 if (!res.ok) { showMessage('שגיאה במחיקה', 'error'); return; }
                 showMessage('נמחק', 'success'); loadSuppliers();
             } catch (err) { showMessage('שגיאה במחיקה', 'error'); }
+        }
+
+        // ===== הזמנה טלפונית =====
+        let manualItems = [];
+        let manualProductsList = [];
+
+        function toggleManualOrder() {
+            const f = document.getElementById('manualOrderForm');
+            const show = f.style.display === 'none';
+            f.style.display = show ? 'block' : 'none';
+            if (show && manualProductsList.length === 0) loadManualProducts();
+        }
+
+        async function loadManualProducts() {
+            const token = localStorage.getItem('adminToken');
+            try {
+                const res = await fetch(`${API_URL}/api/admin/all-products`, { headers: { 'Authorization': `Bearer ${token}` } });
+                manualProductsList = await res.json();
+                document.getElementById('moProduct').innerHTML = manualProductsList.map(p =>
+                    `<option value="${p.id}">${escapeHtml(p.name)} — ₪${p.sale_price || p.price} (מלאי ${p.stock_quantity})</option>`).join('');
+            } catch (err) { showMessage('שגיאה בטעינת מוצרים', 'error'); }
+        }
+
+        function onMoDeliveryChange() {
+            const m = (document.querySelector('input[name="moDelivery"]:checked') || {}).value;
+            document.getElementById('moAddressGroup').style.display = (m === 'איסוף') ? 'none' : 'block';
+        }
+
+        let moCustTimer = null;
+        function searchOrderCustomer() {
+            clearTimeout(moCustTimer);
+            moCustTimer = setTimeout(async () => {
+                const token = localStorage.getItem('adminToken');
+                const q = document.getElementById('moCustSearch').value.trim();
+                const box = document.getElementById('moCustResults');
+                if (q.length < 2) { box.style.display = 'none'; return; }
+                try {
+                    const rows = await fetch(`${API_URL}/api/admin/customer-search?q=${encodeURIComponent(q)}`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json());
+                    if (!Array.isArray(rows) || rows.length === 0) { box.innerHTML = '<div style="padding:8px;color:#888;">אין תוצאות</div>'; box.style.display = 'block'; return; }
+                    box.innerHTML = rows.map(r => `<div style="padding:8px;cursor:pointer;border-bottom:1px solid #eee;"
+                        onclick="pickOrderCustomer('${escapeJsAttr(r.name||'')}','${escapeJsAttr(r.phone||'')}','${r.user_id||''}')">
+                        ${escapeHtml(r.name||'—')} · ${escapeHtml(r.phone||'')} <small style="color:#999;">(${escapeHtml(r.source)})</small></div>`).join('');
+                    box.style.display = 'block';
+                } catch (err) { box.style.display = 'none'; }
+            }, 300);
+        }
+        function pickOrderCustomer(name, phone, userId) {
+            document.getElementById('moName').value = name || '';
+            document.getElementById('moPhone').value = phone || '';
+            document.getElementById('moUserId').value = userId || '';
+            document.getElementById('moCustResults').style.display = 'none';
+            document.getElementById('moCustSearch').value = '';
+        }
+
+        function addManualItem() {
+            const pid = parseInt(document.getElementById('moProduct').value, 10);
+            const qty = parseInt(document.getElementById('moQty').value, 10) || 1;
+            const p = manualProductsList.find(x => x.id === pid);
+            if (!p) return;
+            manualItems.push({ product_id: pid, quantity: qty, name: p.name, price: p.sale_price || p.price });
+            renderManualItems();
+        }
+        function removeManualItem(idx) { manualItems.splice(idx, 1); renderManualItems(); }
+        function renderManualItems() {
+            document.getElementById('moItemsList').innerHTML = manualItems.length === 0 ? '<span style="color:#888;">לא נוספו פריטים</span>' :
+                manualItems.map((it, i) => `<div style="padding:4px 0;">${escapeHtml(it.name)} × ${it.quantity} — ₪${it.price * it.quantity}
+                    <button class="btn btn-danger" onclick="removeManualItem(${i})" style="padding:2px 8px;">הסר</button></div>`).join('');
+        }
+
+        async function submitManualOrder() {
+            const token = localStorage.getItem('adminToken');
+            if (manualItems.length === 0) { showMessage('הוסף לפחות מוצר אחד', 'error'); return; }
+            const name = document.getElementById('moName').value.trim();
+            const phone = document.getElementById('moPhone').value.trim();
+            const userId = document.getElementById('moUserId').value;
+            if (!userId && (!name || !phone)) { showMessage('נדרש שם וטלפון', 'error'); return; }
+            const body = {
+                user_id: userId || null,
+                guest_name: name, guest_phone: phone,
+                guest_email: document.getElementById('moEmail').value.trim(),
+                delivery_method: (document.querySelector('input[name="moDelivery"]:checked') || {}).value || 'משלוח',
+                shipping_address: document.getElementById('moAddress').value.trim(),
+                notes: document.getElementById('moNotes').value.trim(),
+                items: manualItems.map(it => ({ product_id: it.product_id, quantity: it.quantity }))
+            };
+            try {
+                const res = await fetch(`${API_URL}/api/admin/orders/manual`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify(body)
+                });
+                const d = await res.json();
+                if (!res.ok) { showMessage(d.error || 'שגיאה', 'error'); return; }
+                showMessage('הזמנה נוצרה #' + d.id, 'success');
+                manualItems = []; renderManualItems();
+                ['moName','moPhone','moEmail','moAddress','moNotes','moUserId'].forEach(id => document.getElementById(id).value = '');
+                toggleManualOrder();
+                loadOrders();
+            } catch (err) { showMessage('שגיאה ביצירת הזמנה', 'error'); }
+        }
+
+        // שיוך הזמנה ללקוח רשום (מתוך מודל ההזמנה)
+        async function assignOrderUser(orderId, userId) {
+            const token = localStorage.getItem('adminToken');
+            try {
+                const res = await fetch(`${API_URL}/api/admin/orders/${orderId}/assign-user`, {
+                    method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ user_id: userId })
+                });
+                if (!res.ok) { const d = await res.json(); showMessage(d.error || 'שגיאה', 'error'); return; }
+                showMessage('ההזמנה שויכה ללקוח', 'success');
+                viewOrder(orderId);
+            } catch (err) { showMessage('שגיאה בשיוך', 'error'); }
+        }
+
+        let assignSearchTimer = null;
+        function assignUserSearch(orderId) {
+            clearTimeout(assignSearchTimer);
+            assignSearchTimer = setTimeout(async () => {
+                const token = localStorage.getItem('adminToken');
+                const q = document.getElementById('assignSearchInput').value.trim();
+                const box = document.getElementById('assignSearchResults');
+                if (q.length < 2) { box.innerHTML = ''; return; }
+                try {
+                    const rows = await fetch(`${API_URL}/api/admin/customer-search?q=${encodeURIComponent(q)}`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json());
+                    const withUser = (rows || []).filter(r => r.user_id);
+                    if (withUser.length === 0) { box.innerHTML = '<div style="color:#888;">אין לקוח רשום תואם</div>'; return; }
+                    box.innerHTML = withUser.map(r => `<div style="padding:6px;cursor:pointer;border-bottom:1px solid #eee;"
+                        onclick="assignOrderUser(${orderId}, ${r.user_id})">${escapeHtml(r.name||'')} · ${escapeHtml(r.phone||'')}</div>`).join('');
+                } catch (err) { box.innerHTML = ''; }
+            }, 300);
         }
 
         function showMessage(text, type) {
