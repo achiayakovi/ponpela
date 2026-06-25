@@ -724,8 +724,8 @@
         <!-- Training Section -->
         <div id="trainingSection" class="section">
             <h2>הדרכות</h2>
-            <form onsubmit="saveTraining(event)" style="background:#f8f9fa; padding:16px; border-radius:8px; margin-bottom:20px;">
-                <input type="hidden" id="trId">
+            <button class="btn btn-primary" onclick="toggleTrainingAdd()" style="margin-bottom:14px;">➕ הדרכה חדשה</button>
+            <form id="trainingAddForm" onsubmit="addTraining(event)" style="display:none; background:#f8f9fa; padding:16px; border-radius:8px; margin-bottom:20px;">
                 <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end;">
                     <div><label>שם עובד<br><input type="text" id="trEmployee" style="padding:8px;"></label></div>
                     <div><label>נושא<br><input type="text" id="trTopic" style="padding:8px;"></label></div>
@@ -738,7 +738,7 @@
                 <div style="margin-top:10px;"><label>הערות<br><textarea id="trNotes" rows="2" style="padding:8px; width:100%; box-sizing:border-box;"></textarea></label></div>
                 <div style="margin-top:14px;">
                     <button type="submit" class="btn btn-primary">שמור</button>
-                    <button type="button" class="btn" onclick="resetTrainingForm()">נקה</button>
+                    <button type="button" class="btn" onclick="toggleTrainingAdd()">ביטול</button>
                 </div>
             </form>
             <div id="trainingContent"></div>
@@ -3199,35 +3199,81 @@
             } catch (err) { showMessage('שגיאה במחיקה', 'error'); }
         }
 
-        // ===== הדרכות =====
+        // ===== הדרכות (תבנית: שורה נפתחת + עריכה inline) =====
         let trainingData = [];
+        let expandedTrainingId = null;
+        let editingTrainingId = null;
+
+        function toggleTrainingAdd() {
+            const f = document.getElementById('trainingAddForm');
+            f.style.display = f.style.display === 'none' ? 'block' : 'none';
+        }
+
         async function loadTraining() {
             const token = localStorage.getItem('adminToken');
-            const content = document.getElementById('trainingContent');
             try {
                 const res = await fetch(`${API_URL}/api/admin/training`, { headers: { 'Authorization': `Bearer ${token}` } });
                 trainingData = await res.json();
-                if (!Array.isArray(trainingData) || trainingData.length === 0) { content.innerHTML = '<p>אין רשומות.</p>'; return; }
-                let html = '<div class="table-container"><table><thead><tr><th>עובד</th><th>נושא</th><th>תאריך</th><th>אימות</th><th>סטטוס</th><th>ע"י</th><th>פעולות</th></tr></thead><tbody>';
-                trainingData.forEach(t => {
-                    const d = t.training_date ? new Date(t.training_date).toLocaleDateString('he-IL') : '';
-                    html += `<tr><td>${escapeHtml(t.employee_name||'')}</td><td>${escapeHtml(t.topic||'')}</td><td>${escapeHtml(d)}</td>
-                        <td>${escapeHtml(t.verification||'')}</td><td>${escapeHtml(t.status||'')}</td><td>${escapeHtml(t.handled_by_name||'')}</td>
-                        <td><button class="btn btn-primary" onclick="editTraining(${t.id})">ערוך</button>
-                        <button class="btn btn-danger" onclick="deleteTraining(${t.id})">מחק</button></td></tr>`;
-                });
-                html += '</tbody></table></div>';
-                content.innerHTML = html;
-            } catch (err) { content.innerHTML = '<p>שגיאה בטעינה.</p>'; }
+                renderTraining();
+            } catch (err) { document.getElementById('trainingContent').innerHTML = '<p>שגיאה בטעינה.</p>'; }
         }
-        function resetTrainingForm() {
-            ['trId','trEmployee','trTopic','trDate','trVerification','trNotes'].forEach(id => document.getElementById(id).value = '');
-            document.getElementById('trStatus').value = 'הושלם';
+
+        function renderTraining() {
+            const content = document.getElementById('trainingContent');
+            if (!Array.isArray(trainingData) || trainingData.length === 0) { content.innerHTML = '<p>אין רשומות.</p>'; return; }
+            let html = '<div class="table-container"><table><thead><tr><th></th><th>עובד</th><th>נושא</th><th>תאריך</th><th>סטטוס</th><th>ע"י</th></tr></thead><tbody>';
+            trainingData.forEach(t => {
+                const d = t.training_date ? new Date(t.training_date).toLocaleDateString('he-IL') : '';
+                const open = expandedTrainingId === t.id;
+                html += `<tr style="cursor:pointer;" onclick="toggleTrainingExpand(${t.id})">
+                    <td>${open ? '▲' : '▼'}</td><td>${escapeHtml(t.employee_name||'')}</td><td>${escapeHtml(t.topic||'')}</td>
+                    <td>${escapeHtml(d)}</td><td>${escapeHtml(t.status||'')}</td><td>${escapeHtml(t.handled_by_name||'')}</td></tr>`;
+                if (open) {
+                    html += `<tr><td colspan="6" style="background:#f8f9fa;">${editingTrainingId === t.id ? trainingEditForm(t) : trainingDetail(t)}</td></tr>`;
+                }
+            });
+            html += '</tbody></table></div>';
+            content.innerHTML = html;
         }
-        async function saveTraining(e) {
+
+        function trainingDetail(t) {
+            return `<div style="padding:8px 14px;">
+                <p><strong>אימות:</strong> ${escapeHtml(t.verification || '—')}</p>
+                <p><strong>הערות:</strong> ${escapeHtml(t.notes || '—')}</p>
+                <button class="btn btn-primary" onclick="startEditTraining(${t.id})">ערוך</button>
+                <button class="btn btn-danger" onclick="deleteTraining(${t.id})">מחק</button>
+            </div>`;
+        }
+
+        function trainingEditForm(t) {
+            const dt = t.training_date ? t.training_date.slice(0,10) : '';
+            return `<div style="padding:8px 14px; display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end;">
+                <div><label>עובד<br><input type="text" id="et_emp_${t.id}" value="${escapeHtml(t.employee_name||'')}" style="padding:6px;"></label></div>
+                <div><label>נושא<br><input type="text" id="et_topic_${t.id}" value="${escapeHtml(t.topic||'')}" style="padding:6px;"></label></div>
+                <div><label>תאריך<br><input type="date" id="et_date_${t.id}" value="${dt}" style="padding:6px;"></label></div>
+                <div><label>סטטוס<br><select id="et_status_${t.id}" style="padding:6px;">
+                    <option value="הושלם" ${t.status==='הושלם'?'selected':''}>הושלם</option>
+                    <option value="מתוכנן" ${t.status==='מתוכנן'?'selected':''}>מתוכנן</option></select></label></div>
+                <div style="flex:1 1 100%;"><label>אימות<br><input type="text" id="et_ver_${t.id}" value="${escapeHtml(t.verification||'')}" style="padding:6px; width:100%; box-sizing:border-box;"></label></div>
+                <div style="flex:1 1 100%;"><label>הערות<br><textarea id="et_notes_${t.id}" rows="2" style="padding:6px; width:100%; box-sizing:border-box;">${escapeHtml(t.notes||'')}</textarea></label></div>
+                <div style="flex:1 1 100%;">
+                    <button class="btn btn-success" onclick="saveTrainingInline(${t.id})">שמור</button>
+                    <button class="btn" onclick="cancelEditTraining()">בטל</button>
+                </div>
+            </div>`;
+        }
+
+        function toggleTrainingExpand(id) {
+            if (editingTrainingId && editingTrainingId !== id) editingTrainingId = null;
+            expandedTrainingId = (expandedTrainingId === id) ? null : id;
+            renderTraining();
+        }
+        function startEditTraining(id) { editingTrainingId = id; renderTraining(); }
+        function cancelEditTraining() { editingTrainingId = null; renderTraining(); }
+
+        async function addTraining(e) {
             e.preventDefault();
             const token = localStorage.getItem('adminToken');
-            const id = document.getElementById('trId').value;
             const body = {
                 employee_name: document.getElementById('trEmployee').value.trim(),
                 topic: document.getElementById('trTopic').value.trim(),
@@ -3237,30 +3283,40 @@
                 status: document.getElementById('trStatus').value
             };
             try {
-                const url = id ? `${API_URL}/api/admin/training/${id}` : `${API_URL}/api/admin/training`;
-                const res = await fetch(url, { method: id ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(body) });
+                const res = await fetch(`${API_URL}/api/admin/training`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(body) });
                 if (!res.ok) { const dd = await res.json(); showMessage(dd.error || 'שגיאה', 'error'); return; }
-                showMessage('נשמר', 'success'); resetTrainingForm(); loadTraining();
+                showMessage('נשמר', 'success');
+                ['trEmployee','trTopic','trDate','trVerification','trNotes'].forEach(id => document.getElementById(id).value = '');
+                document.getElementById('trStatus').value = 'הושלם';
+                document.getElementById('trainingAddForm').style.display = 'none';
+                loadTraining();
             } catch (err) { showMessage('שגיאה בשמירה', 'error'); }
         }
-        function editTraining(id) {
-            const t = trainingData.find(x => x.id === id); if (!t) return;
-            document.getElementById('trId').value = t.id;
-            document.getElementById('trEmployee').value = t.employee_name || '';
-            document.getElementById('trTopic').value = t.topic || '';
-            document.getElementById('trDate').value = t.training_date ? t.training_date.slice(0,10) : '';
-            document.getElementById('trVerification').value = t.verification || '';
-            document.getElementById('trNotes').value = t.notes || '';
-            document.getElementById('trStatus').value = t.status || 'הושלם';
-            window.scrollTo(0, 0);
+
+        async function saveTrainingInline(id) {
+            const token = localStorage.getItem('adminToken');
+            const body = {
+                employee_name: document.getElementById('et_emp_' + id).value.trim(),
+                topic: document.getElementById('et_topic_' + id).value.trim(),
+                training_date: document.getElementById('et_date_' + id).value || null,
+                verification: document.getElementById('et_ver_' + id).value.trim(),
+                notes: document.getElementById('et_notes_' + id).value.trim(),
+                status: document.getElementById('et_status_' + id).value
+            };
+            try {
+                const res = await fetch(`${API_URL}/api/admin/training/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(body) });
+                if (!res.ok) { const dd = await res.json(); showMessage(dd.error || 'שגיאה', 'error'); return; }
+                showMessage('עודכן', 'success'); editingTrainingId = null; loadTraining();
+            } catch (err) { showMessage('שגיאה בשמירה', 'error'); }
         }
+
         async function deleteTraining(id) {
             if (!confirm('למחוק את הרשומה?')) return;
             const token = localStorage.getItem('adminToken');
             try {
                 const res = await fetch(`${API_URL}/api/admin/training/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
                 if (!res.ok) { showMessage('שגיאה במחיקה', 'error'); return; }
-                showMessage('נמחק', 'success'); loadTraining();
+                showMessage('נמחק', 'success'); expandedTrainingId = null; loadTraining();
             } catch (err) { showMessage('שגיאה במחיקה', 'error'); }
         }
 
