@@ -3246,21 +3246,23 @@
             content.innerHTML = html;
         }
 
-        // טופס עריכה מלא-רוחב מעוצב (תואם לטופס ההוספה) — כל השדות, גולש לשורות
+        // טופס עריכה בעיצוב האתר (form-group/form-row, כמו הוספת מוצר)
         function trainingEditForm(t) {
             const dt = t.training_date ? t.training_date.slice(0,10) : '';
-            return `<div style="background:#eef4ff; padding:16px; border-radius:8px;">
-                <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end;">
-                    <div><label>עובד<br><input type="text" id="et_emp_${t.id}" value="${escapeHtml(t.employee_name||'')}" style="padding:8px;"></label></div>
-                    <div><label>נושא<br><input type="text" id="et_topic_${t.id}" value="${escapeHtml(t.topic||'')}" style="padding:8px; width:260px; max-width:100%;"></label></div>
-                    <div><label>תאריך<br><input type="date" id="et_date_${t.id}" value="${dt}" style="padding:8px;"></label></div>
-                    <div><label>סטטוס<br><select id="et_status_${t.id}" style="padding:8px;">
-                        <option value="הושלם" ${t.status==='הושלם'?'selected':''}>הושלם</option>
-                        <option value="מתוכנן" ${t.status==='מתוכנן'?'selected':''}>מתוכנן</option></select></label></div>
+            return `<div style="padding:16px; background:#fafbfc;">
+                <div class="form-row">
+                    <div class="form-group"><label>עובד</label><input type="text" id="et_emp_${t.id}" value="${escapeHtml(t.employee_name||'')}"></div>
+                    <div class="form-group"><label>נושא</label><input type="text" id="et_topic_${t.id}" value="${escapeHtml(t.topic||'')}"></div>
                 </div>
-                <div style="margin-top:10px;"><label>אימות<br><input type="text" id="et_ver_${t.id}" value="${escapeHtml(t.verification||'')}" style="padding:8px; width:100%; box-sizing:border-box;"></label></div>
-                <div style="margin-top:10px;"><label>הערות<br><textarea id="et_notes_${t.id}" rows="2" style="padding:8px; width:100%; box-sizing:border-box;">${escapeHtml(t.notes||'')}</textarea></label></div>
-                <div style="margin-top:14px;">
+                <div class="form-row">
+                    <div class="form-group"><label>תאריך</label><input type="date" id="et_date_${t.id}" value="${dt}"></div>
+                    <div class="form-group"><label>סטטוס</label><select id="et_status_${t.id}">
+                        <option value="הושלם" ${t.status==='הושלם'?'selected':''}>הושלם</option>
+                        <option value="מתוכנן" ${t.status==='מתוכנן'?'selected':''}>מתוכנן</option></select></div>
+                </div>
+                <div class="form-group"><label>אימות (איך נבדק שהובן)</label><input type="text" id="et_ver_${t.id}" value="${escapeHtml(t.verification||'')}"></div>
+                <div class="form-group"><label>הערות</label><textarea id="et_notes_${t.id}" rows="2">${escapeHtml(t.notes||'')}</textarea></div>
+                <div>
                     <button class="btn btn-success" onclick="saveTrainingInline(${t.id})">שמור</button>
                     <button class="btn" onclick="cancelEditTraining()">בטל</button>
                 </div>
