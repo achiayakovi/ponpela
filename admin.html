@@ -620,24 +620,26 @@
             <h2>ספקים ותעודות</h2>
             <div id="expiringDocsBanner" style="display:none; background:#fdecea; border:1px solid #f5c6cb; padding:12px; border-radius:8px; margin-bottom:18px;"></div>
 
-            <h3>ספק חדש / עריכה</h3>
-            <form onsubmit="saveSupplier(event)" style="background:#f8f9fa; padding:16px; border-radius:8px; margin-bottom:20px;">
-                <input type="hidden" id="supplierId">
-                <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end;">
-                    <div><label>שם ספק *<br><input type="text" id="supName" required style="padding:8px;"></label></div>
-                    <div><label>איש קשר<br><input type="text" id="supContact" style="padding:8px;"></label></div>
-                    <div><label>טלפון<br><input type="text" id="supPhone" style="padding:8px;"></label></div>
-                    <div><label>אימייל<br><input type="email" id="supEmail" style="padding:8px;"></label></div>
-                    <div><label>סטטוס אישור<br><select id="supStatus" style="padding:8px;">
-                        <option value="בהמתנה">בהמתנה</option><option value="מאושר">מאושר</option><option value="לא מאושר">לא מאושר</option>
-                    </select></label></div>
-                    <label style="white-space:nowrap;"><input type="checkbox" id="supCritical"> ספק קריטי</label>
+            <button class="btn btn-primary" onclick="toggleSupplierAdd()" style="margin-bottom:14px;">➕ ספק חדש</button>
+            <form id="supplierAddForm" onsubmit="addSupplier(event)" style="display:none; background:#fafbfc; padding:16px; border-radius:8px; margin-bottom:20px;">
+                <div class="form-row">
+                    <div class="form-group"><label>שם ספק *</label><input type="text" id="supName" required></div>
+                    <div class="form-group"><label>איש קשר</label><input type="text" id="supContact"></div>
                 </div>
-                <div style="margin-top:10px;"><label>קריטריון אישור (ISO13485 / CoC / הצהרת זהות...)<br><input type="text" id="supCriterion" style="padding:8px; width:100%; box-sizing:border-box;"></label></div>
-                <div style="margin-top:10px;"><label>הערות<br><textarea id="supNotes" rows="2" style="padding:8px; width:100%; box-sizing:border-box;"></textarea></label></div>
-                <div style="margin-top:14px;">
+                <div class="form-row">
+                    <div class="form-group"><label>טלפון</label><input type="text" id="supPhone"></div>
+                    <div class="form-group"><label>אימייל</label><input type="email" id="supEmail"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>סטטוס אישור</label><select id="supStatus">
+                        <option value="בהמתנה">בהמתנה</option><option value="מאושר">מאושר</option><option value="לא מאושר">לא מאושר</option></select></div>
+                    <div class="form-group"><label>&nbsp;</label><label style="font-weight:normal; padding-top:10px; display:inline-block;"><input type="checkbox" id="supCritical"> ספק קריטי</label></div>
+                </div>
+                <div class="form-group"><label>קריטריון אישור (ISO13485 / CoC / הצהרת זהות...)</label><input type="text" id="supCriterion"></div>
+                <div class="form-group"><label>הערות</label><textarea id="supNotes" rows="2"></textarea></div>
+                <div>
                     <button type="submit" class="btn btn-primary">שמור ספק</button>
-                    <button type="button" class="btn" onclick="resetSupplierForm()">נקה</button>
+                    <button type="button" class="btn" onclick="toggleSupplierAdd()">ביטול</button>
                 </div>
             </form>
 
@@ -653,15 +655,21 @@
                     <button type="button" class="btn" onclick="addDocType()">+ הוסף סוג</button>
                 </div>
             </div>
-            <form onsubmit="uploadSupplierDoc(event)" style="background:#f8f9fa; padding:16px; border-radius:8px; margin-bottom:14px;">
+            <form onsubmit="uploadSupplierDoc(event)" style="background:#fafbfc; padding:16px; border-radius:8px; margin-bottom:14px;">
                 <input type="hidden" id="docId">
-                <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end;">
-                    <div><label>ספק<br><select id="docSupplierId" onchange="loadSupplierDocs()" style="padding:8px;"></select></label></div>
-                    <div><label>סוג<br><select id="docType" style="padding:8px;"></select></label></div>
-                    <div><label>מספר תעודה<br><input type="text" id="docNumber" style="padding:8px;"></label></div>
-                    <div><label>הנפקה<br><input type="date" id="docIssue" style="padding:8px;"></label></div>
-                    <div><label>תפוגה<br><input type="date" id="docExpiry" style="padding:8px;"></label></div>
-                    <div><label>קובץ (PDF/תמונה)<br><input type="file" id="docFile" accept="application/pdf,image/*" style="padding:6px;"></label></div>
+                <div class="form-row">
+                    <div class="form-group"><label>ספק</label><select id="docSupplierId" onchange="loadSupplierDocs()"></select></div>
+                    <div class="form-group"><label>סוג</label><select id="docType"></select></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>מספר תעודה</label><input type="text" id="docNumber"></div>
+                    <div class="form-group"><label>קובץ (PDF/תמונה)</label><input type="file" id="docFile" accept="application/pdf,image/*"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>תאריך הנפקה</label><input type="date" id="docIssue"></div>
+                    <div class="form-group"><label>תאריך תפוגה</label><input type="date" id="docExpiry"></div>
+                </div>
+                <div>
                     <button type="submit" class="btn btn-success">העלה תעודה</button>
                     <button type="button" class="btn" onclick="resetDocForm()">נקה</button>
                 </div>
@@ -2759,13 +2767,14 @@
             } catch (err) { showMessage('שגיאה במחיקה', 'error'); }
         }
 
+        let expandedSupplierId = null, editingSupplierId = null;
+        function toggleSupplierAdd() { const f = document.getElementById('supplierAddForm'); f.style.display = f.style.display === 'none' ? 'block' : 'none'; }
+
         async function loadSuppliers() {
             const token = localStorage.getItem('adminToken');
-            const content = document.getElementById('suppliersContent');
             const sel = document.getElementById('docSupplierId');
             loadDocTypes();
             try {
-                // באנר תעודות שפג/עומד לפוג
                 const exp = await fetch(`${API_URL}/api/admin/expiring-docs`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json());
                 const banner = document.getElementById('expiringDocsBanner');
                 if (Array.isArray(exp) && exp.length) {
@@ -2776,46 +2785,68 @@
 
                 const res = await fetch(`${API_URL}/api/admin/suppliers`, { headers: { 'Authorization': `Bearer ${token}` } });
                 suppliersData = await res.json();
-                if (!Array.isArray(suppliersData) || suppliersData.length === 0) {
-                    content.innerHTML = '<p>אין ספקים.</p>'; sel.innerHTML = '<option value="">— אין ספקים —</option>';
-                } else {
-                    let html = '<div class="table-container"><table><thead><tr><th>שם</th><th>סטטוס</th><th>קריטי</th><th>איש קשר</th><th>תעודות</th><th>ע"י</th><th>פעולות</th></tr></thead><tbody>';
-                    let opts = '';
-                    suppliersData.forEach(s => {
-                        const expWarn = s.expiring_count > 0 ? ` <span style="color:#c0392b;">(${s.expiring_count} פג/עומד לפוג)</span>` : '';
-                        html += `<tr>
-                            <td>${escapeHtml(s.name)}</td>
-                            <td>${escapeHtml(s.approval_status || '')}</td>
-                            <td>${s.is_critical ? 'כן' : ''}</td>
-                            <td>${escapeHtml(s.contact_person || '')} ${escapeHtml(s.phone || '')}</td>
-                            <td>${s.docs_count}${expWarn}</td>
-                            <td>${escapeHtml(s.handled_by_name || '')}</td>
-                            <td>
-                              <button class="btn btn-primary" onclick="editSupplier(${s.id})">ערוך</button>
-                              <button class="btn" onclick="openCapaFromSupplier(${s.id})">פתח CAPA</button>
-                              <button class="btn btn-danger" onclick="deleteSupplier(${s.id})">מחק</button>
-                            </td>
-                        </tr>`;
-                        opts += `<option value="${s.id}">${escapeHtml(s.name)}</option>`;
-                    });
-                    html += '</tbody></table></div>';
-                    content.innerHTML = html;
-                    sel.innerHTML = opts;
-                }
+                sel.innerHTML = (Array.isArray(suppliersData) && suppliersData.length)
+                    ? suppliersData.map(s => `<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('')
+                    : '<option value="">— אין ספקים —</option>';
+                renderSuppliers();
                 loadSupplierDocs();
-            } catch (err) { content.innerHTML = '<p>שגיאה בטעינת ספקים.</p>'; }
+            } catch (err) { document.getElementById('suppliersContent').innerHTML = '<p>שגיאה בטעינת ספקים.</p>'; }
         }
 
-        function resetSupplierForm() {
-            ['supplierId','supName','supContact','supPhone','supEmail','supCriterion','supNotes'].forEach(id => document.getElementById(id).value = '');
-            document.getElementById('supStatus').value = 'בהמתנה';
-            document.getElementById('supCritical').checked = false;
+        function renderSuppliers() {
+            const content = document.getElementById('suppliersContent');
+            if (!Array.isArray(suppliersData) || suppliersData.length === 0) { content.innerHTML = '<p>אין ספקים.</p>'; return; }
+            let html = '<div class="table-container"><table><thead><tr><th></th><th>שם</th><th>סטטוס</th><th>קריטי</th><th>תעודות</th><th>ע"י</th></tr></thead><tbody>';
+            suppliersData.forEach(s => {
+                if (editingSupplierId === s.id) { html += `<tr><td colspan="6" style="padding:0;">${supplierEditForm(s)}</td></tr>`; return; }
+                const open = expandedSupplierId === s.id;
+                const expWarn = s.expiring_count > 0 ? ` <span style="color:#c0392b;">(${s.expiring_count} פג/עומד לפוג)</span>` : '';
+                html += `<tr style="cursor:pointer;" onclick="toggleSupplierExpand(${s.id})">
+                    <td>${open?'▲':'▼'}</td><td>${escapeHtml(s.name)}</td><td>${escapeHtml(s.approval_status||'')}</td>
+                    <td>${s.is_critical?'כן':''}</td><td>${s.docs_count}${expWarn}</td><td>${escapeHtml(s.handled_by_name||'')}</td></tr>`;
+                if (open) {
+                    html += `<tr><td colspan="6" style="background:#f8f9fa; padding:10px 14px;">
+                        <div style="margin-bottom:8px;"><strong>איש קשר:</strong> ${escapeHtml(s.contact_person||'—')} · ${escapeHtml(s.phone||'')} · ${escapeHtml(s.email||'')}</div>
+                        <div style="margin-bottom:8px;"><strong>קריטריון אישור:</strong> ${escapeHtml(s.criterion||'—')}</div>
+                        <div style="margin-bottom:8px;"><strong>הערות:</strong> ${escapeHtml(s.notes||'—')}</div>
+                        <div><button class="btn btn-primary" onclick="event.stopPropagation();startEditSupplier(${s.id})">ערוך</button>
+                        <button class="btn" onclick="event.stopPropagation();openCapaFromSupplier(${s.id})">פתח CAPA</button>
+                        <button class="btn btn-danger" onclick="event.stopPropagation();deleteSupplier(${s.id})">מחק</button></div></td></tr>`;
+                }
+            });
+            html += '</tbody></table></div>';
+            content.innerHTML = html;
         }
 
-        async function saveSupplier(e) {
+        function supplierEditForm(s) {
+            const opt = (v, cur) => `<option value="${v}" ${cur===v?'selected':''}>${v}</option>`;
+            return `<div style="padding:16px; background:#fafbfc;">
+                <div class="form-row">
+                    <div class="form-group"><label>שם ספק *</label><input type="text" id="es_name_${s.id}" value="${escapeHtml(s.name||'')}"></div>
+                    <div class="form-group"><label>איש קשר</label><input type="text" id="es_contact_${s.id}" value="${escapeHtml(s.contact_person||'')}"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>טלפון</label><input type="text" id="es_phone_${s.id}" value="${escapeHtml(s.phone||'')}"></div>
+                    <div class="form-group"><label>אימייל</label><input type="email" id="es_email_${s.id}" value="${escapeHtml(s.email||'')}"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>סטטוס אישור</label><select id="es_status_${s.id}">${['בהמתנה','מאושר','לא מאושר'].map(v=>opt(v,s.approval_status)).join('')}</select></div>
+                    <div class="form-group"><label>&nbsp;</label><label style="font-weight:normal; padding-top:10px; display:inline-block;"><input type="checkbox" id="es_critical_${s.id}" ${s.is_critical?'checked':''}> ספק קריטי</label></div>
+                </div>
+                <div class="form-group"><label>קריטריון אישור</label><input type="text" id="es_criterion_${s.id}" value="${escapeHtml(s.criterion||'')}"></div>
+                <div class="form-group"><label>הערות</label><textarea id="es_notes_${s.id}" rows="2">${escapeHtml(s.notes||'')}</textarea></div>
+                <div><button class="btn btn-success" onclick="saveSupplierInline(${s.id})">שמור</button>
+                <button class="btn" onclick="cancelEditSupplier()">בטל</button></div>
+            </div>`;
+        }
+
+        function toggleSupplierExpand(id) { if (editingSupplierId === id) return; editingSupplierId = null; expandedSupplierId = (expandedSupplierId === id) ? null : id; renderSuppliers(); }
+        function startEditSupplier(id) { expandedSupplierId = id; editingSupplierId = id; renderSuppliers(); }
+        function cancelEditSupplier() { editingSupplierId = null; renderSuppliers(); }
+
+        async function addSupplier(e) {
             e.preventDefault();
             const token = localStorage.getItem('adminToken');
-            const id = document.getElementById('supplierId').value;
             const body = {
                 name: document.getElementById('supName').value.trim(),
                 contact_person: document.getElementById('supContact').value.trim(),
@@ -2827,25 +2858,34 @@
                 notes: document.getElementById('supNotes').value.trim()
             };
             try {
-                const url = id ? `${API_URL}/api/admin/suppliers/${id}` : `${API_URL}/api/admin/suppliers`;
-                const res = await fetch(url, { method: id ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(body) });
+                const res = await fetch(`${API_URL}/api/admin/suppliers`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(body) });
                 if (!res.ok) { const d = await res.json(); showMessage(d.error || 'שגיאה', 'error'); return; }
-                showMessage('נשמר', 'success'); resetSupplierForm(); loadSuppliers();
+                showMessage('נשמר', 'success');
+                ['supName','supContact','supPhone','supEmail','supCriterion','supNotes'].forEach(id => document.getElementById(id).value = '');
+                document.getElementById('supStatus').value = 'בהמתנה';
+                document.getElementById('supCritical').checked = false;
+                document.getElementById('supplierAddForm').style.display = 'none';
+                loadSuppliers();
             } catch (err) { showMessage('שגיאה בשמירה', 'error'); }
         }
 
-        function editSupplier(id) {
-            const s = suppliersData.find(x => x.id === id); if (!s) return;
-            document.getElementById('supplierId').value = s.id;
-            document.getElementById('supName').value = s.name || '';
-            document.getElementById('supContact').value = s.contact_person || '';
-            document.getElementById('supPhone').value = s.phone || '';
-            document.getElementById('supEmail').value = s.email || '';
-            document.getElementById('supStatus').value = s.approval_status || 'בהמתנה';
-            document.getElementById('supCritical').checked = !!s.is_critical;
-            document.getElementById('supCriterion').value = s.criterion || '';
-            document.getElementById('supNotes').value = s.notes || '';
-            window.scrollTo(0, 0);
+        async function saveSupplierInline(id) {
+            const token = localStorage.getItem('adminToken');
+            const body = {
+                name: document.getElementById('es_name_'+id).value.trim(),
+                contact_person: document.getElementById('es_contact_'+id).value.trim(),
+                phone: document.getElementById('es_phone_'+id).value.trim(),
+                email: document.getElementById('es_email_'+id).value.trim(),
+                approval_status: document.getElementById('es_status_'+id).value,
+                criterion: document.getElementById('es_criterion_'+id).value.trim(),
+                is_critical: document.getElementById('es_critical_'+id).checked,
+                notes: document.getElementById('es_notes_'+id).value.trim()
+            };
+            try {
+                const res = await fetch(`${API_URL}/api/admin/suppliers/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(body) });
+                if (!res.ok) { const d = await res.json(); showMessage(d.error || 'שגיאה', 'error'); return; }
+                showMessage('עודכן', 'success'); editingSupplierId = null; loadSuppliers();
+            } catch (err) { showMessage('שגיאה בשמירה', 'error'); }
         }
 
         async function deleteSupplier(id) {
