@@ -321,6 +321,7 @@
             <button class="tab" data-area="capa" onclick="switchTab('capa')">CAPA</button>
             <button class="tab" data-area="suppliers" onclick="switchTab('suppliers')">ספקים</button>
             <button class="tab" data-area="nonconformities" onclick="switchTab('nonconformities')">מוצר לא מתאים</button>
+            <button class="tab" data-area="risk" onclick="switchTab('risk')">סיכונים</button>
             <button class="tab" data-area="procedures" onclick="switchTab('procedures')">נהלים</button>
             <button class="tab" data-area="admin_users" onclick="switchTab('admin_users')">משתמשי ניהול</button>
         </div>
@@ -687,6 +688,37 @@
             </form>
             <div id="nonconformitiesContent"></div>
         </div>
+
+        <!-- Risk Register Section -->
+        <div id="riskSection" class="section">
+            <h2>מרשם סיכונים והזדמנויות</h2>
+            <p style="color:#7f8c8d; margin-bottom:12px;">דירוג = סבירות × השפעה (1–9). 🟢 1–3 · 🟠 4–6 · 🔴 7–9.</p>
+            <form onsubmit="saveRisk(event)" style="background:#f8f9fa; padding:16px; border-radius:8px; margin-bottom:20px;">
+                <input type="hidden" id="riskId">
+                <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end;">
+                    <div><label>סוג<br><select id="riskType" style="padding:8px;">
+                        <option value="סיכון">סיכון</option><option value="הזדמנות">הזדמנות</option>
+                    </select></label></div>
+                    <div><label>סבירות (1–3)<br><select id="riskProb" style="padding:8px;">
+                        <option value="1">1 – נמוכה</option><option value="2">2 – בינונית</option><option value="3">3 – גבוהה</option>
+                    </select></label></div>
+                    <div><label>השפעה (1–3)<br><select id="riskImpact" style="padding:8px;">
+                        <option value="1">1 – נמוכה</option><option value="2">2 – בינונית</option><option value="3">3 – גבוהה</option>
+                    </select></label></div>
+                    <div><label>תאריך סקירה<br><input type="date" id="riskReview" style="padding:8px;"></label></div>
+                    <div><label>סטטוס<br><select id="riskStatus" style="padding:8px;">
+                        <option value="פעיל">פעיל</option><option value="בטיפול">בטיפול</option><option value="סגור">סגור</option>
+                    </select></label></div>
+                </div>
+                <div style="margin-top:10px;"><label>תיאור הסיכון/הזדמנות<br><textarea id="riskDesc" rows="2" style="padding:8px; width:100%; box-sizing:border-box;"></textarea></label></div>
+                <div style="margin-top:10px;"><label>טיפול / פעולה<br><textarea id="riskTreatment" rows="2" style="padding:8px; width:100%; box-sizing:border-box;"></textarea></label></div>
+                <div style="margin-top:14px;">
+                    <button type="submit" class="btn btn-primary">שמור</button>
+                    <button type="button" class="btn" onclick="resetRiskForm()">נקה</button>
+                </div>
+            </form>
+            <div id="riskContent"></div>
+        </div>
     </div>
 
     <!-- Product Modal -->
@@ -973,6 +1005,7 @@
             else if (tab === 'capa') loadCapa();
             else if (tab === 'suppliers') loadSuppliers();
             else if (tab === 'nonconformities') loadNonconformities();
+            else if (tab === 'risk') loadRisks();
             else if (tab === 'procedures') loadProcedures();
             else if (tab === 'admin_users') loadAdminUsers();
         }
@@ -3060,6 +3093,85 @@
                 if (!res.ok) { showMessage(d.error || 'שגיאה', 'error'); return; }
                 showMessage('סומן כלא-מתאים (NC #' + d.id + ')', 'success'); loadSerials();
             } catch (err) { showMessage('שגיאה', 'error'); }
+        }
+
+        // ===== מרשם סיכונים =====
+        let riskData = [];
+        function riskColor(score) {
+            if (!score) return '#999';
+            if (score >= 7) return '#c0392b';
+            if (score >= 4) return '#e67e22';
+            return '#27ae60';
+        }
+        async function loadRisks() {
+            const token = localStorage.getItem('adminToken');
+            const content = document.getElementById('riskContent');
+            try {
+                const res = await fetch(`${API_URL}/api/admin/risks`, { headers: { 'Authorization': `Bearer ${token}` } });
+                riskData = await res.json();
+                if (!Array.isArray(riskData) || riskData.length === 0) { content.innerHTML = '<p>אין רשומות.</p>'; return; }
+                let html = '<div class="table-container"><table><thead><tr><th>סוג</th><th>תיאור</th><th>סבירות</th><th>השפעה</th><th>דירוג</th><th>טיפול</th><th>סקירה</th><th>סטטוס</th><th>ע"י</th><th>פעולות</th></tr></thead><tbody>';
+                riskData.forEach(r => {
+                    const rev = r.review_date ? new Date(r.review_date).toLocaleDateString('he-IL') : '';
+                    html += `<tr><td>${escapeHtml(r.risk_type||'')}</td><td>${escapeHtml(r.description||'')}</td>
+                        <td>${r.probability||''}</td><td>${r.impact||''}</td>
+                        <td><span style="background:${riskColor(r.score)}; color:#fff; padding:2px 10px; border-radius:12px; font-weight:bold;">${r.score||'-'}</span></td>
+                        <td>${escapeHtml(r.treatment||'')}</td><td>${escapeHtml(rev)}</td><td>${escapeHtml(r.status||'')}</td>
+                        <td>${escapeHtml(r.handled_by_name||'')}</td>
+                        <td><button class="btn btn-primary" onclick="editRisk(${r.id})">ערוך</button>
+                        <button class="btn btn-danger" onclick="deleteRisk(${r.id})">מחק</button></td></tr>`;
+                });
+                html += '</tbody></table></div>';
+                content.innerHTML = html;
+            } catch (err) { content.innerHTML = '<p>שגיאה בטעינה.</p>'; }
+        }
+        function resetRiskForm() {
+            ['riskId','riskDesc','riskTreatment','riskReview'].forEach(id => document.getElementById(id).value = '');
+            document.getElementById('riskType').value = 'סיכון';
+            document.getElementById('riskProb').value = '1';
+            document.getElementById('riskImpact').value = '1';
+            document.getElementById('riskStatus').value = 'פעיל';
+        }
+        async function saveRisk(e) {
+            e.preventDefault();
+            const token = localStorage.getItem('adminToken');
+            const id = document.getElementById('riskId').value;
+            const body = {
+                risk_type: document.getElementById('riskType').value,
+                description: document.getElementById('riskDesc').value.trim(),
+                probability: document.getElementById('riskProb').value,
+                impact: document.getElementById('riskImpact').value,
+                treatment: document.getElementById('riskTreatment').value.trim(),
+                review_date: document.getElementById('riskReview').value || null,
+                status: document.getElementById('riskStatus').value
+            };
+            try {
+                const url = id ? `${API_URL}/api/admin/risks/${id}` : `${API_URL}/api/admin/risks`;
+                const res = await fetch(url, { method: id ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(body) });
+                if (!res.ok) { const dd = await res.json(); showMessage(dd.error || 'שגיאה', 'error'); return; }
+                showMessage('נשמר', 'success'); resetRiskForm(); loadRisks();
+            } catch (err) { showMessage('שגיאה בשמירה', 'error'); }
+        }
+        function editRisk(id) {
+            const r = riskData.find(x => x.id === id); if (!r) return;
+            document.getElementById('riskId').value = r.id;
+            document.getElementById('riskType').value = r.risk_type || 'סיכון';
+            document.getElementById('riskDesc').value = r.description || '';
+            document.getElementById('riskProb').value = r.probability || '1';
+            document.getElementById('riskImpact').value = r.impact || '1';
+            document.getElementById('riskTreatment').value = r.treatment || '';
+            document.getElementById('riskReview').value = r.review_date ? r.review_date.slice(0,10) : '';
+            document.getElementById('riskStatus').value = r.status || 'פעיל';
+            window.scrollTo(0, 0);
+        }
+        async function deleteRisk(id) {
+            if (!confirm('למחוק את הרשומה?')) return;
+            const token = localStorage.getItem('adminToken');
+            try {
+                const res = await fetch(`${API_URL}/api/admin/risks/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+                if (!res.ok) { showMessage('שגיאה במחיקה', 'error'); return; }
+                showMessage('נמחק', 'success'); loadRisks();
+            } catch (err) { showMessage('שגיאה במחיקה', 'error'); }
         }
 
         function showMessage(text, type) {
