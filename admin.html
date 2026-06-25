@@ -424,16 +424,16 @@
 
             <div style="background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
                 <h3>עדכון מלאי ידני</h3>
-                <form id="updateStockForm" onsubmit="updateStock(event)" style="display: flex; gap: 10px; align-items: end;">
-                    <div class="form-group" style="flex: 2;">
+                <form id="updateStockForm" onsubmit="updateStock(event)" style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;">
+                    <div class="form-group" style="flex: 2; margin-bottom: 0;">
                         <label>בחר מוצר</label>
                         <select id="stockProductId" required></select>
                     </div>
-                    <div class="form-group" style="flex: 1;">
+                    <div class="form-group" style="flex: 1; margin-bottom: 0;">
                         <label>שינוי כמות (+/-)</label>
                         <input type="number" id="stockChangeAmount" required placeholder="5 או -3">
                     </div>
-                    <div class="form-group" style="flex: 2;">
+                    <div class="form-group" style="flex: 2; margin-bottom: 0;">
                         <label>סיבה</label>
                         <input type="text" id="stockReason" placeholder="אופציונלי">
                     </div>
@@ -475,7 +475,7 @@
             <h2>משתמשי ניהול והרשאות</h2>
             <p style="color:#7f8c8d; margin-bottom:16px;">משתמשי ניהול נפרדים מלקוחות — התחברות בשם משתמש. לחיצה על שורה מציגה הרשאות; "ערוך" לשינוי. מנהל-על (✶) רואה הכל.</p>
             <button class="btn btn-primary" onclick="toggleAdminUserAdd()" style="margin-bottom:14px;">➕ משתמש ניהול חדש</button>
-            <form id="adminUserAddForm" onsubmit="createAdminUser(event)" style="display:none; background:#f8f9fa; padding:16px; border-radius:8px; margin-bottom:20px; display:none; flex-wrap:wrap; gap:10px; align-items:flex-end;">
+            <form id="adminUserAddForm" onsubmit="createAdminUser(event)" style="display:none; background:#f8f9fa; padding:16px; border-radius:8px; margin-bottom:20px; flex-wrap:wrap; gap:10px; align-items:flex-end;">
                 <div><label>שם משתמש *<br><input type="text" id="newAdminUsername" required style="padding:8px;"></label></div>
                 <div><label>שם מלא<br><input type="text" id="newAdminFullName" style="padding:8px;"></label></div>
                 <div><label>סיסמה *<br><input type="password" id="newAdminPassword" required minlength="4" style="padding:8px;"></label></div>
@@ -2033,6 +2033,11 @@
         };
         let qmsAreasList = [];
 
+        function toggleAdminUserAdd() {
+            const f = document.getElementById('adminUserAddForm');
+            f.style.display = f.style.display === 'none' ? 'flex' : 'none';
+        }
+
         async function loadAdminUsers() {
             const token = localStorage.getItem('adminToken');
             const loading = document.getElementById('adminUsersLoading');
@@ -2136,6 +2141,7 @@
                 if (!res.ok) { showMessage(data.error || 'שגיאה ביצירה', 'error'); return; }
                 showMessage('משתמש ניהול נוצר', 'success');
                 e.target.reset();
+                document.getElementById('adminUserAddForm').style.display = 'none';
                 loadAdminUsers();
             } catch (err) { showMessage('שגיאה ביצירה', 'error'); }
         }
