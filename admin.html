@@ -593,29 +593,28 @@
         <!-- CAPA Section -->
         <div id="capaSection" class="section">
             <h2>CAPA — פעולות מתקנות ומונעות</h2>
-            <form onsubmit="saveCapa(event)" style="background:#f8f9fa; padding:16px; border-radius:8px; margin-bottom:20px;">
-                <input type="hidden" id="capaId">
-                <input type="hidden" id="capaSourceRef">
-                <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end;">
-                    <div><label>מקור<br><select id="capaSource" style="padding:8px;">
+            <button class="btn btn-primary" onclick="toggleCapaAdd()" style="margin-bottom:14px;">➕ CAPA חדשה</button>
+            <form id="capaAddForm" onsubmit="addCapa(event)" style="display:none; background:#fafbfc; padding:16px; border-radius:8px; margin-bottom:20px;">
+                <div class="form-row">
+                    <div class="form-group"><label>מקור</label><select id="capaSource">
                         <option value="תלונה">תלונה</option><option value="מבדק">מבדק</option>
-                        <option value="ספק">ספק</option><option value="יעד">יעד</option><option value="פגם">פגם</option>
-                    </select></label></div>
-                    <div style="flex:1 1 300px;"><label>כותרת<br><input type="text" id="capaTitle" style="padding:8px; width:100%; box-sizing:border-box;"></label></div>
-                    <div><label>אחראי<br><input type="text" id="capaResponsible" style="padding:8px;"></label></div>
-                    <div><label>תאריך יעד<br><input type="date" id="capaDue" style="padding:8px;"></label></div>
-                    <div><label>סטטוס<br><select id="capaStatus" style="padding:8px;">
+                        <option value="ספק">ספק</option><option value="יעד">יעד</option><option value="פגם">פגם</option></select></div>
+                    <div class="form-group"><label>סטטוס</label><select id="capaStatus">
                         <option value="פתוח">פתוח</option><option value="בתהליך">בתהליך</option>
-                        <option value="אומת">אומת</option><option value="סגור">סגור</option>
-                    </select></label></div>
+                        <option value="אומת">אומת</option><option value="סגור">סגור</option></select></div>
                 </div>
-                <div style="margin-top:10px;"><label>תיאור הבעיה<br><textarea id="capaDesc" rows="2" style="padding:8px; width:100%; box-sizing:border-box;"></textarea></label></div>
-                <div style="margin-top:10px;"><label>ניתוח שורש (5 Whys)<br><textarea id="capaRoot" rows="3" placeholder="למה? ... למה? ..." style="padding:8px; width:100%; box-sizing:border-box;"></textarea></label></div>
-                <div style="margin-top:10px;"><label>פעולה מתקנת<br><textarea id="capaAction" rows="2" style="padding:8px; width:100%; box-sizing:border-box;"></textarea></label></div>
-                <div style="margin-top:10px;"><label>אימות אפקטיביות<br><textarea id="capaVerification" rows="2" style="padding:8px; width:100%; box-sizing:border-box;"></textarea></label></div>
-                <div style="margin-top:14px;">
+                <div class="form-group"><label>כותרת</label><input type="text" id="capaTitle"></div>
+                <div class="form-row">
+                    <div class="form-group"><label>אחראי</label><input type="text" id="capaResponsible"></div>
+                    <div class="form-group"><label>תאריך יעד</label><input type="date" id="capaDue"></div>
+                </div>
+                <div class="form-group"><label>תיאור הבעיה</label><textarea id="capaDesc" rows="2"></textarea></div>
+                <div class="form-group"><label>ניתוח שורש (5 Whys)</label><textarea id="capaRoot" rows="3" placeholder="למה? ... למה? ..."></textarea></div>
+                <div class="form-group"><label>פעולה מתקנת</label><textarea id="capaAction" rows="2"></textarea></div>
+                <div class="form-group"><label>אימות אפקטיביות</label><textarea id="capaVerification" rows="2"></textarea></div>
+                <div>
                     <button type="submit" class="btn btn-primary">שמור</button>
-                    <button type="button" class="btn" onclick="resetCapaForm()">נקה</button>
+                    <button type="button" class="btn" onclick="toggleCapaAdd()">ביטול</button>
                 </div>
             </form>
             <div id="capaContent"></div>
@@ -2547,35 +2546,71 @@
         // ===== CAPA =====
         let capaData = [];
 
+        let expandedCapaId = null, editingCapaId = null;
+        function toggleCapaAdd() { const f = document.getElementById('capaAddForm'); f.style.display = f.style.display === 'none' ? 'block' : 'none'; }
+
         async function loadCapa() {
             const token = localStorage.getItem('adminToken');
-            const content = document.getElementById('capaContent');
             try {
                 const res = await fetch(`${API_URL}/api/admin/capa`, { headers: { 'Authorization': `Bearer ${token}` } });
                 capaData = await res.json();
-                if (!Array.isArray(capaData) || capaData.length === 0) { content.innerHTML = '<p>אין רשומות CAPA.</p>'; return; }
-                let html = '<div class="table-container"><table><thead><tr><th>#</th><th>מקור</th><th>כותרת</th><th>אחראי</th><th>יעד</th><th>סטטוס</th><th>ע"י</th><th>פעולות</th></tr></thead><tbody>';
-                capaData.forEach(c => {
-                    const due = c.due_date ? new Date(c.due_date).toLocaleDateString('he-IL') : '';
-                    html += `<tr>
-                        <td>${c.id}</td>
-                        <td>${escapeHtml(c.source || '')}${c.source_ref ? ' #'+c.source_ref : ''}</td>
-                        <td>${escapeHtml(c.title || '')}</td>
-                        <td>${escapeHtml(c.responsible || '')}</td>
-                        <td>${escapeHtml(due)}</td>
-                        <td>${escapeHtml(c.status || '')}</td>
-                        <td>${escapeHtml(c.handled_by_name || '')}</td>
-                        <td>
-                          ${(c.source === 'תלונה' && c.source_ref) ? `<button class="btn" onclick="viewSourceComplaint(${c.source_ref})">צפה בתלונה</button>` : ''}
-                          <button class="btn btn-primary" onclick="editCapa(${c.id})">ערוך</button>
-                          <button class="btn btn-danger" onclick="deleteCapa(${c.id})">מחק</button>
-                        </td>
-                    </tr>`;
-                });
-                html += '</tbody></table></div>';
-                content.innerHTML = html;
-            } catch (err) { content.innerHTML = '<p>שגיאה בטעינה.</p>'; }
+                renderCapa();
+            } catch (err) { document.getElementById('capaContent').innerHTML = '<p>שגיאה בטעינה.</p>'; }
         }
+
+        function renderCapa() {
+            const content = document.getElementById('capaContent');
+            if (!Array.isArray(capaData) || capaData.length === 0) { content.innerHTML = '<p>אין רשומות CAPA.</p>'; return; }
+            let html = '<div class="table-container"><table><thead><tr><th></th><th>#</th><th>מקור</th><th>כותרת</th><th>אחראי</th><th>יעד</th><th>סטטוס</th><th>ע"י</th></tr></thead><tbody>';
+            capaData.forEach(c => {
+                if (editingCapaId === c.id) { html += `<tr><td colspan="8" style="padding:0;">${capaEditForm(c)}</td></tr>`; return; }
+                const due = c.due_date ? new Date(c.due_date).toLocaleDateString('he-IL') : '';
+                const open = expandedCapaId === c.id;
+                html += `<tr style="cursor:pointer;" onclick="toggleCapaExpand(${c.id})">
+                    <td>${open?'▲':'▼'}</td><td>${c.id}</td><td>${escapeHtml(c.source||'')}${c.source_ref?' #'+c.source_ref:''}</td>
+                    <td>${escapeHtml(c.title||'')}</td><td>${escapeHtml(c.responsible||'')}</td><td>${escapeHtml(due)}</td>
+                    <td>${escapeHtml(c.status||'')}</td><td>${escapeHtml(c.handled_by_name||'')}</td></tr>`;
+                if (open) {
+                    html += `<tr><td colspan="8" style="background:#f8f9fa; padding:10px 14px;">
+                        <div style="margin-bottom:8px;"><strong>תיאור הבעיה:</strong> ${escapeHtml(c.description||'—')}</div>
+                        <div style="margin-bottom:8px;"><strong>ניתוח שורש (5 Whys):</strong> ${escapeHtml(c.root_cause||'—')}</div>
+                        <div style="margin-bottom:8px;"><strong>פעולה מתקנת:</strong> ${escapeHtml(c.corrective_action||'—')}</div>
+                        <div style="margin-bottom:8px;"><strong>אימות אפקטיביות:</strong> ${escapeHtml(c.verification||'—')}</div>
+                        <div>
+                          ${(c.source==='תלונה' && c.source_ref) ? `<button class="btn" onclick="event.stopPropagation();viewSourceComplaint(${c.source_ref})">צפה בתלונה</button>` : ''}
+                          <button class="btn btn-primary" onclick="event.stopPropagation();startEditCapa(${c.id})">ערוך</button>
+                          <button class="btn btn-danger" onclick="event.stopPropagation();deleteCapa(${c.id})">מחק</button></div></td></tr>`;
+                }
+            });
+            html += '</tbody></table></div>';
+            content.innerHTML = html;
+        }
+
+        function capaEditForm(c) {
+            const due = c.due_date ? c.due_date.slice(0,10) : '';
+            const opt = (v, cur) => `<option value="${v}" ${cur===v?'selected':''}>${v}</option>`;
+            return `<div style="padding:16px; background:#fafbfc;">
+                <div class="form-row">
+                    <div class="form-group"><label>מקור</label><select id="ec_source_${c.id}">${['תלונה','מבדק','ספק','יעד','פגם'].map(v=>opt(v,c.source)).join('')}</select></div>
+                    <div class="form-group"><label>סטטוס</label><select id="ec_status_${c.id}">${['פתוח','בתהליך','אומת','סגור'].map(v=>opt(v,c.status)).join('')}</select></div>
+                </div>
+                <div class="form-group"><label>כותרת</label><input type="text" id="ec_title_${c.id}" value="${escapeHtml(c.title||'')}"></div>
+                <div class="form-row">
+                    <div class="form-group"><label>אחראי</label><input type="text" id="ec_resp_${c.id}" value="${escapeHtml(c.responsible||'')}"></div>
+                    <div class="form-group"><label>תאריך יעד</label><input type="date" id="ec_due_${c.id}" value="${due}"></div>
+                </div>
+                <div class="form-group"><label>תיאור הבעיה</label><textarea id="ec_desc_${c.id}" rows="2">${escapeHtml(c.description||'')}</textarea></div>
+                <div class="form-group"><label>ניתוח שורש (5 Whys)</label><textarea id="ec_root_${c.id}" rows="3">${escapeHtml(c.root_cause||'')}</textarea></div>
+                <div class="form-group"><label>פעולה מתקנת</label><textarea id="ec_action_${c.id}" rows="2">${escapeHtml(c.corrective_action||'')}</textarea></div>
+                <div class="form-group"><label>אימות אפקטיביות</label><textarea id="ec_ver_${c.id}" rows="2">${escapeHtml(c.verification||'')}</textarea></div>
+                <div><button class="btn btn-success" onclick="saveCapaInline(${c.id})">שמור</button>
+                <button class="btn" onclick="cancelEditCapa()">בטל</button></div>
+            </div>`;
+        }
+
+        function toggleCapaExpand(id) { if (editingCapaId === id) return; editingCapaId = null; expandedCapaId = (expandedCapaId === id) ? null : id; renderCapa(); }
+        function startEditCapa(id) { expandedCapaId = id; editingCapaId = id; renderCapa(); }
+        function cancelEditCapa() { editingCapaId = null; renderCapa(); }
 
         // קישור הפוך: מ-CAPA לתלונה המקורית
         async function viewSourceComplaint(commId) {
@@ -2585,19 +2620,11 @@
             editCommunication(commId);
         }
 
-        function resetCapaForm() {
-            ['capaId','capaSourceRef','capaTitle','capaResponsible','capaDue','capaDesc','capaRoot','capaAction','capaVerification'].forEach(id => document.getElementById(id).value = '');
-            document.getElementById('capaSource').value = 'תלונה';
-            document.getElementById('capaStatus').value = 'פתוח';
-        }
-
-        async function saveCapa(e) {
+        async function addCapa(e) {
             e.preventDefault();
             const token = localStorage.getItem('adminToken');
-            const id = document.getElementById('capaId').value;
             const body = {
                 source: document.getElementById('capaSource').value,
-                source_ref: document.getElementById('capaSourceRef').value || null,
                 title: document.getElementById('capaTitle').value.trim(),
                 description: document.getElementById('capaDesc').value.trim(),
                 root_cause: document.getElementById('capaRoot').value.trim(),
@@ -2608,34 +2635,33 @@
                 status: document.getElementById('capaStatus').value
             };
             try {
-                const url = id ? `${API_URL}/api/admin/capa/${id}` : `${API_URL}/api/admin/capa`;
-                const res = await fetch(url, {
-                    method: id ? 'PUT' : 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify(body)
-                });
+                const res = await fetch(`${API_URL}/api/admin/capa`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(body) });
                 if (!res.ok) { const dd = await res.json(); showMessage(dd.error || 'שגיאה', 'error'); return; }
                 showMessage('נשמר', 'success');
-                resetCapaForm();
+                ['capaTitle','capaResponsible','capaDue','capaDesc','capaRoot','capaAction','capaVerification'].forEach(id => document.getElementById(id).value = '');
+                document.getElementById('capaAddForm').style.display = 'none';
                 loadCapa();
             } catch (err) { showMessage('שגיאה בשמירה', 'error'); }
         }
 
-        function editCapa(id) {
-            const c = capaData.find(x => x.id === id);
-            if (!c) return;
-            document.getElementById('capaId').value = c.id;
-            document.getElementById('capaSourceRef').value = c.source_ref || '';
-            document.getElementById('capaSource').value = c.source || 'תלונה';
-            document.getElementById('capaTitle').value = c.title || '';
-            document.getElementById('capaResponsible').value = c.responsible || '';
-            document.getElementById('capaDue').value = c.due_date ? c.due_date.slice(0, 10) : '';
-            document.getElementById('capaStatus').value = c.status || 'פתוח';
-            document.getElementById('capaDesc').value = c.description || '';
-            document.getElementById('capaRoot').value = c.root_cause || '';
-            document.getElementById('capaAction').value = c.corrective_action || '';
-            document.getElementById('capaVerification').value = c.verification || '';
-            window.scrollTo(0, 0);
+        async function saveCapaInline(id) {
+            const token = localStorage.getItem('adminToken');
+            const body = {
+                source: document.getElementById('ec_source_'+id).value,
+                title: document.getElementById('ec_title_'+id).value.trim(),
+                description: document.getElementById('ec_desc_'+id).value.trim(),
+                root_cause: document.getElementById('ec_root_'+id).value.trim(),
+                corrective_action: document.getElementById('ec_action_'+id).value.trim(),
+                verification: document.getElementById('ec_ver_'+id).value.trim(),
+                responsible: document.getElementById('ec_resp_'+id).value.trim(),
+                due_date: document.getElementById('ec_due_'+id).value || null,
+                status: document.getElementById('ec_status_'+id).value
+            };
+            try {
+                const res = await fetch(`${API_URL}/api/admin/capa/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(body) });
+                if (!res.ok) { const dd = await res.json(); showMessage(dd.error || 'שגיאה', 'error'); return; }
+                showMessage('עודכן', 'success'); editingCapaId = null; loadCapa();
+            } catch (err) { showMessage('שגיאה בשמירה', 'error'); }
         }
 
         async function deleteCapa(id) {
@@ -2644,7 +2670,7 @@
             try {
                 const res = await fetch(`${API_URL}/api/admin/capa/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
                 if (!res.ok) { showMessage('שגיאה במחיקה', 'error'); return; }
-                showMessage('נמחק', 'success'); loadCapa();
+                showMessage('נמחק', 'success'); expandedCapaId = null; loadCapa();
             } catch (err) { showMessage('שגיאה במחיקה', 'error'); }
         }
 
