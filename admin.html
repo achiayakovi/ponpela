@@ -322,6 +322,7 @@
             <button class="tab" data-area="suppliers" onclick="switchTab('suppliers')">ספקים</button>
             <button class="tab" data-area="nonconformities" onclick="switchTab('nonconformities')">מוצר לא מתאים</button>
             <button class="tab" data-area="risk" onclick="switchTab('risk')">סיכונים</button>
+            <button class="tab" data-area="training" onclick="switchTab('training')">הדרכות</button>
             <button class="tab" data-area="procedures" onclick="switchTab('procedures')">נהלים</button>
             <button class="tab" data-area="admin_users" onclick="switchTab('admin_users')">משתמשי ניהול</button>
         </div>
@@ -719,6 +720,29 @@
             </form>
             <div id="riskContent"></div>
         </div>
+
+        <!-- Training Section -->
+        <div id="trainingSection" class="section">
+            <h2>הדרכות</h2>
+            <form onsubmit="saveTraining(event)" style="background:#f8f9fa; padding:16px; border-radius:8px; margin-bottom:20px;">
+                <input type="hidden" id="trId">
+                <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end;">
+                    <div><label>שם עובד<br><input type="text" id="trEmployee" style="padding:8px;"></label></div>
+                    <div><label>נושא<br><input type="text" id="trTopic" style="padding:8px;"></label></div>
+                    <div><label>תאריך<br><input type="date" id="trDate" style="padding:8px;"></label></div>
+                    <div><label>סטטוס<br><select id="trStatus" style="padding:8px;">
+                        <option value="הושלם">הושלם</option><option value="מתוכנן">מתוכנן</option>
+                    </select></label></div>
+                </div>
+                <div style="margin-top:10px;"><label>אימות (איך נבדק שהובן)<br><input type="text" id="trVerification" style="padding:8px; width:100%; box-sizing:border-box;"></label></div>
+                <div style="margin-top:10px;"><label>הערות<br><textarea id="trNotes" rows="2" style="padding:8px; width:100%; box-sizing:border-box;"></textarea></label></div>
+                <div style="margin-top:14px;">
+                    <button type="submit" class="btn btn-primary">שמור</button>
+                    <button type="button" class="btn" onclick="resetTrainingForm()">נקה</button>
+                </div>
+            </form>
+            <div id="trainingContent"></div>
+        </div>
     </div>
 
     <!-- Product Modal -->
@@ -1006,6 +1030,7 @@
             else if (tab === 'suppliers') loadSuppliers();
             else if (tab === 'nonconformities') loadNonconformities();
             else if (tab === 'risk') loadRisks();
+            else if (tab === 'training') loadTraining();
             else if (tab === 'procedures') loadProcedures();
             else if (tab === 'admin_users') loadAdminUsers();
         }
@@ -3171,6 +3196,71 @@
                 const res = await fetch(`${API_URL}/api/admin/risks/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
                 if (!res.ok) { showMessage('שגיאה במחיקה', 'error'); return; }
                 showMessage('נמחק', 'success'); loadRisks();
+            } catch (err) { showMessage('שגיאה במחיקה', 'error'); }
+        }
+
+        // ===== הדרכות =====
+        let trainingData = [];
+        async function loadTraining() {
+            const token = localStorage.getItem('adminToken');
+            const content = document.getElementById('trainingContent');
+            try {
+                const res = await fetch(`${API_URL}/api/admin/training`, { headers: { 'Authorization': `Bearer ${token}` } });
+                trainingData = await res.json();
+                if (!Array.isArray(trainingData) || trainingData.length === 0) { content.innerHTML = '<p>אין רשומות.</p>'; return; }
+                let html = '<div class="table-container"><table><thead><tr><th>עובד</th><th>נושא</th><th>תאריך</th><th>אימות</th><th>סטטוס</th><th>ע"י</th><th>פעולות</th></tr></thead><tbody>';
+                trainingData.forEach(t => {
+                    const d = t.training_date ? new Date(t.training_date).toLocaleDateString('he-IL') : '';
+                    html += `<tr><td>${escapeHtml(t.employee_name||'')}</td><td>${escapeHtml(t.topic||'')}</td><td>${escapeHtml(d)}</td>
+                        <td>${escapeHtml(t.verification||'')}</td><td>${escapeHtml(t.status||'')}</td><td>${escapeHtml(t.handled_by_name||'')}</td>
+                        <td><button class="btn btn-primary" onclick="editTraining(${t.id})">ערוך</button>
+                        <button class="btn btn-danger" onclick="deleteTraining(${t.id})">מחק</button></td></tr>`;
+                });
+                html += '</tbody></table></div>';
+                content.innerHTML = html;
+            } catch (err) { content.innerHTML = '<p>שגיאה בטעינה.</p>'; }
+        }
+        function resetTrainingForm() {
+            ['trId','trEmployee','trTopic','trDate','trVerification','trNotes'].forEach(id => document.getElementById(id).value = '');
+            document.getElementById('trStatus').value = 'הושלם';
+        }
+        async function saveTraining(e) {
+            e.preventDefault();
+            const token = localStorage.getItem('adminToken');
+            const id = document.getElementById('trId').value;
+            const body = {
+                employee_name: document.getElementById('trEmployee').value.trim(),
+                topic: document.getElementById('trTopic').value.trim(),
+                training_date: document.getElementById('trDate').value || null,
+                verification: document.getElementById('trVerification').value.trim(),
+                notes: document.getElementById('trNotes').value.trim(),
+                status: document.getElementById('trStatus').value
+            };
+            try {
+                const url = id ? `${API_URL}/api/admin/training/${id}` : `${API_URL}/api/admin/training`;
+                const res = await fetch(url, { method: id ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(body) });
+                if (!res.ok) { const dd = await res.json(); showMessage(dd.error || 'שגיאה', 'error'); return; }
+                showMessage('נשמר', 'success'); resetTrainingForm(); loadTraining();
+            } catch (err) { showMessage('שגיאה בשמירה', 'error'); }
+        }
+        function editTraining(id) {
+            const t = trainingData.find(x => x.id === id); if (!t) return;
+            document.getElementById('trId').value = t.id;
+            document.getElementById('trEmployee').value = t.employee_name || '';
+            document.getElementById('trTopic').value = t.topic || '';
+            document.getElementById('trDate').value = t.training_date ? t.training_date.slice(0,10) : '';
+            document.getElementById('trVerification').value = t.verification || '';
+            document.getElementById('trNotes').value = t.notes || '';
+            document.getElementById('trStatus').value = t.status || 'הושלם';
+            window.scrollTo(0, 0);
+        }
+        async function deleteTraining(id) {
+            if (!confirm('למחוק את הרשומה?')) return;
+            const token = localStorage.getItem('adminToken');
+            try {
+                const res = await fetch(`${API_URL}/api/admin/training/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+                if (!res.ok) { showMessage('שגיאה במחיקה', 'error'); return; }
+                showMessage('נמחק', 'success'); loadTraining();
             } catch (err) { showMessage('שגיאה במחיקה', 'error'); }
         }
 
