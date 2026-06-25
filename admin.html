@@ -399,6 +399,7 @@
             <button class="tab" data-area="recalls" onclick="switchTab('recalls')">ריקול</button>
             <button class="tab" data-area="procedures" data-area-view="procedures_view" onclick="switchTab('procedures')">נהלים</button>
             <button class="tab" data-area="admin_users" onclick="switchTab('admin_users')">משתמשי ניהול</button>
+            <button class="tab" data-area="backups" onclick="switchTab('backups')">גיבויים</button>
         </div>
 
         <!-- Warranties Section -->
@@ -1007,6 +1008,14 @@
             <div id="recallsContent"></div>
         </div>
 
+        <div id="backupsSection" class="section">
+            <h2>גיבויים</h2>
+            <p style="color:#7f8c8d; margin-bottom:14px;">גיבוי נתונים אוטומטי יומי (02:00) לשרת חיצוני נפרד. כאן: רשימת הגיבויים, גיבוי מיידי, ושחזור מגיבוי נבחר.</p>
+            <button class="btn btn-primary" id="backupNowBtn" onclick="backupNow()" style="margin-bottom:14px;">💾 גבה עכשיו</button>
+            <div id="backupsLoading" class="loading" style="display:none;">טוען...</div>
+            <div id="backupsContent"></div>
+        </div>
+
     </div>
 
     <!-- Product Modal -->
@@ -1303,9 +1312,11 @@
             showLogin();
         }
 
+        // אזורי "צפייה בלבד" שמספיקים כדי להיכנס לטאב (אך לא לערוך)
+        const TAB_VIEW_ALIAS = { procedures: 'procedures_view' };
         function switchTab(tab) {
             // חסימת גישה לאזור לא-מורשה (הגנה גם אם הטאב הוצג בטעות)
-            if (!adminHasArea(tab)) return;
+            if (!adminHasArea(tab) && !(TAB_VIEW_ALIAS[tab] && adminHasArea(TAB_VIEW_ALIAS[tab]))) return;
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             const btn = document.querySelector(`.tab[data-area="${tab}"]`);
@@ -1332,6 +1343,7 @@
             else if (tab === 'recalls') loadRecalls();
             else if (tab === 'procedures') loadProcedures();
             else if (tab === 'admin_users') loadAdminUsers();
+            else if (tab === 'backups') loadBackups();
         }
 
         async function loadDashboard() {
@@ -2092,6 +2104,53 @@
             } catch (err) { showMessage('שגיאה בשמירה', 'error'); }
         }
 
+        // ===== גיבויים =====
+        async function loadBackups() {
+            const token = localStorage.getItem('adminToken');
+            const loading = document.getElementById('backupsLoading');
+            const content = document.getElementById('backupsContent');
+            loading.style.display = 'block'; content.innerHTML = '';
+            try {
+                const d = await fetch(`${API_URL}/api/admin/backups`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json());
+                loading.style.display = 'none';
+                const list = d.backups || [];
+                if (!list.length) { content.innerHTML = '<p>אין גיבויים עדיין.</p>'; return; }
+                let h = '<div class="table-container"><table><thead><tr><th>תאריך</th><th>גודל</th><th>קובץ</th><th>פעולות</th></tr></thead><tbody>';
+                list.forEach(b => {
+                    const dt = new Date(b.mtime).toLocaleString('he-IL');
+                    h += `<tr><td>${escapeHtml(dt)}</td><td>${(b.size / 1024).toFixed(1)}KB</td>
+                        <td style="font-size:11px; color:#888;">${escapeHtml(b.name)}</td>
+                        <td><button class="btn btn-danger" onclick="restoreBackup('${escapeJsAttr(b.name)}')">♻️ שחזר</button></td></tr>`;
+                });
+                content.innerHTML = h + '</tbody></table></div>';
+            } catch (e) { loading.style.display = 'none'; content.innerHTML = '<p>שגיאה בטעינת גיבויים.</p>'; }
+        }
+        async function backupNow() {
+            const btn = document.getElementById('backupNowBtn');
+            btn.disabled = true; btn.textContent = '⏳ מגבה...';
+            const token = localStorage.getItem('adminToken');
+            try {
+                const res = await fetch(`${API_URL}/api/admin/backup-now`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } });
+                const d = await res.json();
+                if (!res.ok) showMessage(d.error || 'שגיאה', 'error');
+                else { showMessage('גיבוי נוצר ✓', 'success'); loadBackups(); }
+            } catch (e) { showMessage('שגיאה בגיבוי', 'error'); }
+            finally { btn.disabled = false; btn.textContent = '💾 גבה עכשיו'; }
+        }
+        async function restoreBackup(name) {
+            if (!confirm('⚠️ שחזור ימחק את כל הנתונים הנוכחיים ויחליף אותם בגיבוי:\n\n' + name + '\n\nבלתי הפיך. להמשיך?')) return;
+            if (!confirm('אישור אחרון — למחוק את המצב הנוכחי ולשחזר?')) return;
+            const token = localStorage.getItem('adminToken');
+            showMessage('משחזר... אל תסגור את הדף', 'success');
+            try {
+                const res = await fetch(`${API_URL}/api/admin/restore/${encodeURIComponent(name)}`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } });
+                const d = await res.json();
+                if (!res.ok) { showMessage(d.error || 'שגיאת שחזור', 'error'); return; }
+                showMessage('שוחזר בהצלחה ✓ — מרענן', 'success');
+                setTimeout(() => location.reload(), 1500);
+            } catch (e) { showMessage('שגיאת שחזור', 'error'); }
+        }
+
         // שיוך סריאלי לאחריות (באריזת ההזמנה)
         async function assignSerial(warrantyId, orderId) {
             const token = localStorage.getItem('adminToken');
@@ -2485,7 +2544,7 @@
         // ===== משתמשי ניהול והרשאות =====
         const AREA_LABELS = {
             warranties: 'אחריות', orders: 'הזמנות', products: 'מוצרים', stock: 'מלאי', users: 'משתמשים',
-            procedures: 'נהלים', procedures_view: 'נהלים (צפייה בלבד)', admin_users: 'משתמשי ניהול',
+            procedures: 'נהלים', procedures_view: 'נהלים (צפייה בלבד)', admin_users: 'משתמשי ניהול', backups: 'גיבויים',
             suppliers: 'ספקים', communications: 'תקשורת לקוחות', capa: 'CAPA', nonconformities: 'מוצר לא מתאים',
             receiving: 'קליטה', risk: 'סיכונים', training: 'הדרכות', audits: 'מבדקים',
             management_review: 'סקר הנהלה', vigilance: 'אירועים חריגים', changes: 'ניהול שינויים',
