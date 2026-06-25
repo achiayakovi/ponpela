@@ -317,8 +317,8 @@
             <button class="tab" data-area="stock" onclick="switchTab('stock')">מלאי</button>
             <button class="tab" data-area="users" onclick="switchTab('users')">משתמשים</button>
             <button class="tab" data-area="receiving" onclick="switchTab('receiving')">📦 קליטה</button>
-            <button class="tab" data-area="procedures" onclick="switchTab('procedures')">📋 נהלים</button>
-            <button class="tab" data-area="admin_users" onclick="switchTab('admin_users')">🔑 משתמשי ניהול</button>
+            <button class="tab" data-area="procedures" onclick="switchTab('procedures')">נהלים</button>
+            <button class="tab" data-area="admin_users" onclick="switchTab('admin_users')">משתמשי ניהול</button>
         </div>
 
         <!-- Warranties Section -->
@@ -1601,7 +1601,7 @@
                     content.innerHTML = '<p>עדיין לא הועלו נהלים.</p>';
                     return;
                 }
-                let html = '<div class="table-container"><table><thead><tr><th>קוד</th><th>כותרת</th><th>גרסה</th><th>עודכן</th><th>פעולות</th></tr></thead><tbody>';
+                let html = '<div class="table-container"><table><thead><tr><th>קוד</th><th>כותרת</th><th>גרסה</th><th>עודכן</th><th>ע"י</th><th>פעולות</th></tr></thead><tbody>';
                 procs.forEach(p => {
                     const updated = p.updated_at ? new Date(p.updated_at).toLocaleDateString('he-IL') : '';
                     html += `<tr>
@@ -1609,6 +1609,7 @@
                         <td>${escapeHtml(p.title)}</td>
                         <td>${escapeHtml(p.version || '')}</td>
                         <td>${escapeHtml(updated)}</td>
+                        <td>${escapeHtml(p.handled_by_name || p.created_by_name || '')}</td>
                         <td>
                           <button class="btn btn-primary" onclick="viewProcedure(${p.id}, '${escapeJsAttr(p.filename)}')">צפה</button>
                           <button class="btn btn-danger" onclick="deleteProcedure(${p.id})">מחק</button>
@@ -1913,7 +1914,7 @@
                 if (!Array.isArray(list) || list.length === 0) {
                     content.innerHTML = '<p>אין קליטות עדיין.</p>'; sel.innerHTML = '<option value="">— אין קליטות —</option>'; return;
                 }
-                let html = '<div class="table-container"><table><thead><tr><th>תאריך</th><th>ספק</th><th>דגם</th><th>כמות</th><th>סטטוס</th><th>סריאליים</th><th>פעולות</th></tr></thead><tbody>';
+                let html = '<div class="table-container"><table><thead><tr><th>תאריך</th><th>ספק</th><th>דגם</th><th>כמות</th><th>סטטוס</th><th>סריאליים</th><th>טופל ע"י</th><th>פעולות</th></tr></thead><tbody>';
                 let opts = '';
                 list.forEach(r => {
                     const d = r.receiving_date ? new Date(r.receiving_date).toLocaleDateString('he-IL') : '';
@@ -1924,6 +1925,7 @@
                         <td>${escapeHtml(String(r.quantity_received ?? r.quantity_declared ?? ''))}</td>
                         <td>${escapeHtml(r.status || '')}</td>
                         <td>${r.serials_count}</td>
+                        <td>${escapeHtml(r.handled_by_name || '')}</td>
                         <td><button class="btn btn-danger" onclick="deleteReceiving(${r.id})">מחק</button></td>
                     </tr>`;
                     opts += `<option value="${r.id}">#${r.id} — ${escapeHtml(r.model || '')} ${escapeHtml(d)}</option>`;
@@ -1998,13 +2000,14 @@
                 document.getElementById('serialsTotal').textContent = `(סה"כ ${data.total})`;
                 const rows = data.serials || [];
                 if (rows.length === 0) { content.innerHTML = '<p>אין סריאליים.</p>'; return; }
-                let html = '<div class="table-container"><table><thead><tr><th>מספר סידורי</th><th>דגם</th><th>מקור</th><th>סטטוס</th><th>פעולות</th></tr></thead><tbody>';
+                let html = '<div class="table-container"><table><thead><tr><th>מספר סידורי</th><th>דגם</th><th>מקור</th><th>סטטוס</th><th>נוסף ע"י</th><th>פעולות</th></tr></thead><tbody>';
                 rows.forEach(s => {
                     html += `<tr>
                         <td>${escapeHtml(s.serial_number)}</td>
                         <td>${escapeHtml(s.model || '')}</td>
                         <td>${s.is_legacy ? 'ידני (legacy)' : 'קליטה #' + (s.receiving_id || '?')}</td>
                         <td>${escapeHtml(s.status || '')}</td>
+                        <td>${escapeHtml(s.created_by_name || '')}</td>
                         <td><button class="btn btn-danger" onclick="deleteSerial(${s.id})">מחק</button></td>
                     </tr>`;
                 });
