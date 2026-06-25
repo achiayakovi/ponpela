@@ -339,7 +339,6 @@
             <button class="tab" data-area="vigilance" onclick="switchTab('vigilance')">אירועים חריגים</button>
             <button class="tab" data-area="changes" onclick="switchTab('changes')">ניהול שינויים</button>
             <button class="tab" data-area="recalls" onclick="switchTab('recalls')">ריקול</button>
-            <button class="tab" data-area="satisfaction" onclick="switchTab('satisfaction')">שביעות רצון</button>
             <button class="tab" data-area="procedures" onclick="switchTab('procedures')">נהלים</button>
             <button class="tab" data-area="admin_users" onclick="switchTab('admin_users')">משתמשי ניהול</button>
         </div>
@@ -577,9 +576,10 @@
                 <div class="form-row">
                     <div class="form-group"><label>סוג</label><select id="commType" onchange="onCommTypeChange()">
                         <option value="שיחה">שיחה</option><option value="מכירה">מכירה</option>
-                        <option value="תלונה">תלונה</option><option value="אחר">אחר</option></select></div>
+                        <option value="תלונה">תלונה</option><option value="משוב">משוב (שביעות רצון)</option><option value="אחר">אחר</option></select></div>
                     <div class="form-group"><label>תאריך</label><input type="date" id="commDate"></div>
                 </div>
+                <div id="feedbackFields" class="form-group" style="display:none;"><label>דירוג שביעות רצון (1–5)</label><select id="commScore"><option value="">—</option><option value="5">5</option><option value="4">4</option><option value="3">3</option><option value="2">2</option><option value="1">1</option></select></div>
                 <div class="form-group" style="position:relative;"><label>חיפוש לקוח (שם/טלפון/סריאלי)</label>
                     <input type="text" id="custSearch" placeholder="הקלד לחיפוש..." oninput="searchCustomer()" autocomplete="off">
                     <div id="custResults" style="display:none; position:absolute; z-index:10; background:#fff; border:1px solid #ccc; border-radius:6px; width:100%; max-height:220px; overflow:auto;"></div>
@@ -615,9 +615,10 @@
                 <select id="commFilterType" onchange="loadCommunications()" style="padding:10px; border:2px solid #e0e0e0; border-radius:8px; font-family:inherit;">
                     <option value="">כל הסוגים</option>
                     <option value="שיחה">שיחה</option><option value="מכירה">מכירה</option>
-                    <option value="תלונה">תלונה</option><option value="אחר">אחר</option>
+                    <option value="תלונה">תלונה</option><option value="משוב">משוב</option><option value="אחר">אחר</option>
                 </select>
             </div>
+            <div id="satStatsPanel" style="display:none;"></div>
             <div id="communicationsContent"></div>
         </div>
 
@@ -843,7 +844,8 @@
         <!-- Recalls Section -->
         <div id="recallsSection" class="section">
             <h2>ריקול</h2>
-            <div style="background:#eef; padding:14px; border-radius:8px; margin-bottom:18px;">
+            <button class="btn btn-primary" onclick="toggleFindAffected()" style="margin-bottom:14px;">🔍 איתור לקוחות מושפעים</button>
+            <div id="findAffectedBox" style="display:none; background:#eef; padding:14px; border-radius:8px; margin-bottom:18px;">
                 <strong>איתור לקוחות מושפעים</strong> (לפי טווח/רשימת סריאליים)
                 <div class="form-row" style="margin-top:8px;">
                     <div class="form-group"><label>טווח מ-</label><input type="number" id="raFrom"></div>
@@ -868,24 +870,6 @@
             <div id="recallsContent"></div>
         </div>
 
-        <!-- Satisfaction Section -->
-        <div id="satisfactionSection" class="section">
-            <h2>שביעות רצון לקוח</h2>
-            <button class="btn btn-primary" onclick="toggleSatAdd()" style="margin-bottom:14px;">➕ משוב חדש</button>
-            <form id="satAddForm" onsubmit="addSat(event)" style="display:none; background:#fafbfc; padding:16px; border-radius:8px; margin-bottom:20px;">
-                <div class="form-row">
-                    <div class="form-group"><label>תאריך</label><input type="date" id="stDate"></div>
-                    <div class="form-group"><label>דירוג (1–5)</label><select id="stScore"><option value="">—</option><option value="5">5</option><option value="4">4</option><option value="3">3</option><option value="2">2</option><option value="1">1</option></select></div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group"><label>שם לקוח</label><input type="text" id="stName"></div>
-                    <div class="form-group"><label>טלפון</label><input type="text" id="stPhone"></div>
-                </div>
-                <div class="form-group"><label>משוב</label><textarea id="stFeedback" rows="2"></textarea></div>
-                <div><button type="submit" class="btn btn-primary">שמור</button> <button type="button" class="btn" onclick="toggleSatAdd()">ביטול</button></div>
-            </form>
-            <div id="satisfactionContent"></div>
-        </div>
     </div>
 
     <!-- Product Modal -->
@@ -1177,7 +1161,6 @@
             else if (tab === 'vigilance') loadAdverseEvents();
             else if (tab === 'changes') loadChanges();
             else if (tab === 'recalls') loadRecalls();
-            else if (tab === 'satisfaction') loadSatisfaction();
             else if (tab === 'procedures') loadProcedures();
             else if (tab === 'admin_users') loadAdminUsers();
         }
@@ -2175,7 +2158,7 @@
             suppliers: 'ספקים', communications: 'תקשורת לקוחות', capa: 'CAPA', nonconformities: 'מוצר לא מתאים',
             receiving: 'קליטה', risk: 'סיכונים', training: 'הדרכות', audits: 'מבדקים',
             management_review: 'סקר הנהלה', vigilance: 'אירועים חריגים', changes: 'ניהול שינויים',
-            recalls: 'ריקול', satisfaction: 'שביעות רצון'
+            recalls: 'ריקול'
         };
         let qmsAreasList = [];
 
@@ -2617,8 +2600,9 @@
         let commData = [];
 
         function onCommTypeChange() {
-            const isComplaint = document.getElementById('commType').value === 'תלונה';
-            document.getElementById('complaintFields').style.display = isComplaint ? 'block' : 'none';
+            const tp = document.getElementById('commType').value;
+            document.getElementById('complaintFields').style.display = (tp === 'תלונה') ? 'block' : 'none';
+            document.getElementById('feedbackFields').style.display = (tp === 'משוב') ? 'block' : 'none';
             checkEventWarn();
         }
         function checkEventWarn() {
@@ -2668,7 +2652,24 @@
                 const res = await fetch(`${API_URL}/api/admin/communications${type ? '?type='+encodeURIComponent(type) : ''}`, { headers: { 'Authorization': `Bearer ${token}` } });
                 commData = await res.json();
                 renderComm();
+                loadSatStats(type === 'משוב');
             } catch (err) { document.getElementById('communicationsContent').innerHTML = '<p>שגיאה בטעינה.</p>'; }
+        }
+
+        async function loadSatStats(show) {
+            const panel = document.getElementById('satStatsPanel');
+            if (!show) { panel.style.display = 'none'; return; }
+            const token = localStorage.getItem('adminToken');
+            try {
+                const s = await fetch(`${API_URL}/api/admin/satisfaction-stats`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json());
+                panel.style.display = 'block';
+                if (!s.n) { panel.innerHTML = '<div style="background:#eef; padding:12px; border-radius:8px; margin-bottom:12px;">אין משובים עם דירוג עדיין.</div>'; return; }
+                const bar = (n) => { const pct = s.n ? Math.round(n / s.n * 100) : 0; return `<div style="display:flex; align-items:center; gap:8px; margin:2px 0;"><span style="width:40px;">${n}</span><div style="background:#667eea; height:14px; width:${pct}%; border-radius:4px; min-width:2px;"></div></div>`; };
+                panel.innerHTML = `<div style="background:#eef; padding:14px; border-radius:8px; margin-bottom:14px;">
+                    <strong>סיכום שביעות רצון</strong> — ממוצע <span style="font-size:1.3rem; color:#5a4ed1; font-weight:bold;">${s.avg}</span>/5 · ${s.n} משובים
+                    <div style="margin-top:8px;"><div>★5 ${bar(s.s5)}</div><div>★4 ${bar(s.s4)}</div><div>★3 ${bar(s.s3)}</div><div>★2 ${bar(s.s2)}</div><div>★1 ${bar(s.s1)}</div></div>
+                </div>`;
+            } catch (err) { panel.style.display = 'none'; }
         }
 
         function renderComm() {
@@ -2681,7 +2682,7 @@
                 const open = expandedCommId === c.id;
                 html += `<tr style="cursor:pointer;" onclick="toggleCommExpand(${c.id})">
                     <td>${open?'▲':'▼'}</td><td>${escapeHtml(d)}</td><td>${escapeHtml(c.type||'')}</td><td>${escapeHtml(c.customer_name||'')}</td>
-                    <td>${escapeHtml(c.customer_phone||'')}</td><td>${c.type==='תלונה'?escapeHtml(c.status||''):''}</td><td>${escapeHtml(c.handled_by_name||'')}</td></tr>`;
+                    <td>${escapeHtml(c.customer_phone||'')}</td><td>${c.type==='תלונה'?escapeHtml(c.status||''):(c.type==='משוב'&&c.score?'★'+c.score:'')}</td><td>${escapeHtml(c.handled_by_name||'')}</td></tr>`;
                 if (open) {
                     const capaBtn = c.type === 'תלונה'
                         ? (c.capa_id ? `<strong>CAPA #${c.capa_id}</strong>` : `<button class="btn btn-primary" onclick="event.stopPropagation();openCapaFromComm(${c.id})">פתח CAPA</button>`)
@@ -2689,11 +2690,13 @@
                     html += `<tr><td colspan="7" style="background:#f8f9fa; padding:10px 14px;">
                         ${c.serial_number ? `<div style="margin-bottom:8px;"><strong>סריאלי:</strong> ${escapeHtml(c.serial_number)}</div>` : ''}
                         <div style="margin-bottom:8px;"><strong>תיאור:</strong> ${escapeHtml(c.description||'—')}</div>
+                        ${c.type==='משוב' ? `<div style="margin-bottom:8px;"><strong>דירוג:</strong> ${c.score?'★'+c.score+'/5':'—'}</div>` : ''}
                         ${c.type==='תלונה' ? `
                           <div style="margin-bottom:8px;"><strong>סיווג:</strong> ${escapeHtml(c.classification||'—')}</div>
                           <div style="margin-bottom:8px;"><strong>מענה ראשוני:</strong> ${escapeHtml(c.initial_response||'—')}</div>
                           <div style="margin-bottom:8px;"><strong>החלטת סגירה:</strong> ${escapeHtml(c.resolution||'—')}</div>
-                          <div style="margin-bottom:8px;"><strong>CAPA:</strong> ${capaBtn}</div>` : ''}
+                          <div style="margin-bottom:8px;"><strong>CAPA:</strong> ${capaBtn}</div>
+                          ${c.classification==='אירוע' ? `<div style="margin-bottom:8px;"><strong>אירוע Vigilance:</strong> ${c.adverse_event_id ? 'אירוע #'+c.adverse_event_id : `<button class="btn" onclick="event.stopPropagation();openVigFromComm(${c.id})">פתח אירוע Vigilance</button>`}</div>` : ''}` : ''}
                         <div><button class="btn btn-primary" onclick="event.stopPropagation();startEditComm(${c.id})">ערוך</button>
                         <button class="btn btn-danger" onclick="event.stopPropagation();deleteCommunication(${c.id})">מחק</button></div></td></tr>`;
                 }
@@ -2708,9 +2711,10 @@
             const isComplaint = c.type === 'תלונה';
             return `<div style="padding:16px; background:#fafbfc;">
                 <div class="form-row">
-                    <div class="form-group"><label>סוג</label><select id="ecm_type_${c.id}" onchange="onEditCommType(${c.id})">${['שיחה','מכירה','תלונה','אחר'].map(v=>opt(v,c.type)).join('')}</select></div>
+                    <div class="form-group"><label>סוג</label><select id="ecm_type_${c.id}" onchange="onEditCommType(${c.id})">${['שיחה','מכירה','תלונה','משוב','אחר'].map(v=>opt(v,c.type)).join('')}</select></div>
                     <div class="form-group"><label>תאריך</label><input type="date" id="ecm_date_${c.id}" value="${dt}"></div>
                 </div>
+                <div id="ecm_feedback_${c.id}" class="form-group" style="display:${c.type==='משוב'?'block':'none'};"><label>דירוג שביעות רצון (1–5)</label><select id="ecm_score_${c.id}"><option value="">—</option>${[5,4,3,2,1].map(v=>`<option value="${v}" ${String(c.score)===String(v)?'selected':''}>${v}</option>`).join('')}</select></div>
                 <div class="form-row">
                     <div class="form-group"><label>שם לקוח</label><input type="text" id="ecm_name_${c.id}" value="${escapeHtml(c.customer_name||'')}"></div>
                     <div class="form-group"><label>טלפון</label><input type="text" id="ecm_phone_${c.id}" value="${escapeHtml(c.customer_phone||'')}"></div>
@@ -2730,8 +2734,10 @@
             </div>`;
         }
         function onEditCommType(id) {
-            const isComplaint = document.getElementById('ecm_type_'+id).value === 'תלונה';
-            document.getElementById('ecm_complaint_'+id).style.display = isComplaint ? 'block' : 'none';
+            const tp = document.getElementById('ecm_type_'+id).value;
+            document.getElementById('ecm_complaint_'+id).style.display = (tp === 'תלונה') ? 'block' : 'none';
+            const fb = document.getElementById('ecm_feedback_'+id);
+            if (fb) fb.style.display = (tp === 'משוב') ? 'block' : 'none';
         }
 
         function toggleCommExpand(id) { if (editingCommId === id) return; editingCommId = null; expandedCommId = (expandedCommId === id) ? null : id; renderComm(); }
@@ -2752,13 +2758,15 @@
                 classification: document.getElementById('commClassification').value || null,
                 initial_response: document.getElementById('commResponse').value.trim(),
                 resolution: document.getElementById('commResolution').value.trim(),
-                status: document.getElementById('commStatus').value
+                status: document.getElementById('commStatus').value,
+                score: document.getElementById('commScore').value || null
             };
             try {
                 const res = await fetch(`${API_URL}/api/admin/communications`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(body) });
                 if (!res.ok) { const dd = await res.json(); showMessage(dd.error || 'שגיאה', 'error'); return; }
                 showMessage('נשמר', 'success');
                 ['commName','commPhone','commSerial','commDesc','commResponse','commResolution','commUserId','commDate'].forEach(id => document.getElementById(id).value = '');
+                document.getElementById('commScore').value = '';
                 document.getElementById('commType').value = 'שיחה';
                 document.getElementById('commClassification').value = '';
                 document.getElementById('commStatus').value = 'פתוחה';
@@ -2780,7 +2788,8 @@
                 classification: document.getElementById('ecm_class_'+id).value || null,
                 initial_response: document.getElementById('ecm_response_'+id).value.trim(),
                 resolution: document.getElementById('ecm_resolution_'+id).value.trim(),
-                status: document.getElementById('ecm_status_'+id).value
+                status: document.getElementById('ecm_status_'+id).value,
+                score: (document.getElementById('ecm_score_'+id) ? document.getElementById('ecm_score_'+id).value : '') || null
             };
             try {
                 const res = await fetch(`${API_URL}/api/admin/communications/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(body) });
@@ -2810,6 +2819,19 @@
                 loadCommunications();
                 if (adminHasArea('capa')) switchTab('capa');
             } catch (err) { showMessage('שגיאה בפתיחת CAPA', 'error'); }
+        }
+
+        async function openVigFromComm(commId) {
+            if (!confirm('לפתוח אירוע Vigilance עבור תלונה זו?')) return;
+            const token = localStorage.getItem('adminToken');
+            try {
+                const res = await fetch(`${API_URL}/api/admin/communications/${commId}/open-vigilance`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } });
+                const d = await res.json();
+                if (!res.ok) { showMessage(d.error || 'שגיאה', 'error'); return; }
+                showMessage('אירוע נפתח #' + d.id, 'success');
+                loadCommunications();
+                if (adminHasArea('vigilance')) switchTab('vigilance');
+            } catch (err) { showMessage('שגיאה בפתיחת אירוע', 'error'); }
         }
 
         // ===== CAPA =====
@@ -3763,7 +3785,8 @@
                 const d=v.event_date?new Date(v.event_date).toLocaleDateString('he-IL'):'';const open=expVig===v.id;
                 h+=`<tr style="cursor:pointer;" onclick="toggleVigExpand(${v.id})"><td>${open?'▲':'▼'}</td><td>${escapeHtml(d)}</td><td>${escapeHtml(v.severity||'')}</td><td>${escapeHtml(v.serial_number||'')}</td><td>${v.reported_to_amar?'כן':'<span style=\"color:#c0392b;\">לא</span>'}</td><td>${escapeHtml(v.status||'')}</td><td>${escapeHtml(v.handled_by_name||'')}</td></tr>`;
                 if(open){const rd=v.report_date?new Date(v.report_date).toLocaleDateString('he-IL'):'—';
-                    h+=`<tr><td colspan="7" style="background:#f8f9fa; padding:10px 14px;"><div style="margin-bottom:8px;"><strong>תיאור:</strong> ${escapeHtml(v.description||'—')}</div><div style="margin-bottom:8px;"><strong>תאריך דיווח:</strong> ${escapeHtml(rd)} · <strong>אישור אמ"ר:</strong> ${escapeHtml(v.amar_confirmation||'—')}</div><div><button class="btn btn-primary" onclick="event.stopPropagation();startEditVig(${v.id})">ערוך</button> <button class="btn btn-danger" onclick="event.stopPropagation();deleteVig(${v.id})">מחק</button></div></td></tr>`;}});
+                    const capaBtnV = v.capa_id ? `<strong>CAPA #${v.capa_id}</strong>` : `<button class="btn" onclick="event.stopPropagation();openCapaFromVig(${v.id})">פתח CAPA</button>`;
+                    h+=`<tr><td colspan="7" style="background:#f8f9fa; padding:10px 14px;"><div style="margin-bottom:8px;"><strong>תיאור:</strong> ${escapeHtml(v.description||'—')}</div><div style="margin-bottom:8px;"><strong>תאריך דיווח:</strong> ${escapeHtml(rd)} · <strong>אישור אמ"ר:</strong> ${escapeHtml(v.amar_confirmation||'—')}</div><div style="margin-bottom:8px;"><strong>CAPA:</strong> ${capaBtnV}</div><div><button class="btn btn-primary" onclick="event.stopPropagation();startEditVig(${v.id})">ערוך</button> <button class="btn btn-danger" onclick="event.stopPropagation();deleteVig(${v.id})">מחק</button></div></td></tr>`;}});
             h+='</tbody></table></div>';c.innerHTML=h;}
         function vigEditForm(v){const dt=v.event_date?v.event_date.slice(0,10):'';const rdt=v.report_date?v.report_date.slice(0,10):'';const opt=(x,cur)=>`<option value="${x}" ${cur===x?'selected':''}>${x}</option>`;
             return `<div style="padding:16px; background:#fafbfc;"><div class="form-row"><div class="form-group"><label>תאריך אירוע</label><input type="date" id="evDate_${v.id}" value="${dt}"></div><div class="form-group"><label>סריאלי</label><input type="text" id="evSerial_${v.id}" value="${escapeHtml(v.serial_number||'')}"></div></div>
@@ -3780,6 +3803,7 @@
         async function saveVigInline(id){const t=localStorage.getItem('adminToken');const body={event_date:document.getElementById('evDate_'+id).value||null,serial_number:document.getElementById('evSerial_'+id).value.trim(),severity:document.getElementById('evSev_'+id).value.trim(),status:document.getElementById('evStatus_'+id).value,description:document.getElementById('evDesc_'+id).value.trim(),reported_to_amar:document.getElementById('evReported_'+id).checked,report_date:document.getElementById('evRep_'+id).value||null,amar_confirmation:document.getElementById('evConf_'+id).value.trim()};
             try{const r=await fetch(`${API_URL}/api/admin/adverse-events/${id}`,{method:'PUT',headers:{'Content-Type':'application/json','Authorization':`Bearer ${t}`},body:JSON.stringify(body)});if(!r.ok){const d=await r.json();showMessage(d.error||'שגיאה','error');return;}showMessage('עודכן','success');edVig=null;loadAdverseEvents();}catch(err){showMessage('שגיאה בשמירה','error');}}
         async function deleteVig(id){if(!confirm('למחוק?'))return;const t=localStorage.getItem('adminToken');try{const r=await fetch(`${API_URL}/api/admin/adverse-events/${id}`,{method:'DELETE',headers:{'Authorization':`Bearer ${t}`}});if(!r.ok){showMessage('שגיאה','error');return;}showMessage('נמחק','success');expVig=null;loadAdverseEvents();}catch(err){showMessage('שגיאה','error');}}
+        async function openCapaFromVig(id){if(!confirm('לפתוח CAPA עבור אירוע זה?'))return;const t=localStorage.getItem('adminToken');try{const r=await fetch(`${API_URL}/api/admin/adverse-events/${id}/open-capa`,{method:'POST',headers:{'Authorization':`Bearer ${t}`}});const d=await r.json();if(!r.ok){showMessage(d.error||'שגיאה','error');return;}showMessage('CAPA נפתחה #'+d.id,'success');loadAdverseEvents();if(adminHasArea('capa'))switchTab('capa');}catch(err){showMessage('שגיאה','error');}}
 
         // ===== ניהול שינויים =====
         let chData=[], expCh=null, edCh=null;
@@ -3811,6 +3835,7 @@
         // ===== ריקול =====
         let rclData=[], expRcl=null, edRcl=null;
         function toggleRecallAdd(){const f=document.getElementById('recallAddForm');f.style.display=f.style.display==='none'?'block':'none';}
+        function toggleFindAffected(){const f=document.getElementById('findAffectedBox');f.style.display=f.style.display==='none'?'block':'none';}
         async function findAffected(){const t=localStorage.getItem('adminToken');const box=document.getElementById('affectedResults');
             try{const r=await fetch(`${API_URL}/api/admin/recalls/find-affected`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${t}`},body:JSON.stringify({from:document.getElementById('raFrom').value||null,to:document.getElementById('raTo').value||null,list:document.getElementById('raList').value||null})});
                 const d=await r.json();if(!r.ok){showMessage(d.error||'שגיאה','error');return;}
@@ -3840,31 +3865,6 @@
         async function saveRclInline(id){const t=localStorage.getItem('adminToken');const body={recall_date:document.getElementById('rcl_date_'+id).value||null,status:document.getElementById('rcl_status_'+id).value,title:document.getElementById('rcl_title_'+id).value.trim(),reason:document.getElementById('rcl_reason_'+id).value.trim(),scope:document.getElementById('rcl_scope_'+id).value.trim(),notes:document.getElementById('rcl_notes_'+id).value.trim()};
             try{const r=await fetch(`${API_URL}/api/admin/recalls/${id}`,{method:'PUT',headers:{'Content-Type':'application/json','Authorization':`Bearer ${t}`},body:JSON.stringify(body)});if(!r.ok){const d=await r.json();showMessage(d.error||'שגיאה','error');return;}showMessage('עודכן','success');edRcl=null;loadRecalls();}catch(err){showMessage('שגיאה בשמירה','error');}}
         async function deleteRcl(id){if(!confirm('למחוק?'))return;const t=localStorage.getItem('adminToken');try{const r=await fetch(`${API_URL}/api/admin/recalls/${id}`,{method:'DELETE',headers:{'Authorization':`Bearer ${t}`}});if(!r.ok){showMessage('שגיאה','error');return;}showMessage('נמחק','success');expRcl=null;loadRecalls();}catch(err){showMessage('שגיאה','error');}}
-
-        // ===== שביעות רצון =====
-        let satData=[], expSat=null, edSat=null;
-        function toggleSatAdd(){const f=document.getElementById('satAddForm');f.style.display=f.style.display==='none'?'block':'none';}
-        async function loadSatisfaction(){const t=localStorage.getItem('adminToken');try{const r=await fetch(`${API_URL}/api/admin/satisfaction`,{headers:{'Authorization':`Bearer ${t}`}});satData=await r.json();renderSat();}catch(e){document.getElementById('satisfactionContent').innerHTML='<p>שגיאה בטעינה.</p>';}}
-        function renderSat(){const c=document.getElementById('satisfactionContent');if(!Array.isArray(satData)||!satData.length){c.innerHTML='<p>אין רשומות.</p>';return;}
-            let h='<div class="table-container"><table><thead><tr><th></th><th>תאריך</th><th>לקוח</th><th>דירוג</th><th>ע"י</th></tr></thead><tbody>';
-            satData.forEach(s=>{if(edSat===s.id){h+=`<tr><td colspan="5" style="padding:0;">${satEditForm(s)}</td></tr>`;return;}
-                const d=s.survey_date?new Date(s.survey_date).toLocaleDateString('he-IL'):'';const open=expSat===s.id;
-                h+=`<tr style="cursor:pointer;" onclick="toggleSatExpand(${s.id})"><td>${open?'▲':'▼'}</td><td>${escapeHtml(d)}</td><td>${escapeHtml(s.customer_name||'')}</td><td>${s.score?'★'+s.score:''}</td><td>${escapeHtml(s.handled_by_name||'')}</td></tr>`;
-                if(open){h+=`<tr><td colspan="5" style="background:#f8f9fa; padding:10px 14px;"><div style="margin-bottom:8px;"><strong>טלפון:</strong> ${escapeHtml(s.customer_phone||'—')}</div><div style="margin-bottom:8px;"><strong>משוב:</strong> ${escapeHtml(s.feedback||'—')}</div><div><button class="btn btn-primary" onclick="event.stopPropagation();startEditSat(${s.id})">ערוך</button> <button class="btn btn-danger" onclick="event.stopPropagation();deleteSat(${s.id})">מחק</button></div></td></tr>`;}});
-            h+='</tbody></table></div>';c.innerHTML=h;}
-        function satEditForm(s){const dt=s.survey_date?s.survey_date.slice(0,10):'';const opt=(x,cur)=>`<option value="${x}" ${String(cur)===String(x)?'selected':''}>${x}</option>`;
-            return `<div style="padding:16px; background:#fafbfc;"><div class="form-row"><div class="form-group"><label>תאריך</label><input type="date" id="st_date_${s.id}" value="${dt}"></div><div class="form-group"><label>דירוג (1–5)</label><select id="st_score_${s.id}"><option value="">—</option>${[5,4,3,2,1].map(x=>opt(x,s.score)).join('')}</select></div></div>
-                <div class="form-row"><div class="form-group"><label>שם לקוח</label><input type="text" id="st_name_${s.id}" value="${escapeHtml(s.customer_name||'')}"></div><div class="form-group"><label>טלפון</label><input type="text" id="st_phone_${s.id}" value="${escapeHtml(s.customer_phone||'')}"></div></div>
-                <div class="form-group"><label>משוב</label><textarea id="st_feedback_${s.id}" rows="2">${escapeHtml(s.feedback||'')}</textarea></div>
-                <div><button class="btn btn-success" onclick="saveSatInline(${s.id})">שמור</button> <button class="btn" onclick="cancelEditSat()">בטל</button></div></div>`;}
-        function toggleSatExpand(id){if(edSat===id)return;edSat=null;expSat=expSat===id?null:id;renderSat();}
-        function startEditSat(id){expSat=id;edSat=id;renderSat();}
-        function cancelEditSat(){edSat=null;renderSat();}
-        async function addSat(e){e.preventDefault();const t=localStorage.getItem('adminToken');const body={survey_date:document.getElementById('stDate').value||null,score:document.getElementById('stScore').value||null,customer_name:document.getElementById('stName').value.trim(),customer_phone:document.getElementById('stPhone').value.trim(),feedback:document.getElementById('stFeedback').value.trim()};
-            try{const r=await fetch(`${API_URL}/api/admin/satisfaction`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${t}`},body:JSON.stringify(body)});if(!r.ok){const d=await r.json();showMessage(d.error||'שגיאה','error');return;}showMessage('נשמר','success');['stDate','stName','stPhone','stFeedback'].forEach(i=>document.getElementById(i).value='');document.getElementById('stScore').value='';document.getElementById('satAddForm').style.display='none';loadSatisfaction();}catch(err){showMessage('שגיאה בשמירה','error');}}
-        async function saveSatInline(id){const t=localStorage.getItem('adminToken');const body={survey_date:document.getElementById('st_date_'+id).value||null,score:document.getElementById('st_score_'+id).value||null,customer_name:document.getElementById('st_name_'+id).value.trim(),customer_phone:document.getElementById('st_phone_'+id).value.trim(),feedback:document.getElementById('st_feedback_'+id).value.trim()};
-            try{const r=await fetch(`${API_URL}/api/admin/satisfaction/${id}`,{method:'PUT',headers:{'Content-Type':'application/json','Authorization':`Bearer ${t}`},body:JSON.stringify(body)});if(!r.ok){const d=await r.json();showMessage(d.error||'שגיאה','error');return;}showMessage('עודכן','success');edSat=null;loadSatisfaction();}catch(err){showMessage('שגיאה בשמירה','error');}}
-        async function deleteSat(id){if(!confirm('למחוק?'))return;const t=localStorage.getItem('adminToken');try{const r=await fetch(`${API_URL}/api/admin/satisfaction/${id}`,{method:'DELETE',headers:{'Authorization':`Bearer ${t}`}});if(!r.ok){showMessage('שגיאה','error');return;}showMessage('נמחק','success');expSat=null;loadSatisfaction();}catch(err){showMessage('שגיאה','error');}}
 
         function showMessage(text, type) {
             const msg = document.getElementById('message');
