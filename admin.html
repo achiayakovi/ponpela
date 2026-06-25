@@ -676,6 +676,12 @@
                     <div id="custResults" style="display:none; position:absolute; z-index:10; background:#fff; border:1px solid #ccc; border-radius:6px; width:100%; max-height:220px; overflow:auto;"></div>
                 </div>
                 <input type="hidden" id="commUserId">
+                <input type="hidden" id="commOrderId">
+                <div class="form-group" style="position:relative;"><label>צרף הזמנה / אחריות (כדי לדעת מוצרים)</label>
+                    <input type="text" id="commOrderSearch" placeholder="חפש לפי מספר הזמנה / שם / טלפון / סריאלי..." oninput="searchCommOrder()" autocomplete="off">
+                    <div id="commOrderResults" style="display:none; position:absolute; z-index:10; background:#fff; border:1px solid #ccc; border-radius:6px; width:100%; max-height:220px; overflow:auto;"></div>
+                    <div id="commOrderChip" style="margin-top:6px;"></div>
+                </div>
                 <div class="form-row">
                     <div class="form-group"><label>שם לקוח</label><input type="text" id="commName"></div>
                     <div class="form-group"><label>טלפון</label><input type="text" id="commPhone"></div>
@@ -2893,6 +2899,55 @@
             document.getElementById('custResults').style.display = 'none';
             document.getElementById('custSearch').value = '';
         }
+        // צירוף הזמנה/אחריות למשוב (כדי לדעת מוצרים) — מקושר ללקוח אורח
+        let commOrderTimer = null, commOrderWarr = [];
+        function searchCommOrder() {
+            clearTimeout(commOrderTimer);
+            commOrderTimer = setTimeout(async () => {
+                const token = localStorage.getItem('adminToken');
+                const q = document.getElementById('commOrderSearch').value.trim();
+                const box = document.getElementById('commOrderResults');
+                if (q.length < 1) { box.style.display = 'none'; return; }
+                try {
+                    const d = await fetch(`${API_URL}/api/admin/orders/search?q=${encodeURIComponent(q)}`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json());
+                    const orders = (d && d.orders) || [], warrs = (d && d.warranties) || [];
+                    commOrderWarr = warrs;
+                    if (!orders.length && !warrs.length) { box.innerHTML = '<div style="padding:6px;color:#888;">אין תוצאות</div>'; box.style.display = 'block'; return; }
+                    let h = orders.map(o => `<div style="padding:6px;cursor:pointer;border-bottom:1px solid #eee;" onclick="pickCommOrder('order',${o.id})">📦 הזמנה #${o.id} · ${escapeHtml(o.cname || '')} · ${escapeHtml(o.cphone || '')}</div>`).join('');
+                    h += warrs.map(w => `<div style="padding:6px;cursor:pointer;border-bottom:1px solid #eee;" onclick="pickCommOrder('warr',${w.id})">🔧 אחריות · ${escapeHtml(w.machine_number || '')} · ${escapeHtml(w.product_name || '')} · ${escapeHtml(w.cname || '')}</div>`).join('');
+                    box.innerHTML = h; box.style.display = 'block';
+                } catch (e) { box.style.display = 'none'; }
+            }, 250);
+        }
+        async function pickCommOrder(kind, id) {
+            document.getElementById('commOrderResults').style.display = 'none';
+            document.getElementById('commOrderSearch').value = '';
+            const chip = document.getElementById('commOrderChip');
+            if (kind === 'order') {
+                document.getElementById('commOrderId').value = id;
+                document.getElementById('commSerial').value = '';
+                // מילוי שם/טלפון מההזמנה
+                try {
+                    const token = localStorage.getItem('adminToken');
+                    const o = await fetch(`${API_URL}/api/admin/order/${id}`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json());
+                    document.getElementById('commName').value = o.full_name || o.guest_name || document.getElementById('commName').value;
+                    document.getElementById('commPhone').value = o.phone || o.guest_phone || document.getElementById('commPhone').value;
+                    const prods = (o.items || []).map(it => it.product_name).filter(Boolean).join(', ');
+                    chip.innerHTML = `<span style="background:#eef;padding:4px 10px;border-radius:12px;">מצורף: הזמנה #${id}${prods ? ' — ' + escapeHtml(prods) : ''} <a href="#" onclick="clearCommOrder();return false;" style="color:#c0392b;">✕</a></span>`;
+                } catch (e) { chip.innerHTML = `מצורף: הזמנה #${id}`; }
+            } else {
+                const w = (commOrderWarr || []).find(x => x.id === id) || {};
+                document.getElementById('commOrderId').value = '';
+                document.getElementById('commSerial').value = w.machine_number || '';
+                document.getElementById('commName').value = w.cname || document.getElementById('commName').value;
+                document.getElementById('commPhone').value = w.cphone || document.getElementById('commPhone').value;
+                chip.innerHTML = `<span style="background:#eef;padding:4px 10px;border-radius:12px;">מצורף: אחריות ${escapeHtml(w.machine_number || '')}${w.product_name ? ' — ' + escapeHtml(w.product_name) : ''} <a href="#" onclick="clearCommOrder();return false;" style="color:#c0392b;">✕</a></span>`;
+            }
+        }
+        function clearCommOrder() {
+            document.getElementById('commOrderId').value = '';
+            document.getElementById('commOrderChip').innerHTML = '';
+        }
 
         let expandedCommId = null, editingCommId = null;
         function toggleCommAdd() {
@@ -2962,6 +3017,7 @@
                         ${c.serial_number ? `<div style="margin-bottom:8px;"><strong>סריאלי:</strong> ${escapeHtml(c.serial_number)}</div>` : ''}
                         <div style="margin-bottom:8px;"><strong>תיאור:</strong> ${escapeHtml(c.description||'—')}</div>
                         ${c.type==='משוב' ? `<div style="margin-bottom:8px;">${c.survey_stage?`<strong>שלב:</strong> ${escapeHtml(c.survey_stage)} · `:''}<strong>דירוגים:</strong> ${fbDetailHtml(c)}${c.score?` · <strong>ממוצע:</strong> ★${c.score}`:''}</div>` : ''}
+                        ${(c.order_id||c.serial_product) ? `<div style="margin-bottom:8px;">${c.order_id?`<strong>הזמנה:</strong> #${c.order_id}`:''}${c.order_products?` · <strong>מוצרים:</strong> ${escapeHtml(c.order_products)}`:(c.serial_product?`<strong>מוצר:</strong> ${escapeHtml(c.serial_product)}${c.serial_number?` (סריאלי ${escapeHtml(c.serial_number)})`:''}`:'')}</div>` : ''}
                         ${c.type==='תלונה' ? `
                           <div style="margin-bottom:8px;"><strong>סיווג:</strong> ${escapeHtml(c.classification||'—')}</div>
                           <div style="margin-bottom:8px;"><strong>מענה ראשוני:</strong> ${escapeHtml(c.initial_response||'—')}</div>
@@ -3037,6 +3093,7 @@
                 customer_phone: document.getElementById('commPhone').value.trim(),
                 serial_number: document.getElementById('commSerial').value.trim(),
                 user_id: document.getElementById('commUserId').value || null,
+                order_id: document.getElementById('commOrderId').value || null,
                 description: document.getElementById('commDesc').value.trim()
             };
             const post = (b) => fetch(`${API_URL}/api/admin/communications`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(b) });
@@ -3062,7 +3119,8 @@
                     if (!res.ok) { const dd = await res.json(); showMessage(dd.error || 'שגיאה', 'error'); return; }
                     showMessage('נשמר', 'success');
                 }
-                ['commName','commPhone','commSerial','commDesc','commResponse','commResolution','commUserId','commDate'].forEach(id => document.getElementById(id).value = '');
+                ['commName','commPhone','commSerial','commDesc','commResponse','commResolution','commUserId','commDate','commOrderId'].forEach(id => document.getElementById(id).value = '');
+                document.getElementById('commOrderChip').innerHTML = '';
                 document.getElementById('commType').value = 'שיחה';
                 document.getElementById('commClassification').value = '';
                 document.getElementById('commStatus').value = 'פתוחה';
