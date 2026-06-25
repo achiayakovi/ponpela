@@ -320,6 +320,7 @@
             <button class="tab" data-area="communications" onclick="switchTab('communications')">תקשורת לקוחות</button>
             <button class="tab" data-area="capa" onclick="switchTab('capa')">CAPA</button>
             <button class="tab" data-area="suppliers" onclick="switchTab('suppliers')">ספקים</button>
+            <button class="tab" data-area="nonconformities" onclick="switchTab('nonconformities')">מוצר לא מתאים</button>
             <button class="tab" data-area="procedures" onclick="switchTab('procedures')">נהלים</button>
             <button class="tab" data-area="admin_users" onclick="switchTab('admin_users')">משתמשי ניהול</button>
         </div>
@@ -656,6 +657,36 @@
             </form>
             <div id="supplierDocsContent"></div>
         </div>
+
+        <!-- Nonconformities Section -->
+        <div id="nonconformitiesSection" class="section">
+            <h2>מוצר לא מתאים</h2>
+            <form onsubmit="saveNc(event)" style="background:#f8f9fa; padding:16px; border-radius:8px; margin-bottom:20px;">
+                <input type="hidden" id="ncId">
+                <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end;">
+                    <div><label>תאריך<br><input type="date" id="ncDate" style="padding:8px;"></label></div>
+                    <div><label>מקור<br><select id="ncSource" style="padding:8px;">
+                        <option value="קליטה">קליטה</option><option value="מלאי">מלאי</option>
+                        <option value="החזרה">החזרה</option><option value="סריאלי">סריאלי</option>
+                    </select></label></div>
+                    <div><label>דגם<br><input type="text" id="ncModel" style="padding:8px;"></label></div>
+                    <div><label>סריאלי<br><input type="text" id="ncSerial" style="padding:8px;"></label></div>
+                    <div><label>החלטה<br><select id="ncDisposition" style="padding:8px;">
+                        <option value="">—</option><option value="החזרה לספק">החזרה לספק</option>
+                        <option value="גריטה">גריטה</option><option value="חריג מתועד">חריג מתועד</option><option value="בבדיקה">בבדיקה</option>
+                    </select></label></div>
+                    <div><label>סטטוס<br><select id="ncStatus" style="padding:8px;">
+                        <option value="פתוח">פתוח</option><option value="הסגר">הסגר</option><option value="טופל">טופל</option>
+                    </select></label></div>
+                </div>
+                <div style="margin-top:10px;"><label>תיאור<br><textarea id="ncDesc" rows="2" style="padding:8px; width:100%; box-sizing:border-box;"></textarea></label></div>
+                <div style="margin-top:14px;">
+                    <button type="submit" class="btn btn-primary">שמור</button>
+                    <button type="button" class="btn" onclick="resetNcForm()">נקה</button>
+                </div>
+            </form>
+            <div id="nonconformitiesContent"></div>
+        </div>
     </div>
 
     <!-- Product Modal -->
@@ -941,6 +972,7 @@
             else if (tab === 'communications') loadCommunications();
             else if (tab === 'capa') loadCapa();
             else if (tab === 'suppliers') loadSuppliers();
+            else if (tab === 'nonconformities') loadNonconformities();
             else if (tab === 'procedures') loadProcedures();
             else if (tab === 'admin_users') loadAdminUsers();
         }
@@ -2229,6 +2261,7 @@
                         <td>${escapeHtml(s.created_by_name || '')}</td>
                         <td>
                           <button class="btn btn-primary" onclick="editSerial(${s.id})">ערוך</button>
+                          <button class="btn" onclick="flagSerialNc(${s.id})">סמן כלא-מתאים</button>
                           <button class="btn btn-danger" onclick="deleteSerial(${s.id})">מחק</button>
                         </td>
                     </tr>`;
@@ -2925,6 +2958,99 @@
                         onclick="assignOrderUser(${orderId}, ${r.user_id})">${escapeHtml(r.name||'')} · ${escapeHtml(r.phone||'')}</div>`).join('');
                 } catch (err) { box.innerHTML = ''; }
             }, 300);
+        }
+
+        // ===== מוצר לא מתאים =====
+        let ncData = [];
+        async function loadNonconformities() {
+            const token = localStorage.getItem('adminToken');
+            const content = document.getElementById('nonconformitiesContent');
+            try {
+                const res = await fetch(`${API_URL}/api/admin/nonconformities`, { headers: { 'Authorization': `Bearer ${token}` } });
+                ncData = await res.json();
+                if (!Array.isArray(ncData) || ncData.length === 0) { content.innerHTML = '<p>אין רשומות.</p>'; return; }
+                let html = '<div class="table-container"><table><thead><tr><th>תאריך</th><th>מקור</th><th>דגם</th><th>סריאלי</th><th>החלטה</th><th>סטטוס</th><th>CAPA</th><th>ע"י</th><th>פעולות</th></tr></thead><tbody>';
+                ncData.forEach(n => {
+                    const d = n.nc_date ? new Date(n.nc_date).toLocaleDateString('he-IL') : '';
+                    const capaBtn = n.capa_id ? `CAPA #${n.capa_id}` : `<button class="btn btn-primary" onclick="openCapaFromNc(${n.id})">פתח CAPA</button>`;
+                    html += `<tr><td>${escapeHtml(d)}</td><td>${escapeHtml(n.source||'')}</td><td>${escapeHtml(n.product_model||'')}</td>
+                        <td>${escapeHtml(n.serial_number||'')}</td><td>${escapeHtml(n.disposition||'')}</td><td>${escapeHtml(n.status||'')}</td>
+                        <td>${capaBtn}</td><td>${escapeHtml(n.handled_by_name||'')}</td>
+                        <td><button class="btn btn-primary" onclick="editNc(${n.id})">ערוך</button>
+                        <button class="btn btn-danger" onclick="deleteNc(${n.id})">מחק</button></td></tr>`;
+                });
+                html += '</tbody></table></div>';
+                content.innerHTML = html;
+            } catch (err) { content.innerHTML = '<p>שגיאה בטעינה.</p>'; }
+        }
+        function resetNcForm() {
+            ['ncId','ncModel','ncSerial','ncDesc','ncDate'].forEach(id => document.getElementById(id).value = '');
+            document.getElementById('ncSource').value = 'קליטה';
+            document.getElementById('ncDisposition').value = '';
+            document.getElementById('ncStatus').value = 'פתוח';
+        }
+        async function saveNc(e) {
+            e.preventDefault();
+            const token = localStorage.getItem('adminToken');
+            const id = document.getElementById('ncId').value;
+            const body = {
+                nc_date: document.getElementById('ncDate').value || null,
+                source: document.getElementById('ncSource').value,
+                product_model: document.getElementById('ncModel').value.trim(),
+                serial_number: document.getElementById('ncSerial').value.trim(),
+                description: document.getElementById('ncDesc').value.trim(),
+                disposition: document.getElementById('ncDisposition').value || null,
+                status: document.getElementById('ncStatus').value
+            };
+            try {
+                const url = id ? `${API_URL}/api/admin/nonconformities/${id}` : `${API_URL}/api/admin/nonconformities`;
+                const res = await fetch(url, { method: id ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(body) });
+                if (!res.ok) { const dd = await res.json(); showMessage(dd.error || 'שגיאה', 'error'); return; }
+                showMessage('נשמר', 'success'); resetNcForm(); loadNonconformities();
+            } catch (err) { showMessage('שגיאה בשמירה', 'error'); }
+        }
+        function editNc(id) {
+            const n = ncData.find(x => x.id === id); if (!n) return;
+            document.getElementById('ncId').value = n.id;
+            document.getElementById('ncDate').value = n.nc_date ? n.nc_date.slice(0,10) : '';
+            document.getElementById('ncSource').value = n.source || 'קליטה';
+            document.getElementById('ncModel').value = n.product_model || '';
+            document.getElementById('ncSerial').value = n.serial_number || '';
+            document.getElementById('ncDesc').value = n.description || '';
+            document.getElementById('ncDisposition').value = n.disposition || '';
+            document.getElementById('ncStatus').value = n.status || 'פתוח';
+            window.scrollTo(0, 0);
+        }
+        async function deleteNc(id) {
+            if (!confirm('למחוק את הרשומה?')) return;
+            const token = localStorage.getItem('adminToken');
+            try {
+                const res = await fetch(`${API_URL}/api/admin/nonconformities/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+                if (!res.ok) { showMessage('שגיאה במחיקה', 'error'); return; }
+                showMessage('נמחק', 'success'); loadNonconformities();
+            } catch (err) { showMessage('שגיאה במחיקה', 'error'); }
+        }
+        async function openCapaFromNc(id) {
+            if (!confirm('לפתוח CAPA?')) return;
+            const token = localStorage.getItem('adminToken');
+            try {
+                const res = await fetch(`${API_URL}/api/admin/nonconformities/${id}/open-capa`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } });
+                const d = await res.json();
+                if (!res.ok) { showMessage(d.error || 'שגיאה', 'error'); return; }
+                showMessage('CAPA נפתחה #' + d.id, 'success'); loadNonconformities();
+                if (adminHasArea('capa')) switchTab('capa');
+            } catch (err) { showMessage('שגיאה', 'error'); }
+        }
+        // נקרא ממאגר הסריאליים
+        async function flagSerialNc(id) {
+            if (!confirm('לסמן את הסריאלי כלא-מתאים ולהעבירו להסגר?')) return;
+            const token = localStorage.getItem('adminToken');
+            try {
+                const res = await fetch(`${API_URL}/api/admin/serials/${id}/flag-nc`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } });
+                const d = await res.json();
+                if (!res.ok) { showMessage(d.error || 'שגיאה', 'error'); return; }
+                showMessage('סומן כלא-מתאים (NC #' + d.id + ')', 'success'); loadSerials();
+            } catch (err) { showMessage('שגיאה', 'error'); }
         }
 
         function showMessage(text, type) {
