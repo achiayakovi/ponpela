@@ -3236,32 +3236,26 @@
             content.innerHTML = html;
         }
 
-        function trainingDetail(t) {
-            return `<div style="padding:8px 14px;">
-                <p><strong>אימות:</strong> ${escapeHtml(t.verification || '—')}</p>
-                <p><strong>הערות:</strong> ${escapeHtml(t.notes || '—')}</p>
-                <button class="btn btn-primary" onclick="startEditTraining(${t.id})">ערוך</button>
-                <button class="btn btn-danger" onclick="deleteTraining(${t.id})">מחק</button>
-            </div>`;
-        }
-
-        function trainingEditForm(t) {
+        // תצוגה ועריכה חולקות אותו פריסת שדות — בעריכה אותם שדות הופכים ל-inputs
+        function trainingFields(t, edit) {
             const dt = t.training_date ? t.training_date.slice(0,10) : '';
-            return `<div style="padding:8px 14px; display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end;">
-                <div><label>עובד<br><input type="text" id="et_emp_${t.id}" value="${escapeHtml(t.employee_name||'')}" style="padding:6px;"></label></div>
-                <div><label>נושא<br><input type="text" id="et_topic_${t.id}" value="${escapeHtml(t.topic||'')}" style="padding:6px;"></label></div>
-                <div><label>תאריך<br><input type="date" id="et_date_${t.id}" value="${dt}" style="padding:6px;"></label></div>
-                <div><label>סטטוס<br><select id="et_status_${t.id}" style="padding:6px;">
-                    <option value="הושלם" ${t.status==='הושלם'?'selected':''}>הושלם</option>
-                    <option value="מתוכנן" ${t.status==='מתוכנן'?'selected':''}>מתוכנן</option></select></label></div>
-                <div style="flex:1 1 100%;"><label>אימות<br><input type="text" id="et_ver_${t.id}" value="${escapeHtml(t.verification||'')}" style="padding:6px; width:100%; box-sizing:border-box;"></label></div>
-                <div style="flex:1 1 100%;"><label>הערות<br><textarea id="et_notes_${t.id}" rows="2" style="padding:6px; width:100%; box-sizing:border-box;">${escapeHtml(t.notes||'')}</textarea></label></div>
-                <div style="flex:1 1 100%;">
-                    <button class="btn btn-success" onclick="saveTrainingInline(${t.id})">שמור</button>
-                    <button class="btn" onclick="cancelEditTraining()">בטל</button>
+            const f = (label, view, input) => `<div style="margin-bottom:8px;"><strong>${label}:</strong> ${edit ? input : (view || '—')}</div>`;
+            return `<div style="padding:10px 14px;">
+                ${f('עובד', escapeHtml(t.employee_name||''), `<input type="text" id="et_emp_${t.id}" value="${escapeHtml(t.employee_name||'')}" style="padding:6px;">`)}
+                ${f('נושא', escapeHtml(t.topic||''), `<input type="text" id="et_topic_${t.id}" value="${escapeHtml(t.topic||'')}" style="padding:6px; width:300px; max-width:100%;">`)}
+                ${f('תאריך', escapeHtml(t.training_date ? new Date(t.training_date).toLocaleDateString('he-IL') : ''), `<input type="date" id="et_date_${t.id}" value="${dt}" style="padding:6px;">`)}
+                ${f('סטטוס', escapeHtml(t.status||''), `<select id="et_status_${t.id}" style="padding:6px;"><option value="הושלם" ${t.status==='הושלם'?'selected':''}>הושלם</option><option value="מתוכנן" ${t.status==='מתוכנן'?'selected':''}>מתוכנן</option></select>`)}
+                ${f('אימות', escapeHtml(t.verification||''), `<input type="text" id="et_ver_${t.id}" value="${escapeHtml(t.verification||'')}" style="padding:6px; width:100%; box-sizing:border-box;">`)}
+                ${f('הערות', escapeHtml(t.notes||''), `<textarea id="et_notes_${t.id}" rows="2" style="padding:6px; width:100%; box-sizing:border-box;">${escapeHtml(t.notes||'')}</textarea>`)}
+                <div style="margin-top:6px;">
+                    ${edit
+                        ? `<button class="btn btn-success" onclick="saveTrainingInline(${t.id})">שמור</button> <button class="btn" onclick="cancelEditTraining()">בטל</button>`
+                        : `<button class="btn btn-primary" onclick="startEditTraining(${t.id})">ערוך</button> <button class="btn btn-danger" onclick="deleteTraining(${t.id})">מחק</button>`}
                 </div>
             </div>`;
         }
+        function trainingDetail(t) { return trainingFields(t, false); }
+        function trainingEditForm(t) { return trainingFields(t, true); }
 
         function toggleTrainingExpand(id) {
             if (editingTrainingId && editingTrainingId !== id) editingTrainingId = null;
