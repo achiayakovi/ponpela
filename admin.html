@@ -478,13 +478,20 @@
             <h2>ניהול מלאי</h2>
             
             <div style="background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
-                <h3>התראות מלאי נמוך</h3>
+                <h3>🛒 התראות מלאי חנות (נמוך)</h3>
+                <p style="color:#888; margin:0 0 10px;">המלאי שמוצג ונמכר באתר ללקוחות (<code>stock_quantity</code>).</p>
                 <div id="lowStockLoading" class="loading">טוען...</div>
                 <div id="lowStockContent"></div>
             </div>
 
             <div style="background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
-                <h3>עדכון מלאי ידני</h3>
+                <h3>🏬 מלאי מחסן לפי מוצר</h3>
+                <p style="color:#888; margin:0 0 10px;">היחידות הפיזיות שנקלטו במחסן (נפרד ממלאי החנות). שורה נצבעת לפי כמות.</p>
+                <div id="warehouseStockContent">טוען...</div>
+            </div>
+
+            <div style="background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                <h3>עדכון מלאי חנות ידני</h3>
                 <form id="updateStockForm" onsubmit="updateStock(event)" style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;">
                     <div class="form-group" style="flex: 2; margin-bottom: 0;">
                         <label>בחר מוצר</label>
@@ -580,7 +587,9 @@
                     </div>
                     <div class="form-row">
                         <div class="form-group"><label>מס' משלוח</label><input type="text" id="rcShipment"></div>
-                        <div class="form-group"><label>דגם</label><input type="text" id="rcModel" placeholder="S35"></div>
+                        <div class="form-group"><label>מוצר</label>
+                            <select id="rcProduct" onchange="onRcProductChange()"><option value="">— בחר מוצר —</option><option value="__new__">➕ מוצר חדש</option></select>
+                            <input type="text" id="rcNewProduct" placeholder="שם מוצר חדש" style="display:none; margin-top:6px;"></div>
                     </div>
                     <div class="form-row">
                         <div class="form-group"><label>כמות מוצהרת</label><input type="number" id="rcQtyDeclared"></div>
@@ -2009,7 +2018,28 @@
         async function loadStock() {
             await loadProductsForStockSelect();
             await loadLowStock();
+            await loadWarehouseStock();
             await loadStockLogs();
+        }
+        // מלאי מחסן לפי מוצר — שורה נצבעת לפי כמות (אדום=0, כתום≤5)
+        async function loadWarehouseStock() {
+            const token = localStorage.getItem('adminToken');
+            const box = document.getElementById('warehouseStockContent');
+            try {
+                const products = await fetch(`${API_URL}/api/admin/all-products`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json());
+                if (!Array.isArray(products) || !products.length) { box.innerHTML = '<p class="empty-state">אין מוצרים.</p>'; return; }
+                const rowColor = (q) => q === 0 ? '#fdecea' : (q <= 5 ? '#fff3cd' : '');
+                const txtColor = (q) => q === 0 ? '#c0392b' : (q <= 5 ? '#b8860b' : '#27ae60');
+                let h = '<div class="table-container"><table><thead><tr><th>מוצר</th><th>מלאי מחסן</th><th>מלאי חנות</th></tr></thead><tbody>';
+                products.forEach(p => {
+                    const wq = p.warehouse_qty ?? 0;
+                    h += `<tr style="background:${rowColor(wq)};"><td>${escapeHtml(p.name)}${p.in_stock === false ? ' <small style="color:#e67e22;">(טיוטה)</small>' : ''}</td>
+                        <td style="font-weight:bold; color:${txtColor(wq)};">${wq}</td>
+                        <td>${p.stock_quantity ?? 0}</td></tr>`;
+                });
+                h += '</tbody></table></div>';
+                box.innerHTML = h;
+            } catch (e) { box.innerHTML = '<p style="color:#c0392b;">שגיאה בטעינת מלאי מחסן.</p>'; }
         }
 
         async function loadProductsForStockSelect() {
@@ -2456,6 +2486,22 @@
         function loadReceiving() {
             loadReceivingList();
             loadSerials();
+            loadRcProducts();
+        }
+        // מילוי בורר המוצר בטופס הקליטה
+        async function loadRcProducts() {
+            const token = localStorage.getItem('adminToken');
+            try {
+                const products = await fetch(`${API_URL}/api/admin/all-products`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json());
+                const sel = document.getElementById('rcProduct');
+                if (!sel) return;
+                sel.innerHTML = '<option value="">— בחר מוצר —</option><option value="__new__">➕ מוצר חדש</option>' +
+                    (products || []).map(p => `<option value="${p.id}">${escapeHtml(p.name)} (מחסן: ${p.warehouse_qty ?? 0})</option>`).join('');
+            } catch (e) {}
+        }
+        function onRcProductChange() {
+            const isNew = document.getElementById('rcProduct').value === '__new__';
+            document.getElementById('rcNewProduct').style.display = isNew ? 'block' : 'none';
         }
 
         function onReceivingTypeChange() {
@@ -2551,7 +2597,8 @@
                         receiving_date: document.getElementById('rcDate').value || null,
                         supplier_name: document.getElementById('rcSupplier').value.trim(),
                         shipment_ref: document.getElementById('rcShipment').value.trim(),
-                        model: document.getElementById('rcModel').value.trim(),
+                        product_id: (document.getElementById('rcProduct').value && document.getElementById('rcProduct').value !== '__new__') ? document.getElementById('rcProduct').value : null,
+                        new_product_name: document.getElementById('rcProduct').value === '__new__' ? document.getElementById('rcNewProduct').value.trim() : null,
                         quantity_declared: document.getElementById('rcQtyDeclared').value || null,
                         quantity_received: document.getElementById('rcQtyReceived').value || null,
                         sample_size: document.getElementById('rcSampleSize').value || null,
@@ -2562,8 +2609,9 @@
                 if (!res.ok) { const d = await res.json(); showMessage(d.error || 'שגיאה', 'error'); return; }
                 showMessage('קליטה נוצרה', 'success');
                 e.target.reset();
+                document.getElementById('rcNewProduct').style.display = 'none';
                 document.getElementById('receivingAddForm').style.display = 'none';
-                loadReceivingList();
+                loadReceivingList(); loadRcProducts();
             } catch (err) { showMessage('שגיאה ביצירת קליטה', 'error'); }
         }
 
