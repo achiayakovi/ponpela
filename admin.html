@@ -486,13 +486,19 @@
             <h2>משתמשי ניהול והרשאות</h2>
             <p style="color:#7f8c8d; margin-bottom:16px;">משתמשי ניהול נפרדים מלקוחות — התחברות בשם משתמש. לחיצה על שורה מציגה הרשאות; "ערוך" לשינוי. מנהל-על (✶) רואה הכל.</p>
             <button class="btn btn-primary" onclick="toggleAdminUserAdd()" style="margin-bottom:14px;">➕ משתמש ניהול חדש</button>
-            <form id="adminUserAddForm" onsubmit="createAdminUser(event)" style="display:none; background:#f8f9fa; padding:16px; border-radius:8px; margin-bottom:20px; flex-wrap:wrap; gap:10px; align-items:flex-end;">
-                <div><label>שם משתמש *<br><input type="text" id="newAdminUsername" required style="padding:8px;"></label></div>
-                <div><label>שם מלא<br><input type="text" id="newAdminFullName" style="padding:8px;"></label></div>
-                <div><label>סיסמה *<br><input type="password" id="newAdminPassword" required minlength="4" style="padding:8px;"></label></div>
-                <label style="white-space:nowrap;"><input type="checkbox" id="newAdminSuper"> מנהל-על</label>
-                <button type="submit" class="btn btn-primary">+ צור משתמש ניהול</button>
-                <button type="button" class="btn" onclick="toggleAdminUserAdd()">ביטול</button>
+            <form id="adminUserAddForm" onsubmit="createAdminUser(event)" style="display:none; background:#fafbfc; padding:16px; border-radius:8px; margin-bottom:20px;">
+                <div class="form-row">
+                    <div class="form-group"><label>שם משתמש *</label><input type="text" id="newAdminUsername" required></div>
+                    <div class="form-group"><label>שם מלא</label><input type="text" id="newAdminFullName"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>סיסמה *</label><input type="password" id="newAdminPassword" required minlength="4"></div>
+                    <div class="form-group"><label>&nbsp;</label><label style="font-weight:normal; padding-top:10px; display:inline-block;"><input type="checkbox" id="newAdminSuper"> מנהל-על</label></div>
+                </div>
+                <div>
+                    <button type="submit" class="btn btn-primary">+ צור משתמש ניהול</button>
+                    <button type="button" class="btn" onclick="toggleAdminUserAdd()">ביטול</button>
+                </div>
             </form>
             <div id="adminUsersLoading" class="loading">טוען...</div>
             <div id="adminUsersContent"></div>
@@ -598,7 +604,7 @@
                 </div>
             </form>
             <div style="margin-bottom:10px;">
-                <select id="commFilterType" onchange="loadCommunications()" style="padding:6px;">
+                <select id="commFilterType" onchange="loadCommunications()" style="padding:10px; border:2px solid #e0e0e0; border-radius:8px; font-family:inherit;">
                     <option value="">כל הסוגים</option>
                     <option value="שיחה">שיחה</option><option value="מכירה">מכירה</option>
                     <option value="תלונה">תלונה</option><option value="אחר">אחר</option>
@@ -2073,7 +2079,7 @@
 
         function toggleAdminUserAdd() {
             const f = document.getElementById('adminUserAddForm');
-            f.style.display = f.style.display === 'none' ? 'flex' : 'none';
+            f.style.display = f.style.display === 'none' ? 'block' : 'none';
         }
 
         let adminUsersData = [];
