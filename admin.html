@@ -397,7 +397,7 @@
             <button class="tab" data-area="vigilance" onclick="switchTab('vigilance')">אירועים חריגים</button>
             <button class="tab" data-area="changes" onclick="switchTab('changes')">ניהול שינויים</button>
             <button class="tab" data-area="recalls" onclick="switchTab('recalls')">ריקול</button>
-            <button class="tab" data-area="procedures" onclick="switchTab('procedures')">נהלים</button>
+            <button class="tab" data-area="procedures" data-area-view="procedures_view" onclick="switchTab('procedures')">נהלים</button>
             <button class="tab" data-area="admin_users" onclick="switchTab('admin_users')">משתמשי ניהול</button>
         </div>
 
@@ -542,7 +542,7 @@
         <div id="proceduresSection" class="section">
             <h2>נהלים</h2>
             <p style="color:#7f8c8d; margin-bottom:16px;">המאסטר (Word) מנוהל ב-Git. כאן מעלים את ה-PDF המאושר להצגה לעובדים.</p>
-            <button class="btn btn-primary" onclick="toggleProcedureAdd()" style="margin-bottom:14px;">➕ העלאת נוהל / גרסה</button>
+            <button id="procedureUploadBtn" class="btn btn-primary" onclick="toggleProcedureAdd()" style="margin-bottom:14px;">➕ העלאת נוהל / גרסה</button>
             <form id="procedureAddForm" onsubmit="uploadProcedure(event)" style="display:none; background:#fafbfc; padding:16px; border-radius:8px; margin-bottom:20px;">
                 <div class="form-row">
                     <div class="form-group"><label>קוד נוהל</label><input type="text" id="procCode" placeholder="#5"></div>
@@ -1242,7 +1242,8 @@
             const tabs = document.querySelectorAll('.tab[data-area]');
             let firstAllowed = null;
             tabs.forEach(t => {
-                const allowed = adminHasArea(t.dataset.area);
+                // טאב מותר אם יש הרשאת האזור הראשי או אזור-צפייה חלופי (למשל procedures_view)
+                const allowed = adminHasArea(t.dataset.area) || (t.dataset.areaView && adminHasArea(t.dataset.areaView));
                 t.style.display = allowed ? '' : 'none';
                 if (allowed && !firstAllowed) firstAllowed = t.dataset.area;
             });
@@ -2384,6 +2385,10 @@
                     content.innerHTML = '<p>עדיין לא הועלו נהלים.</p>';
                     return;
                 }
+                // צפייה-בלבד (procedures_view): מסתירים העלאה/מחיקה
+                const canEdit = adminHasArea('procedures');
+                const upBtn = document.getElementById('procedureUploadBtn');
+                if (upBtn) upBtn.style.display = canEdit ? '' : 'none';
                 let html = '<div class="table-container"><table><thead><tr><th>קוד</th><th>כותרת</th><th>גרסה</th><th>עודכן</th><th>ע"י</th><th>פעולות</th></tr></thead><tbody>';
                 procs.forEach(p => {
                     const updated = p.updated_at ? new Date(p.updated_at).toLocaleDateString('he-IL') : '';
@@ -2395,7 +2400,7 @@
                         <td>${escapeHtml(p.handled_by_name || p.created_by_name || '')}</td>
                         <td>
                           <button class="btn btn-primary" onclick="viewProcedure(${p.id}, '${escapeJsAttr(p.filename)}')">צפה</button>
-                          <button class="btn btn-danger" onclick="deleteProcedure(${p.id})">מחק</button>
+                          ${canEdit ? `<button class="btn btn-danger" onclick="deleteProcedure(${p.id})">מחק</button>` : ''}
                         </td></tr>`;
                 });
                 html += '</tbody></table></div>';
@@ -2480,7 +2485,7 @@
         // ===== משתמשי ניהול והרשאות =====
         const AREA_LABELS = {
             warranties: 'אחריות', orders: 'הזמנות', products: 'מוצרים', stock: 'מלאי', users: 'משתמשים',
-            procedures: 'נהלים', admin_users: 'משתמשי ניהול',
+            procedures: 'נהלים', procedures_view: 'נהלים (צפייה בלבד)', admin_users: 'משתמשי ניהול',
             suppliers: 'ספקים', communications: 'תקשורת לקוחות', capa: 'CAPA', nonconformities: 'מוצר לא מתאים',
             receiving: 'קליטה', risk: 'סיכונים', training: 'הדרכות', audits: 'מבדקים',
             management_review: 'סקר הנהלה', vigilance: 'אירועים חריגים', changes: 'ניהול שינויים',
