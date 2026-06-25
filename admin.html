@@ -596,10 +596,13 @@
             <div id="suppliersContent" style="margin-bottom:24px;"></div>
 
             <h3>תעודות ספק</h3>
-            <div style="background:#eef; padding:10px; border-radius:8px; margin-bottom:10px;">
-                <strong>סוגי תעודה:</strong> <span id="docTypesList"></span>
-                <input type="text" id="newDocType" placeholder="סוג חדש" style="padding:5px;">
-                <button type="button" class="btn" onclick="addDocType()">+ הוסף סוג</button>
+            <div style="background:#eef; padding:12px; border-radius:8px; margin-bottom:10px;">
+                <div style="margin-bottom:8px;"><strong>סוגי תעודה</strong></div>
+                <div id="docTypesList" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;"></div>
+                <div style="display:flex; gap:8px; align-items:center;">
+                    <input type="text" id="newDocType" placeholder="סוג חדש" style="padding:6px;">
+                    <button type="button" class="btn" onclick="addDocType()">+ הוסף סוג</button>
+                </div>
             </div>
             <form onsubmit="uploadSupplierDoc(event)" style="background:#f8f9fa; padding:16px; border-radius:8px; margin-bottom:14px;">
                 <input type="hidden" id="docId">
@@ -2500,7 +2503,7 @@
                 sel.innerHTML = types.map(t => `<option value="${escapeHtml(t.name)}">${escapeHtml(t.name)}</option>`).join('');
                 if (cur) sel.value = cur;
                 document.getElementById('docTypesList').innerHTML = types.map(t =>
-                    `<span style="background:#fff; border:1px solid #ccd; border-radius:12px; padding:2px 8px; margin:0 3px; white-space:nowrap;">${escapeHtml(t.name)} <a href="#" onclick="deleteDocType(${t.id});return false;" style="color:#c0392b; text-decoration:none;">✕</a></span>`).join(' ');
+                    `<span style="display:inline-flex; align-items:center; gap:6px; background:#fff; border:1px solid #ccd; border-radius:14px; padding:3px 10px; font-size:13px; white-space:nowrap;">${escapeHtml(t.name)}<span onclick="deleteDocType(${t.id})" title="מחק" style="cursor:pointer; color:#c0392b; font-weight:bold;">✕</span></span>`).join('');
             } catch (err) { /* שקט */ }
         }
 
