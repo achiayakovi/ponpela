@@ -3836,20 +3836,47 @@
         let rclData=[], expRcl=null, edRcl=null;
         function toggleRecallAdd(){const f=document.getElementById('recallAddForm');f.style.display=f.style.display==='none'?'block':'none';}
         function toggleFindAffected(){const f=document.getElementById('findAffectedBox');f.style.display=f.style.display==='none'?'block':'none';}
+        let affectedData = [];
         async function findAffected(){const t=localStorage.getItem('adminToken');const box=document.getElementById('affectedResults');
             try{const r=await fetch(`${API_URL}/api/admin/recalls/find-affected`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${t}`},body:JSON.stringify({from:document.getElementById('raFrom').value||null,to:document.getElementById('raTo').value||null,list:document.getElementById('raList').value||null})});
                 const d=await r.json();if(!r.ok){showMessage(d.error||'שגיאה','error');return;}
-                if(!d.affected||!d.affected.length){box.innerHTML=`<p>לא נמצאו לקוחות (נבדקו ${d.checked} סריאליים).</p>`;return;}
-                box.innerHTML=`<div class="table-container"><table><thead><tr><th>סריאלי</th><th>לקוח</th><th>טלפון</th><th>סטטוס</th></tr></thead><tbody>${d.affected.map(a=>`<tr><td>${escapeHtml(a.machine_number||'')}</td><td>${escapeHtml(a.customer_name||'')}</td><td>${escapeHtml(a.customer_phone||'')}</td><td>${escapeHtml(a.status||'')}</td></tr>`).join('')}</tbody></table></div><p style="margin-top:6px;">נמצאו ${d.affected.length} לקוחות מתוך ${d.checked} סריאליים.</p>`;
+                affectedData = d.affected || [];
+                if(!affectedData.length){box.innerHTML=`<p>לא נמצאו לקוחות (נבדקו ${d.checked} סריאליים).</p>`;return;}
+                const rclOpts = (rclData||[]).map(rc=>`<option value="${rc.id}">${escapeHtml(rc.title||('#'+rc.id))}</option>`).join('') || '<option value="">— אין קמפיינים —</option>';
+                box.innerHTML=`<div class="table-container"><table><thead><tr><th><input type="checkbox" onchange="document.querySelectorAll('.affChk').forEach(c=>c.checked=this.checked)"></th><th>סריאלי</th><th>לקוח</th><th>טלפון</th><th>סטטוס</th></tr></thead><tbody>${affectedData.map((a,i)=>`<tr><td><input type="checkbox" class="affChk" value="${i}"></td><td>${escapeHtml(a.machine_number||'')}</td><td>${escapeHtml(a.customer_name||'')}</td><td>${escapeHtml(a.customer_phone||'')}</td><td>${escapeHtml(a.status||'')}</td></tr>`).join('')}</tbody></table></div>
+                <div style="margin-top:8px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">נמצאו ${affectedData.length} · הוסף מסומנים לקמפיין: <select id="addToRecallId">${rclOpts}</select> <button class="btn btn-primary" onclick="addAffectedToRecall()">הוסף לקמפיין</button></div>`;
             }catch(err){showMessage('שגיאה בשאילתה','error');}}
+        async function addAffectedToRecall(){const t=localStorage.getItem('adminToken');const rid=document.getElementById('addToRecallId').value;
+            if(!rid){showMessage('בחר קמפיין','error');return;}
+            const items=Array.from(document.querySelectorAll('.affChk:checked')).map(c=>affectedData[parseInt(c.value,10)]).filter(Boolean).map(a=>({serial_number:a.machine_number,customer_name:a.customer_name,customer_phone:a.customer_phone}));
+            if(!items.length){showMessage('לא סומנו לקוחות','error');return;}
+            try{const r=await fetch(`${API_URL}/api/admin/recalls/${rid}/items`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${t}`},body:JSON.stringify({items})});const d=await r.json();if(!r.ok){showMessage(d.error||'שגיאה','error');return;}showMessage(`נוספו ${d.added} (דילוג ${d.skipped})`,'success');loadRecalls();}catch(err){showMessage('שגיאה בהוספה','error');}}
         async function loadRecalls(){const t=localStorage.getItem('adminToken');try{const r=await fetch(`${API_URL}/api/admin/recalls`,{headers:{'Authorization':`Bearer ${t}`}});rclData=await r.json();renderRecalls();}catch(e){document.getElementById('recallsContent').innerHTML='<p>שגיאה בטעינה.</p>';}}
         function renderRecalls(){const c=document.getElementById('recallsContent');if(!Array.isArray(rclData)||!rclData.length){c.innerHTML='<p>אין קמפיינים.</p>';return;}
             let h='<div class="table-container"><table><thead><tr><th></th><th>תאריך</th><th>כותרת</th><th>סטטוס</th><th>ע"י</th></tr></thead><tbody>';
             rclData.forEach(r2=>{if(edRcl===r2.id){h+=`<tr><td colspan="5" style="padding:0;">${recallEditForm(r2)}</td></tr>`;return;}
                 const d=r2.recall_date?new Date(r2.recall_date).toLocaleDateString('he-IL'):'';const open=expRcl===r2.id;
                 h+=`<tr style="cursor:pointer;" onclick="toggleRclExpand(${r2.id})"><td>${open?'▲':'▼'}</td><td>${escapeHtml(d)}</td><td>${escapeHtml(r2.title||'')}</td><td>${escapeHtml(r2.status||'')}</td><td>${escapeHtml(r2.handled_by_name||'')}</td></tr>`;
-                if(open){h+=`<tr><td colspan="5" style="background:#f8f9fa; padding:10px 14px;"><div style="margin-bottom:8px;"><strong>סיבה:</strong> ${escapeHtml(r2.reason||'—')}</div><div style="margin-bottom:8px;"><strong>היקף:</strong> ${escapeHtml(r2.scope||'—')}</div><div style="margin-bottom:8px;"><strong>הערות:</strong> ${escapeHtml(r2.notes||'—')}</div><div><button class="btn btn-primary" onclick="event.stopPropagation();startEditRcl(${r2.id})">ערוך</button> <button class="btn btn-danger" onclick="event.stopPropagation();deleteRcl(${r2.id})">מחק</button></div></td></tr>`;}});
-            h+='</tbody></table></div>';c.innerHTML=h;}
+                if(open){h+=`<tr><td colspan="5" style="background:#f8f9fa; padding:10px 14px;"><div style="margin-bottom:8px;"><strong>סיבה:</strong> ${escapeHtml(r2.reason||'—')}</div><div style="margin-bottom:8px;"><strong>היקף:</strong> ${escapeHtml(r2.scope||'—')}</div><div style="margin-bottom:8px;"><strong>הערות:</strong> ${escapeHtml(r2.notes||'—')}</div>
+                    <div style="margin:10px 0;"><strong>לקוחות בקמפיין:</strong><div id="rclItems_${r2.id}" onclick="event.stopPropagation();">טוען...</div></div>
+                    <div><button class="btn btn-primary" onclick="event.stopPropagation();startEditRcl(${r2.id})">ערוך</button> <button class="btn btn-danger" onclick="event.stopPropagation();deleteRcl(${r2.id})">מחק</button></div></td></tr>`;}});
+            h+='</tbody></table></div>';c.innerHTML=h;
+            if(expRcl) loadRecallItems(expRcl);}
+
+        const RECALL_ITEM_STATUSES=['ממתין','נשלחה הודעה','נאסף','הוחלף','סגור'];
+        async function loadRecallItems(rid){const t=localStorage.getItem('adminToken');const box=document.getElementById('rclItems_'+rid);if(!box)return;
+            try{const items=await fetch(`${API_URL}/api/admin/recalls/${rid}/items`,{headers:{'Authorization':`Bearer ${t}`}}).then(r=>r.json());
+                if(!Array.isArray(items)||!items.length){box.innerHTML='<span style="color:#888;">אין לקוחות בקמפיין. השתמש ב"איתור לקוחות" כדי להוסיף.</span>';return;}
+                const opts=RECALL_ITEM_STATUSES.map(s=>`<option value="${s}">${s}</option>`).join('');
+                box.innerHTML=`<div style="margin:6px 0; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">סמן מסומנים כ: <select id="rclBulkStatus_${rid}">${opts}</select> <button class="btn btn-primary" onclick="bulkRecallStatus(${rid})">החל על מסומנים</button></div>
+                    <div class="table-container"><table><thead><tr><th><input type="checkbox" onchange="document.querySelectorAll('.rclItemChk_${rid}').forEach(c=>c.checked=this.checked)"></th><th>סריאלי</th><th>לקוח</th><th>טלפון</th><th>סטטוס</th></tr></thead><tbody>${items.map(it=>`<tr><td><input type="checkbox" class="rclItemChk_${rid}" value="${it.id}"></td><td>${escapeHtml(it.serial_number||'')}</td><td>${escapeHtml(it.customer_name||'')}</td><td>${escapeHtml(it.customer_phone||'')}</td><td><select onchange="setRecallItemStatus(${it.id},this.value,${rid})">${RECALL_ITEM_STATUSES.map(s=>`<option value="${s}" ${it.item_status===s?'selected':''}>${s}</option>`).join('')}</select></td></tr>`).join('')}</tbody></table></div>`;
+            }catch(err){box.innerHTML='<span style="color:#c0392b;">שגיאה בטעינת פריטים</span>';}}
+        async function bulkRecallStatus(rid){const t=localStorage.getItem('adminToken');const ids=Array.from(document.querySelectorAll('.rclItemChk_'+rid+':checked')).map(c=>parseInt(c.value,10));
+            if(!ids.length){showMessage('לא סומנו פריטים','error');return;}
+            const status=document.getElementById('rclBulkStatus_'+rid).value;
+            try{const r=await fetch(`${API_URL}/api/admin/recall-items/bulk`,{method:'PUT',headers:{'Content-Type':'application/json','Authorization':`Bearer ${t}`},body:JSON.stringify({ids,item_status:status})});const d=await r.json();if(!r.ok){showMessage(d.error||'שגיאה','error');return;}showMessage(`עודכנו ${d.updated}`,'success');loadRecallItems(rid);}catch(err){showMessage('שגיאה','error');}}
+        async function setRecallItemStatus(id,status,rid){const t=localStorage.getItem('adminToken');
+            try{const r=await fetch(`${API_URL}/api/admin/recall-items/${id}`,{method:'PUT',headers:{'Content-Type':'application/json','Authorization':`Bearer ${t}`},body:JSON.stringify({item_status:status})});if(!r.ok){const d=await r.json();showMessage(d.error||'שגיאה','error');return;}showMessage('עודכן','success');}catch(err){showMessage('שגיאה','error');}}
         function recallEditForm(r2){const dt=r2.recall_date?r2.recall_date.slice(0,10):'';const opt=(x,cur)=>`<option value="${x}" ${cur===x?'selected':''}>${x}</option>`;
             return `<div style="padding:16px; background:#fafbfc;"><div class="form-row"><div class="form-group"><label>תאריך</label><input type="date" id="rcl_date_${r2.id}" value="${dt}"></div><div class="form-group"><label>סטטוס</label><select id="rcl_status_${r2.id}">${['פתוח','בתהליך','הושלם'].map(x=>opt(x,r2.status)).join('')}</select></div></div>
                 <div class="form-group"><label>כותרת</label><input type="text" id="rcl_title_${r2.id}" value="${escapeHtml(r2.title||'')}"></div>
