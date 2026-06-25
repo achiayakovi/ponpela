@@ -3529,6 +3529,20 @@
             } catch (err) { showMessage('שגיאה בשיוך', 'error'); }
         }
 
+        // שיוך לקוח-אחריות (ללא חשבון) כאורח — מעתיק שם+טלפון להזמנה
+        async function assignOrderGuest(orderId, name, phone) {
+            const token = localStorage.getItem('adminToken');
+            try {
+                const res = await fetch(`${API_URL}/api/admin/orders/${orderId}/assign-guest`, {
+                    method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ name, phone })
+                });
+                if (!res.ok) { const d = await res.json(); showMessage(d.error || 'שגיאה', 'error'); return; }
+                showMessage('הלקוח שויך כאורח', 'success');
+                loadOrderDetail(orderId);
+            } catch (err) { showMessage('שגיאה בשיוך', 'error'); }
+        }
+
         let assignSearchTimer = null;
         function assignUserSearch(orderId) {
             clearTimeout(assignSearchTimer);
@@ -3544,8 +3558,8 @@
                     const list = (rows || []).filter(r => { if (!r.user_id) return true; if (seen.has(r.user_id)) return false; seen.add(r.user_id); return true; });
                     if (list.length === 0) { box.innerHTML = '<div style="padding:6px; color:#888;">אין תוצאות</div>'; return; }
                     box.innerHTML = list.map(r => r.user_id
-                        ? `<div style="padding:6px;cursor:pointer;border-bottom:1px solid #eee;" onclick="assignOrderUser(${orderId}, ${r.user_id})">${escapeHtml(r.name||'')} · ${escapeHtml(r.phone||'')} <small style="color:#999;">(${escapeHtml(r.source)})</small></div>`
-                        : `<div style="padding:6px;border-bottom:1px solid #eee;color:#aaa;" title="לקוח ללא חשבון אתר — לא ניתן לשיוך">${escapeHtml(r.name||'')} · ${escapeHtml(r.phone||'')} <small>(אחריות, ללא חשבון)</small></div>`
+                        ? `<div style="padding:6px;cursor:pointer;border-bottom:1px solid #eee;" onclick="assignOrderUser(${orderId}, ${r.user_id})">${escapeHtml(r.name||'')} · ${escapeHtml(r.phone||'')} <small style="color:#999;">(לקוח רשום)</small></div>`
+                        : `<div style="padding:6px;cursor:pointer;border-bottom:1px solid #eee;" onclick="assignOrderGuest(${orderId}, '${escapeJsAttr(r.name||'')}', '${escapeJsAttr(r.phone||'')}')">${escapeHtml(r.name||'')} · ${escapeHtml(r.phone||'')} <small style="color:#999;">(אחריות — שיוך כאורח)</small></div>`
                     ).join('');
                 } catch (err) { box.innerHTML = ''; }
             }, 300);
