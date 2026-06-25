@@ -383,6 +383,8 @@
             <button class="tab" data-area="nonconformities" onclick="switchTab('nonconformities')">מוצר לא מתאים</button>
             <button class="tab" data-area="risk" onclick="switchTab('risk')">סיכונים</button>
             <button class="tab" data-area="training" onclick="switchTab('training')">הדרכות</button>
+            <button class="tab" data-area="audits" onclick="switchTab('audits')">מבדק פנימי</button>
+            <button class="tab" data-area="management_review" onclick="switchTab('management_review')">סקר הנהלה</button>
             <button class="tab" data-area="vigilance" onclick="switchTab('vigilance')">אירועים חריגים</button>
             <button class="tab" data-area="changes" onclick="switchTab('changes')">ניהול שינויים</button>
             <button class="tab" data-area="recalls" onclick="switchTab('recalls')">ריקול</button>
@@ -899,6 +901,42 @@
             <div id="changesContent"></div>
         </div>
 
+        <!-- Audits Section -->
+        <div id="auditsSection" class="section">
+            <h2>מבדק פנימי</h2>
+            <button class="btn btn-primary" onclick="toggleAuditAdd()" style="margin-bottom:14px;">➕ מבדק חדש</button>
+            <form id="auditAddForm" onsubmit="addAudit(event)" style="display:none; background:#fafbfc; padding:16px; border-radius:8px; margin-bottom:20px;">
+                <div class="form-row">
+                    <div class="form-group"><label>תאריך מבדק</label><input type="date" id="auDate"></div>
+                    <div class="form-group"><label>מבצע</label><input type="text" id="auAuditor"></div>
+                </div>
+                <div class="form-group"><label>היקף</label><textarea id="auScope" rows="2"></textarea></div>
+                <div class="form-group"><label>סטטוס</label><select id="auStatus"><option value="טיוטה">טיוטה</option><option value="הושלם">הושלם</option></select></div>
+                <div id="auChecklist"></div>
+                <div class="form-group"><label>סיכום ממצאים</label><textarea id="auFindings" rows="2"></textarea></div>
+                <div><button type="submit" class="btn btn-primary">שמור</button> <button type="button" class="btn" onclick="toggleAuditAdd()">ביטול</button></div>
+            </form>
+            <div id="auditsContent"></div>
+        </div>
+
+        <!-- Management Review Section -->
+        <div id="management_reviewSection" class="section">
+            <h2>סקר הנהלה</h2>
+            <button class="btn btn-primary" onclick="toggleMrAdd()" style="margin-bottom:14px;">➕ סקר הנהלה חדש</button>
+            <form id="mrAddForm" onsubmit="addMr(event)" style="display:none; background:#fafbfc; padding:16px; border-radius:8px; margin-bottom:20px;">
+                <div class="form-row">
+                    <div class="form-group"><label>תאריך</label><input type="date" id="mrDate"></div>
+                    <div class="form-group"><label>סטטוס</label><select id="mrStatus"><option value="טיוטה">טיוטה</option><option value="הושלם">הושלם</option></select></div>
+                </div>
+                <div class="form-group"><label>משתתפים</label><input type="text" id="mrParticipants"></div>
+                <div id="mrInputs"></div>
+                <div class="form-group"><label style="font-weight:600;">החלטות ותפוקות</label><div id="mrDecisions"></div>
+                    <button type="button" class="btn" onclick="addMrDecisionRow()" style="margin-top:6px;">+ הוסף החלטה</button></div>
+                <div style="margin-top:12px;"><button type="submit" class="btn btn-primary">שמור</button> <button type="button" class="btn" onclick="toggleMrAdd()">ביטול</button></div>
+            </form>
+            <div id="management_reviewContent"></div>
+        </div>
+
         <!-- Recalls Section -->
         <div id="recallsSection" class="section">
             <h2>ריקול</h2>
@@ -1205,6 +1243,8 @@
             else if (tab === 'nonconformities') loadNonconformities();
             else if (tab === 'risk') loadRisks();
             else if (tab === 'training') loadTraining();
+            else if (tab === 'audits') loadAudits();
+            else if (tab === 'management_review') loadMgmtReviews();
             else if (tab === 'vigilance') loadAdverseEvents();
             else if (tab === 'changes') loadChanges();
             else if (tab === 'recalls') loadRecalls();
@@ -3915,6 +3955,112 @@
         async function saveChInline(id){const t=localStorage.getItem('adminToken');const body={change_date:document.getElementById('chDate_'+id).value||null,status:document.getElementById('chStatus_'+id).value,description:document.getElementById('chDesc_'+id).value.trim(),impact_assessment:document.getElementById('chImpact_'+id).value.trim(),approval:document.getElementById('chApproval_'+id).value.trim(),implementation:document.getElementById('chImpl_'+id).value.trim()};
             try{const r=await fetch(`${API_URL}/api/admin/changes/${id}`,{method:'PUT',headers:{'Content-Type':'application/json','Authorization':`Bearer ${t}`},body:JSON.stringify(body)});if(!r.ok){const d=await r.json();showMessage(d.error||'שגיאה','error');return;}showMessage('עודכן','success');edCh=null;loadChanges();}catch(err){showMessage('שגיאה בשמירה','error');}}
         async function deleteCh(id){if(!confirm('למחוק?'))return;const t=localStorage.getItem('adminToken');try{const r=await fetch(`${API_URL}/api/admin/changes/${id}`,{method:'DELETE',headers:{'Authorization':`Bearer ${t}`}});if(!r.ok){showMessage('שגיאה','error');return;}showMessage('נמחק','success');expCh=null;loadChanges();}catch(err){showMessage('שגיאה','error');}}
+
+        // ===== מבדק פנימי (audits) =====
+        let auData=[], edAu=null, expAu=null;
+        const AUDIT_CHECKLIST=[
+            {cat:'ניהול מערכת האיכות',qs:['מדיניות האיכות מעודכנת ומתוקשרת?','בעלי עניין והקשר הארגון נסקרו ועודכנו?','מרשם הסיכונים נסקר ועודכן?','יעדי האיכות נמדדים ועומדים ביעד?','סקר הנהלה התקיים במועד?','ממצאי המבדק הקודם נסגרו (CAPA)?','המסמכים מבוקרים ב-Git (גרסה+תאריך, מאושרים)?','הרשומות מגובות ונשמרות לפי הנוהל?']},
+            {cat:'רכש וייבוא',qs:['TPH מוגדר כספק מאושר?','תעודות הספק (FDA/ISO) בתוקף?','תיק הספק מעודכן?']},
+            {cat:'קליטה ואחסון',qs:['בוצעה בדיקת דגימה בקליטה ותועדה?','המספרים הסריאליים נקלטו למערכת?','תנאי האחסון נשמרים?','הסכם מחסן מורשה קיים?']},
+            {cat:'הפצה ומשלוח',qs:['עקיבות סריאלי↔לקוח מלאה?','עמידה ביעד המשלוח (יום עסקים)?']},
+            {cat:'שירות לקוח',qs:['התלונות מתועדות ומסווגות (פגם/שימוש שגוי/אירוע)?','מענה ראשוני ללקוח תוך יום עסקים?','נפתחו פעולות מתקנות (CAPA) כנדרש?','אירועים חריגים דווחו לאמ״ר במועד?']}
+        ];
+        const AUDIT_RESULTS=['—','תקין','ממצא','לא רלוונטי'];
+        function auditChecklistHtml(answers){
+            const get=(ci,qi)=>{const cat=AUDIT_CHECKLIST[ci].cat,q=AUDIT_CHECKLIST[ci].qs[qi];return (answers||[]).find(a=>a.category===cat&&a.question===q)||{};};
+            let h='';
+            AUDIT_CHECKLIST.forEach((g,ci)=>{
+                h+=`<div style="margin-top:14px; font-weight:600; color:#5a4ed1;">${g.cat}</div>`;
+                g.qs.forEach((q,qi)=>{const a=get(ci,qi);const opts=AUDIT_RESULTS.map(r=>`<option value="${r}" ${a.result===r?'selected':''}>${r}</option>`).join('');
+                    h+=`<div class="auq-row" data-ci="${ci}" data-qi="${qi}" style="display:flex; gap:8px; align-items:center; margin:5px 0; flex-wrap:wrap;">
+                        <span style="flex:1; min-width:200px;">${q}</span>
+                        <select class="auq-result" style="width:130px;">${opts}</select>
+                        <input class="auq-note" placeholder="ממצא / הערה" value="${escapeHtml(a.note||'')}" style="flex:1; min-width:160px;"></div>`;});
+            });
+            return h;
+        }
+        function gatherChecklist(container){const ans=[];container.querySelectorAll('.auq-row').forEach(row=>{const ci=+row.dataset.ci,qi=+row.dataset.qi;const result=row.querySelector('.auq-result').value;const note=row.querySelector('.auq-note').value.trim();if((result&&result!=='—')||note)ans.push({category:AUDIT_CHECKLIST[ci].cat,question:AUDIT_CHECKLIST[ci].qs[qi],result:result==='—'?'':result,note});});return ans;}
+        function toggleAuditAdd(){const f=document.getElementById('auditAddForm');const show=f.style.display==='none';f.style.display=show?'block':'none';if(show)document.getElementById('auChecklist').innerHTML=auditChecklistHtml([]);}
+        async function loadAudits(){const t=localStorage.getItem('adminToken');try{const r=await fetch(`${API_URL}/api/admin/audits`,{headers:{'Authorization':`Bearer ${t}`}});auData=await r.json();renderAudits();}catch(e){document.getElementById('auditsContent').innerHTML='<p>שגיאה בטעינה.</p>';}}
+        function auditFindings(a){return (a.checklist||[]).filter(x=>x.result==='ממצא');}
+        function auditMark(result){if(result==='ממצא')return '<span style="color:#c0392b;">✗</span>';if(result==='תקין')return '<span style="color:#27ae60;">✓</span>';return '•';}
+        function renderAudits(){const c=document.getElementById('auditsContent');if(!Array.isArray(auData)||!auData.length){c.innerHTML='<p>אין מבדקים.</p>';return;}
+            let h='<div class="table-container"><table><thead><tr><th></th><th>תאריך</th><th>מבצע</th><th>סטטוס</th><th>ממצאים</th><th>ע"י</th></tr></thead><tbody>';
+            auData.forEach(a=>{if(edAu===a.id){h+=`<tr><td colspan="6" style="padding:0;">${auditEditForm(a)}</td></tr>`;return;}
+                const d=a.audit_date?new Date(a.audit_date).toLocaleDateString('he-IL'):'';const open=expAu===a.id;const nf=auditFindings(a).length;
+                h+=`<tr style="cursor:pointer;" onclick="toggleAuExpand(${a.id})"><td>${open?'▲':'▼'}</td><td>${escapeHtml(d)}</td><td>${escapeHtml(a.auditor||'')}</td><td>${escapeHtml(a.status||'')}</td><td>${nf?'<span style="color:#c0392b; font-weight:bold;">'+nf+'</span>':'0'}</td><td>${escapeHtml(a.handled_by_name||'')}</td></tr>`;
+                if(open){const items=(a.checklist||[]).map(x=>`<div style="margin:2px 0;"><strong>${auditMark(x.result)}</strong> ${escapeHtml(x.question)} ${x.note?'— '+escapeHtml(x.note):''}</div>`).join('')||'<span style="color:#888;">צ׳קליסט לא מולא.</span>';
+                    const capaBtn=a.capa_id?`<strong>CAPA #${a.capa_id}</strong>`:`<button class="btn btn-primary" onclick="event.stopPropagation();openCapaFromAudit(${a.id})">פתח CAPA מממצאים</button>`;
+                    h+=`<tr><td colspan="6" style="background:#f8f9fa; padding:10px 14px;"><div style="margin-bottom:8px;"><strong>היקף:</strong> ${escapeHtml(a.scope||'—')}</div>
+                        <div style="margin-bottom:8px;"><strong>צ'קליסט:</strong><div style="margin-top:4px;">${items}</div></div>
+                        <div style="margin-bottom:8px;"><strong>סיכום ממצאים:</strong> ${escapeHtml(a.findings||'—')}</div>
+                        <div>${capaBtn} <button class="btn btn-primary" onclick="event.stopPropagation();startEditAu(${a.id})">ערוך</button> <button class="btn btn-danger" onclick="event.stopPropagation();deleteAu(${a.id})">מחק</button></div></td></tr>`;}});
+            h+='</tbody></table></div>';c.innerHTML=h;}
+        function auditEditForm(a){const dt=a.audit_date?a.audit_date.slice(0,10):'';
+            return `<div style="padding:16px; background:#fafbfc;"><div class="form-row"><div class="form-group"><label>תאריך</label><input type="date" id="au_date_${a.id}" value="${dt}"></div>
+                <div class="form-group"><label>מבצע</label><input type="text" id="au_auditor_${a.id}" value="${escapeHtml(a.auditor||'')}"></div></div>
+                <div class="form-group"><label>היקף</label><textarea id="au_scope_${a.id}" rows="2">${escapeHtml(a.scope||'')}</textarea></div>
+                <div class="form-group"><label>סטטוס</label><select id="au_status_${a.id}">${['טיוטה','הושלם'].map(x=>`<option value="${x}" ${a.status===x?'selected':''}>${x}</option>`).join('')}</select></div>
+                <div id="au_checklist_${a.id}">${auditChecklistHtml(a.checklist||[])}</div>
+                <div class="form-group"><label>סיכום ממצאים</label><textarea id="au_findings_${a.id}" rows="2">${escapeHtml(a.findings||'')}</textarea></div>
+                <div><button class="btn btn-success" onclick="saveAuInline(${a.id})">שמור</button> <button class="btn" onclick="cancelEditAu()">בטל</button></div></div>`;}
+        function toggleAuExpand(id){if(edAu===id)return;edAu=null;expAu=expAu===id?null:id;renderAudits();}
+        function startEditAu(id){expAu=id;edAu=id;renderAudits();}
+        function cancelEditAu(){edAu=null;renderAudits();}
+        async function addAudit(e){e.preventDefault();const t=localStorage.getItem('adminToken');
+            const body={audit_date:document.getElementById('auDate').value||null,auditor:document.getElementById('auAuditor').value.trim(),scope:document.getElementById('auScope').value.trim(),status:document.getElementById('auStatus').value,checklist:gatherChecklist(document.getElementById('auChecklist')),findings:document.getElementById('auFindings').value.trim()};
+            try{const r=await fetch(`${API_URL}/api/admin/audits`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${t}`},body:JSON.stringify(body)});if(!r.ok){const d=await r.json();showMessage(d.error||'שגיאה','error');return;}showMessage('נשמר','success');['auDate','auAuditor','auScope','auFindings'].forEach(i=>document.getElementById(i).value='');document.getElementById('auditAddForm').style.display='none';loadAudits();}catch(err){showMessage('שגיאה בשמירה','error');}}
+        async function saveAuInline(id){const t=localStorage.getItem('adminToken');
+            const body={audit_date:document.getElementById('au_date_'+id).value||null,auditor:document.getElementById('au_auditor_'+id).value.trim(),scope:document.getElementById('au_scope_'+id).value.trim(),status:document.getElementById('au_status_'+id).value,checklist:gatherChecklist(document.getElementById('au_checklist_'+id)),findings:document.getElementById('au_findings_'+id).value.trim()};
+            try{const r=await fetch(`${API_URL}/api/admin/audits/${id}`,{method:'PUT',headers:{'Content-Type':'application/json','Authorization':`Bearer ${t}`},body:JSON.stringify(body)});if(!r.ok){const d=await r.json();showMessage(d.error||'שגיאה','error');return;}showMessage('עודכן','success');edAu=null;loadAudits();}catch(err){showMessage('שגיאה בשמירה','error');}}
+        async function deleteAu(id){if(!confirm('למחוק מבדק?'))return;const t=localStorage.getItem('adminToken');try{const r=await fetch(`${API_URL}/api/admin/audits/${id}`,{method:'DELETE',headers:{'Authorization':`Bearer ${t}`}});if(!r.ok){showMessage('שגיאה','error');return;}showMessage('נמחק','success');expAu=null;loadAudits();}catch(err){showMessage('שגיאה','error');}}
+        async function openCapaFromAudit(id){const t=localStorage.getItem('adminToken');try{const r=await fetch(`${API_URL}/api/admin/audits/${id}/open-capa`,{method:'POST',headers:{'Authorization':`Bearer ${t}`}});const d=await r.json();if(!r.ok){showMessage(d.error||'שגיאה','error');return;}showMessage('נפתחה CAPA #'+d.id,'success');loadAudits();}catch(err){showMessage('שגיאה','error');}}
+
+        // ===== סקר הנהלה (management_review) =====
+        let mrData=[], edMr=null, expMr=null;
+        const MR_INPUTS=['החלטות מסקר קודם — סטטוס','שינויים בהקשר/בעלי עניין','שביעות רצון ומשוב לקוחות','עמידה ביעדי איכות (משלוח/תלונות)','אי-התאמות ופעולות מתקנות (CAPA)','ממצאי המבדק הפנימי','ביצועי ספקים (TPH/מחסן/הפצה)','מצב סיכונים והזדמנויות','נאותות משאבים'];
+        function mrInputsHtml(inputs){const get=(topic)=>{const f=(inputs||[]).find(x=>x.topic===topic);return f?f.data:'';};
+            return MR_INPUTS.map((topic,i)=>`<div class="form-group mr-input" data-topic-i="${i}"><label>${i+1}. ${topic}</label><textarea class="mr-data" rows="2">${escapeHtml(get(topic))}</textarea></div>`).join('');}
+        function gatherMrInputs(container){const arr=[];container.querySelectorAll('.mr-input').forEach(el=>{const i=+el.dataset.topicI;arr.push({topic:MR_INPUTS[i],data:el.querySelector('.mr-data').value.trim()});});return arr;}
+        function mrDecRowHtml(d){d=d||{};return `<div class="mr-dec-row" style="display:flex; gap:8px; margin:4px 0; flex-wrap:wrap;">
+            <input class="mr-dec-action" placeholder="פעולה לביצוע" value="${escapeHtml(d.action||'')}" style="flex:2; min-width:180px;">
+            <input class="mr-dec-resp" placeholder="אחראי" value="${escapeHtml(d.responsible||'')}" style="flex:1; min-width:120px;">
+            <input class="mr-dec-due" type="date" value="${d.due_date?String(d.due_date).slice(0,10):''}" style="width:150px;">
+            <button type="button" class="btn btn-danger" onclick="this.parentElement.remove()">×</button></div>`;}
+        function addMrDecisionRow(containerId){document.getElementById(containerId||'mrDecisions').insertAdjacentHTML('beforeend',mrDecRowHtml());}
+        function gatherDecisions(container){const arr=[];container.querySelectorAll('.mr-dec-row').forEach(r=>{const action=r.querySelector('.mr-dec-action').value.trim();const responsible=r.querySelector('.mr-dec-resp').value.trim();const due_date=r.querySelector('.mr-dec-due').value||null;if(action||responsible||due_date)arr.push({action,responsible,due_date});});return arr;}
+        function toggleMrAdd(){const f=document.getElementById('mrAddForm');const show=f.style.display==='none';f.style.display=show?'block':'none';if(show){document.getElementById('mrInputs').innerHTML=mrInputsHtml([]);document.getElementById('mrDecisions').innerHTML='';}}
+        async function loadMgmtReviews(){const t=localStorage.getItem('adminToken');try{const r=await fetch(`${API_URL}/api/admin/management-review`,{headers:{'Authorization':`Bearer ${t}`}});mrData=await r.json();renderMrs();}catch(e){document.getElementById('management_reviewContent').innerHTML='<p>שגיאה בטעינה.</p>';}}
+        function renderMrs(){const c=document.getElementById('management_reviewContent');if(!Array.isArray(mrData)||!mrData.length){c.innerHTML='<p>אין סקרים.</p>';return;}
+            let h='<div class="table-container"><table><thead><tr><th></th><th>תאריך</th><th>משתתפים</th><th>סטטוס</th><th>החלטות</th><th>ע"י</th></tr></thead><tbody>';
+            mrData.forEach(m=>{if(edMr===m.id){h+=`<tr><td colspan="6" style="padding:0;">${mrEditForm(m)}</td></tr>`;return;}
+                const d=m.review_date?new Date(m.review_date).toLocaleDateString('he-IL'):'';const open=expMr===m.id;const nd=(m.decisions||[]).length;
+                h+=`<tr style="cursor:pointer;" onclick="toggleMrExpand(${m.id})"><td>${open?'▲':'▼'}</td><td>${escapeHtml(d)}</td><td>${escapeHtml(m.participants||'')}</td><td>${escapeHtml(m.status||'')}</td><td>${nd}</td><td>${escapeHtml(m.handled_by_name||'')}</td></tr>`;
+                if(open){const inputs=(m.inputs||[]).map(x=>`<div style="margin:3px 0;"><strong>${escapeHtml(x.topic)}:</strong> ${escapeHtml(x.data||'—')}</div>`).join('')||'<span style="color:#888;">לא מולא.</span>';
+                    const decs=(m.decisions||[]).length?`<table style="width:100%; margin-top:4px;"><thead><tr><th>פעולה</th><th>אחראי</th><th>תאריך יעד</th></tr></thead><tbody>${m.decisions.map(de=>`<tr><td>${escapeHtml(de.action||'')}</td><td>${escapeHtml(de.responsible||'')}</td><td>${escapeHtml(de.due_date?String(de.due_date).slice(0,10):'')}</td></tr>`).join('')}</tbody></table>`:'<span style="color:#888;">אין החלטות.</span>';
+                    h+=`<tr><td colspan="6" style="background:#f8f9fa; padding:10px 14px;"><div style="margin-bottom:8px;"><strong>קלטים:</strong><div style="margin-top:4px;">${inputs}</div></div>
+                        <div style="margin-bottom:8px;"><strong>החלטות ותפוקות:</strong>${decs}</div>
+                        <div><button class="btn btn-primary" onclick="event.stopPropagation();startEditMr(${m.id})">ערוך</button> <button class="btn btn-danger" onclick="event.stopPropagation();deleteMr(${m.id})">מחק</button></div></td></tr>`;}});
+            h+='</tbody></table></div>';c.innerHTML=h;}
+        function mrEditForm(m){const dt=m.review_date?m.review_date.slice(0,10):'';
+            const decs=(m.decisions||[]).map(d=>mrDecRowHtml(d)).join('');
+            return `<div style="padding:16px; background:#fafbfc;"><div class="form-row"><div class="form-group"><label>תאריך</label><input type="date" id="mr_date_${m.id}" value="${dt}"></div>
+                <div class="form-group"><label>סטטוס</label><select id="mr_status_${m.id}">${['טיוטה','הושלם'].map(x=>`<option value="${x}" ${m.status===x?'selected':''}>${x}</option>`).join('')}</select></div></div>
+                <div class="form-group"><label>משתתפים</label><input type="text" id="mr_participants_${m.id}" value="${escapeHtml(m.participants||'')}"></div>
+                <div id="mr_inputs_${m.id}">${mrInputsHtml(m.inputs||[])}</div>
+                <div class="form-group"><label style="font-weight:600;">החלטות ותפוקות</label><div id="mr_decisions_${m.id}">${decs}</div>
+                    <button type="button" class="btn" onclick="addMrDecisionRow('mr_decisions_${m.id}')" style="margin-top:6px;">+ הוסף החלטה</button></div>
+                <div style="margin-top:12px;"><button class="btn btn-success" onclick="saveMrInline(${m.id})">שמור</button> <button class="btn" onclick="cancelEditMr()">בטל</button></div></div>`;}
+        function toggleMrExpand(id){if(edMr===id)return;edMr=null;expMr=expMr===id?null:id;renderMrs();}
+        function startEditMr(id){expMr=id;edMr=id;renderMrs();}
+        function cancelEditMr(){edMr=null;renderMrs();}
+        async function addMr(e){e.preventDefault();const t=localStorage.getItem('adminToken');
+            const body={review_date:document.getElementById('mrDate').value||null,participants:document.getElementById('mrParticipants').value.trim(),status:document.getElementById('mrStatus').value,inputs:gatherMrInputs(document.getElementById('mrInputs')),decisions:gatherDecisions(document.getElementById('mrDecisions'))};
+            try{const r=await fetch(`${API_URL}/api/admin/management-review`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${t}`},body:JSON.stringify(body)});if(!r.ok){const d=await r.json();showMessage(d.error||'שגיאה','error');return;}showMessage('נשמר','success');['mrDate','mrParticipants'].forEach(i=>document.getElementById(i).value='');document.getElementById('mrAddForm').style.display='none';loadMgmtReviews();}catch(err){showMessage('שגיאה בשמירה','error');}}
+        async function saveMrInline(id){const t=localStorage.getItem('adminToken');
+            const body={review_date:document.getElementById('mr_date_'+id).value||null,participants:document.getElementById('mr_participants_'+id).value.trim(),status:document.getElementById('mr_status_'+id).value,inputs:gatherMrInputs(document.getElementById('mr_inputs_'+id)),decisions:gatherDecisions(document.getElementById('mr_decisions_'+id))};
+            try{const r=await fetch(`${API_URL}/api/admin/management-review/${id}`,{method:'PUT',headers:{'Content-Type':'application/json','Authorization':`Bearer ${t}`},body:JSON.stringify(body)});if(!r.ok){const d=await r.json();showMessage(d.error||'שגיאה','error');return;}showMessage('עודכן','success');edMr=null;loadMgmtReviews();}catch(err){showMessage('שגיאה בשמירה','error');}}
+        async function deleteMr(id){if(!confirm('למחוק סקר?'))return;const t=localStorage.getItem('adminToken');try{const r=await fetch(`${API_URL}/api/admin/management-review/${id}`,{method:'DELETE',headers:{'Authorization':`Bearer ${t}`}});if(!r.ok){showMessage('שגיאה','error');return;}showMessage('נמחק','success');expMr=null;loadMgmtReviews();}catch(err){showMessage('שגיאה','error');}}
 
         // ===== ריקול =====
         let rclData=[], expRcl=null, edRcl=null;
