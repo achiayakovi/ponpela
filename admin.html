@@ -319,6 +319,7 @@
             <button class="tab" data-area="receiving" onclick="switchTab('receiving')">קליטה</button>
             <button class="tab" data-area="communications" onclick="switchTab('communications')">תקשורת לקוחות</button>
             <button class="tab" data-area="capa" onclick="switchTab('capa')">CAPA</button>
+            <button class="tab" data-area="suppliers" onclick="switchTab('suppliers')">ספקים</button>
             <button class="tab" data-area="procedures" onclick="switchTab('procedures')">נהלים</button>
             <button class="tab" data-area="admin_users" onclick="switchTab('admin_users')">משתמשי ניהול</button>
         </div>
@@ -563,6 +564,55 @@
                 </div>
             </form>
             <div id="capaContent"></div>
+        </div>
+
+        <!-- Suppliers Section -->
+        <div id="suppliersSection" class="section">
+            <h2>ספקים ותעודות</h2>
+            <div id="expiringDocsBanner" style="display:none; background:#fdecea; border:1px solid #f5c6cb; padding:12px; border-radius:8px; margin-bottom:18px;"></div>
+
+            <h3>ספק חדש / עריכה</h3>
+            <form onsubmit="saveSupplier(event)" style="background:#f8f9fa; padding:16px; border-radius:8px; margin-bottom:20px;">
+                <input type="hidden" id="supplierId">
+                <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end;">
+                    <div><label>שם ספק *<br><input type="text" id="supName" required style="padding:8px;"></label></div>
+                    <div><label>איש קשר<br><input type="text" id="supContact" style="padding:8px;"></label></div>
+                    <div><label>טלפון<br><input type="text" id="supPhone" style="padding:8px;"></label></div>
+                    <div><label>אימייל<br><input type="email" id="supEmail" style="padding:8px;"></label></div>
+                    <div><label>סטטוס אישור<br><select id="supStatus" style="padding:8px;">
+                        <option value="בהמתנה">בהמתנה</option><option value="מאושר">מאושר</option><option value="לא מאושר">לא מאושר</option>
+                    </select></label></div>
+                    <label style="white-space:nowrap;"><input type="checkbox" id="supCritical"> ספק קריטי</label>
+                </div>
+                <div style="margin-top:10px;"><label>קריטריון אישור (ISO13485 / CoC / הצהרת זהות...)<br><input type="text" id="supCriterion" style="padding:8px; width:100%; box-sizing:border-box;"></label></div>
+                <div style="margin-top:10px;"><label>הערות<br><textarea id="supNotes" rows="2" style="padding:8px; width:100%; box-sizing:border-box;"></textarea></label></div>
+                <div style="margin-top:14px;">
+                    <button type="submit" class="btn btn-primary">שמור ספק</button>
+                    <button type="button" class="btn" onclick="resetSupplierForm()">נקה</button>
+                </div>
+            </form>
+
+            <h3>ספקים</h3>
+            <div id="suppliersContent" style="margin-bottom:24px;"></div>
+
+            <h3>תעודות ספק</h3>
+            <form onsubmit="uploadSupplierDoc(event)" style="background:#f8f9fa; padding:16px; border-radius:8px; margin-bottom:14px;">
+                <input type="hidden" id="docId">
+                <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end;">
+                    <div><label>ספק<br><select id="docSupplierId" onchange="loadSupplierDocs()" style="padding:8px;"></select></label></div>
+                    <div><label>סוג<br><select id="docType" style="padding:8px;">
+                        <option value="FDA">FDA</option><option value="ISO">ISO</option><option value="CoC">CoC</option>
+                        <option value="הצהרה">הצהרה</option><option value="אחר">אחר</option>
+                    </select></label></div>
+                    <div><label>מספר תעודה<br><input type="text" id="docNumber" style="padding:8px;"></label></div>
+                    <div><label>הנפקה<br><input type="date" id="docIssue" style="padding:8px;"></label></div>
+                    <div><label>תפוגה<br><input type="date" id="docExpiry" style="padding:8px;"></label></div>
+                    <div><label>קובץ (PDF/תמונה)<br><input type="file" id="docFile" accept="application/pdf,image/*" style="padding:6px;"></label></div>
+                    <button type="submit" class="btn btn-success">העלה תעודה</button>
+                    <button type="button" class="btn" onclick="resetDocForm()">נקה</button>
+                </div>
+            </form>
+            <div id="supplierDocsContent"></div>
         </div>
     </div>
 
@@ -848,6 +898,7 @@
             else if (tab === 'receiving') loadReceiving();
             else if (tab === 'communications') loadCommunications();
             else if (tab === 'capa') loadCapa();
+            else if (tab === 'suppliers') loadSuppliers();
             else if (tab === 'procedures') loadProcedures();
             else if (tab === 'admin_users') loadAdminUsers();
         }
@@ -2431,6 +2482,230 @@
                 const res = await fetch(`${API_URL}/api/admin/capa/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
                 if (!res.ok) { showMessage('שגיאה במחיקה', 'error'); return; }
                 showMessage('נמחק', 'success'); loadCapa();
+            } catch (err) { showMessage('שגיאה במחיקה', 'error'); }
+        }
+
+        // ===== ספקים ותעודות =====
+        let suppliersData = [];
+        let supplierDocsData = [];
+
+        async function loadSuppliers() {
+            const token = localStorage.getItem('adminToken');
+            const content = document.getElementById('suppliersContent');
+            const sel = document.getElementById('docSupplierId');
+            try {
+                // באנר תעודות שפג/עומד לפוג
+                const exp = await fetch(`${API_URL}/api/admin/expiring-docs`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json());
+                const banner = document.getElementById('expiringDocsBanner');
+                if (Array.isArray(exp) && exp.length) {
+                    banner.style.display = 'block';
+                    banner.innerHTML = '<strong>⚠️ תעודות שפג/עומד לפוג תוקפן:</strong><br>' + exp.map(d =>
+                        `${escapeHtml(d.supplier_name)} — ${escapeHtml(d.doc_type || '')} ${escapeHtml(d.doc_number || '')} (${new Date(d.expiry_date).toLocaleDateString('he-IL')})`).join('<br>');
+                } else { banner.style.display = 'none'; }
+
+                const res = await fetch(`${API_URL}/api/admin/suppliers`, { headers: { 'Authorization': `Bearer ${token}` } });
+                suppliersData = await res.json();
+                if (!Array.isArray(suppliersData) || suppliersData.length === 0) {
+                    content.innerHTML = '<p>אין ספקים.</p>'; sel.innerHTML = '<option value="">— אין ספקים —</option>';
+                } else {
+                    let html = '<div class="table-container"><table><thead><tr><th>שם</th><th>סטטוס</th><th>קריטי</th><th>איש קשר</th><th>תעודות</th><th>ע"י</th><th>פעולות</th></tr></thead><tbody>';
+                    let opts = '';
+                    suppliersData.forEach(s => {
+                        const expWarn = s.expiring_count > 0 ? ` <span style="color:#c0392b;">(${s.expiring_count} פג/עומד לפוג)</span>` : '';
+                        html += `<tr>
+                            <td>${escapeHtml(s.name)}</td>
+                            <td>${escapeHtml(s.approval_status || '')}</td>
+                            <td>${s.is_critical ? 'כן' : ''}</td>
+                            <td>${escapeHtml(s.contact_person || '')} ${escapeHtml(s.phone || '')}</td>
+                            <td>${s.docs_count}${expWarn}</td>
+                            <td>${escapeHtml(s.handled_by_name || '')}</td>
+                            <td>
+                              <button class="btn btn-primary" onclick="editSupplier(${s.id})">ערוך</button>
+                              <button class="btn" onclick="openCapaFromSupplier(${s.id})">פתח CAPA</button>
+                              <button class="btn btn-danger" onclick="deleteSupplier(${s.id})">מחק</button>
+                            </td>
+                        </tr>`;
+                        opts += `<option value="${s.id}">${escapeHtml(s.name)}</option>`;
+                    });
+                    html += '</tbody></table></div>';
+                    content.innerHTML = html;
+                    sel.innerHTML = opts;
+                }
+                loadSupplierDocs();
+            } catch (err) { content.innerHTML = '<p>שגיאה בטעינת ספקים.</p>'; }
+        }
+
+        function resetSupplierForm() {
+            ['supplierId','supName','supContact','supPhone','supEmail','supCriterion','supNotes'].forEach(id => document.getElementById(id).value = '');
+            document.getElementById('supStatus').value = 'בהמתנה';
+            document.getElementById('supCritical').checked = false;
+        }
+
+        async function saveSupplier(e) {
+            e.preventDefault();
+            const token = localStorage.getItem('adminToken');
+            const id = document.getElementById('supplierId').value;
+            const body = {
+                name: document.getElementById('supName').value.trim(),
+                contact_person: document.getElementById('supContact').value.trim(),
+                phone: document.getElementById('supPhone').value.trim(),
+                email: document.getElementById('supEmail').value.trim(),
+                approval_status: document.getElementById('supStatus').value,
+                criterion: document.getElementById('supCriterion').value.trim(),
+                is_critical: document.getElementById('supCritical').checked,
+                notes: document.getElementById('supNotes').value.trim()
+            };
+            try {
+                const url = id ? `${API_URL}/api/admin/suppliers/${id}` : `${API_URL}/api/admin/suppliers`;
+                const res = await fetch(url, { method: id ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(body) });
+                if (!res.ok) { const d = await res.json(); showMessage(d.error || 'שגיאה', 'error'); return; }
+                showMessage('נשמר', 'success'); resetSupplierForm(); loadSuppliers();
+            } catch (err) { showMessage('שגיאה בשמירה', 'error'); }
+        }
+
+        function editSupplier(id) {
+            const s = suppliersData.find(x => x.id === id); if (!s) return;
+            document.getElementById('supplierId').value = s.id;
+            document.getElementById('supName').value = s.name || '';
+            document.getElementById('supContact').value = s.contact_person || '';
+            document.getElementById('supPhone').value = s.phone || '';
+            document.getElementById('supEmail').value = s.email || '';
+            document.getElementById('supStatus').value = s.approval_status || 'בהמתנה';
+            document.getElementById('supCritical').checked = !!s.is_critical;
+            document.getElementById('supCriterion').value = s.criterion || '';
+            document.getElementById('supNotes').value = s.notes || '';
+            window.scrollTo(0, 0);
+        }
+
+        async function deleteSupplier(id) {
+            if (!confirm('למחוק את הספק וכל תעודותיו?')) return;
+            const token = localStorage.getItem('adminToken');
+            try {
+                const res = await fetch(`${API_URL}/api/admin/suppliers/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+                if (!res.ok) { showMessage('שגיאה במחיקה', 'error'); return; }
+                showMessage('נמחק', 'success'); loadSuppliers();
+            } catch (err) { showMessage('שגיאה במחיקה', 'error'); }
+        }
+
+        async function openCapaFromSupplier(id) {
+            if (!confirm('לפתוח CAPA עבור ספק זה?')) return;
+            const token = localStorage.getItem('adminToken');
+            try {
+                const res = await fetch(`${API_URL}/api/admin/suppliers/${id}/open-capa`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } });
+                const d = await res.json();
+                if (!res.ok) { showMessage(d.error || 'שגיאה', 'error'); return; }
+                showMessage('CAPA נפתחה #' + d.id, 'success');
+                if (adminHasArea('capa')) switchTab('capa');
+            } catch (err) { showMessage('שגיאה בפתיחת CAPA', 'error'); }
+        }
+
+        function resetDocForm() {
+            ['docId','docNumber','docIssue','docExpiry'].forEach(id => document.getElementById(id).value = '');
+            document.getElementById('docType').value = 'FDA';
+            document.getElementById('docFile').value = '';
+        }
+
+        async function loadSupplierDocs() {
+            const token = localStorage.getItem('adminToken');
+            const content = document.getElementById('supplierDocsContent');
+            const sid = document.getElementById('docSupplierId').value;
+            if (!sid) { content.innerHTML = ''; return; }
+            try {
+                const res = await fetch(`${API_URL}/api/admin/suppliers/${sid}/docs`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const docs = await res.json();
+                supplierDocsData = Array.isArray(docs) ? docs : [];
+                if (supplierDocsData.length === 0) { content.innerHTML = '<p>אין תעודות לספק זה.</p>'; return; }
+                const today = new Date(); today.setHours(0,0,0,0);
+                let html = '<div class="table-container"><table><thead><tr><th>סוג</th><th>מספר</th><th>תפוגה</th><th>סטטוס</th><th>קובץ</th><th>פעולות</th></tr></thead><tbody>';
+                docs.forEach(d => {
+                    let exp = '', tag = '';
+                    if (d.expiry_date) {
+                        const ed = new Date(d.expiry_date); ed.setHours(0,0,0,0);
+                        exp = ed.toLocaleDateString('he-IL');
+                        const days = Math.round((ed - today) / 86400000);
+                        if (days < 0) tag = '<span style="color:#c0392b; font-weight:bold;">פג</span>';
+                        else if (days <= 30) tag = `<span style="color:#e67e22;">עומד לפוג (${days} ימים)</span>`;
+                        else tag = '<span style="color:#27ae60;">בתוקף</span>';
+                    }
+                    html += `<tr>
+                        <td>${escapeHtml(d.doc_type || '')}</td>
+                        <td>${escapeHtml(d.doc_number || '')}</td>
+                        <td>${escapeHtml(exp)}</td>
+                        <td>${tag}</td>
+                        <td>${d.filename ? `<button class="btn btn-primary" onclick="viewSupplierDoc(${d.id})">צפה</button>` : '—'}</td>
+                        <td>
+                          <button class="btn btn-primary" onclick="editSupplierDoc(${d.id})">ערוך</button>
+                          <button class="btn btn-danger" onclick="deleteSupplierDoc(${d.id})">מחק</button>
+                        </td>
+                    </tr>`;
+                });
+                html += '</tbody></table></div>';
+                content.innerHTML = html;
+            } catch (err) { content.innerHTML = '<p>שגיאה בטעינת תעודות.</p>'; }
+        }
+
+        async function uploadSupplierDoc(e) {
+            e.preventDefault();
+            const token = localStorage.getItem('adminToken');
+            const sid = document.getElementById('docSupplierId').value;
+            if (!sid) { showMessage('בחר ספק', 'error'); return; }
+            const docId = document.getElementById('docId').value;
+            const meta = {
+                doc_type: document.getElementById('docType').value,
+                doc_number: document.getElementById('docNumber').value.trim(),
+                issue_date: document.getElementById('docIssue').value || null,
+                expiry_date: document.getElementById('docExpiry').value || null
+            };
+            try {
+                if (docId) {
+                    // עריכת מטא-דאטה (ללא החלפת קובץ)
+                    const res = await fetch(`${API_URL}/api/admin/supplier-docs/${docId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(meta) });
+                    if (!res.ok) { const d = await res.json(); showMessage(d.error || 'שגיאה', 'error'); return; }
+                } else {
+                    const f = document.getElementById('docFile').files[0];
+                    const body = { ...meta };
+                    if (f) {
+                        if (f.size > 8 * 1024 * 1024) { showMessage('הקובץ גדול מדי (מקס 8MB)', 'error'); return; }
+                        body.file = await fileToBase64(f); body.filename = f.name; body.contentType = f.type || 'application/pdf';
+                    }
+                    const res = await fetch(`${API_URL}/api/admin/suppliers/${sid}/docs`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(body) });
+                    if (!res.ok) { const d = await res.json(); showMessage(d.error || 'שגיאה', 'error'); return; }
+                }
+                showMessage('נשמר', 'success'); resetDocForm(); loadSuppliers();
+            } catch (err) { showMessage('שגיאה בהעלאה', 'error'); }
+        }
+
+        function editSupplierDoc(id) {
+            const d = supplierDocsData.find(x => x.id === id); if (!d) return;
+            document.getElementById('docId').value = d.id;
+            document.getElementById('docSupplierId').value = d.supplier_id;
+            document.getElementById('docType').value = d.doc_type || 'FDA';
+            document.getElementById('docNumber').value = d.doc_number || '';
+            document.getElementById('docIssue').value = d.issue_date ? d.issue_date.slice(0,10) : '';
+            document.getElementById('docExpiry').value = d.expiry_date ? d.expiry_date.slice(0,10) : '';
+            window.scrollTo(0, document.getElementById('supplierDocsContent').offsetTop - 200);
+            showMessage('עריכת תעודה — שמירה תעדכן מטא-דאטה (הקובץ נשמר)', 'success');
+        }
+
+        async function viewSupplierDoc(id) {
+            const token = localStorage.getItem('adminToken');
+            try {
+                const res = await fetch(`${API_URL}/api/admin/supplier-docs/${id}/file`, { headers: { 'Authorization': `Bearer ${token}` } });
+                if (!res.ok) { showMessage('שגיאה בטעינת הקובץ', 'error'); return; }
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                window.open(url, '_blank');
+                setTimeout(() => URL.revokeObjectURL(url), 60000);
+            } catch (err) { showMessage('שגיאה', 'error'); }
+        }
+
+        async function deleteSupplierDoc(id) {
+            if (!confirm('למחוק את התעודה?')) return;
+            const token = localStorage.getItem('adminToken');
+            try {
+                const res = await fetch(`${API_URL}/api/admin/supplier-docs/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+                if (!res.ok) { showMessage('שגיאה במחיקה', 'error'); return; }
+                showMessage('נמחק', 'success'); loadSuppliers();
             } catch (err) { showMessage('שגיאה במחיקה', 'error'); }
         }
 
