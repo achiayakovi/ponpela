@@ -2453,10 +2453,10 @@
                 if (s.id === editingSerialId) {
                     const opts = SERIAL_STATUSES.map(st => `<option value="${st}" ${s.status === st ? 'selected' : ''}>${st}</option>`).join('');
                     html += `<tr>
-                        <td><input type="text" id="edSerial_${s.id}" value="${escapeHtml(s.serial_number)}" style="padding:5px; width:130px;"></td>
-                        <td><input type="text" id="edModel_${s.id}" value="${escapeHtml(s.model || '')}" style="padding:5px; width:90px;"></td>
+                        <td><input type="text" id="edSerial_${s.id}" value="${escapeHtml(s.serial_number)}" style="padding:8px; width:130px; border:2px solid #e0e0e0; border-radius:8px; font-family:inherit;"></td>
+                        <td><input type="text" id="edModel_${s.id}" value="${escapeHtml(s.model || '')}" style="padding:8px; width:90px; border:2px solid #e0e0e0; border-radius:8px; font-family:inherit;"></td>
                         <td>${src}</td>
-                        <td><select id="edStatus_${s.id}" style="padding:5px;">${opts}</select></td>
+                        <td><select id="edStatus_${s.id}" style="padding:8px; border:2px solid #e0e0e0; border-radius:8px; font-family:inherit;">${opts}</select></td>
                         <td>${escapeHtml(s.created_by_name || '')}</td>
                         <td>
                           <button class="btn btn-success" onclick="saveSerialEdit(${s.id})">שמור</button>
