@@ -579,7 +579,10 @@
                         <option value="תלונה">תלונה</option><option value="משוב">משוב (שביעות רצון)</option><option value="אחר">אחר</option></select></div>
                     <div class="form-group"><label>תאריך</label><input type="date" id="commDate"></div>
                 </div>
-                <div id="feedbackFields" class="form-group" style="display:none;"><label>דירוג שביעות רצון (1–5)</label><select id="commScore"><option value="">—</option><option value="5">5</option><option value="4">4</option><option value="3">3</option><option value="2">2</option><option value="1">1</option></select></div>
+                <div id="feedbackFields" style="display:none;"><div class="form-row">
+                    <div class="form-group"><label>נושא המשוב</label><select id="commTopic"><option value="שירות">שירות</option><option value="מהירות הגעת המוצר">מהירות הגעת המוצר</option><option value="קלות ההזמנה">קלות ההזמנה</option><option value="איכות המוצר">איכות המוצר</option></select></div>
+                    <div class="form-group"><label>דירוג (1–5)</label><select id="commScore"><option value="">—</option><option value="5">5</option><option value="4">4</option><option value="3">3</option><option value="2">2</option><option value="1">1</option></select></div>
+                </div></div>
                 <div class="form-group" style="position:relative;"><label>חיפוש לקוח (שם/טלפון/סריאלי)</label>
                     <input type="text" id="custSearch" placeholder="הקלד לחיפוש..." oninput="searchCustomer()" autocomplete="off">
                     <div id="custResults" style="display:none; position:absolute; z-index:10; background:#fff; border:1px solid #ccc; border-radius:6px; width:100%; max-height:220px; overflow:auto;"></div>
@@ -2653,10 +2656,14 @@
                 const s = await fetch(`${API_URL}/api/admin/satisfaction-stats`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json());
                 panel.style.display = 'block';
                 if (!s.n) { panel.innerHTML = '<div style="background:#eef; padding:12px; border-radius:8px; margin-bottom:12px;">אין משובים עם דירוג עדיין.</div>'; return; }
-                const bar = (n) => { const pct = s.n ? Math.round(n / s.n * 100) : 0; return `<div style="display:flex; align-items:center; gap:8px; margin:2px 0;"><span style="width:40px;">${n}</span><div style="background:#667eea; height:14px; width:${pct}%; border-radius:4px; min-width:2px;"></div></div>`; };
+                const bar = (n, tot) => { const pct = tot ? Math.round(n / tot * 100) : 0; return `<div style="display:flex; align-items:center; gap:8px; margin:2px 0;"><span style="width:40px;">${n}</span><div style="background:#667eea; height:14px; width:${pct}%; border-radius:4px; min-width:2px;"></div></div>`; };
+                const dist = (o) => `<div style="margin-top:6px;"><div>★5 ${bar(o.s5,o.n)}</div><div>★4 ${bar(o.s4,o.n)}</div><div>★3 ${bar(o.s3,o.n)}</div><div>★2 ${bar(o.s2,o.n)}</div><div>★1 ${bar(o.s1,o.n)}</div></div>`;
+                const topics = (s.by_topic||[]).map(tp=>`<div style="background:#fff; border:1px solid #dde; padding:10px 12px; border-radius:8px; flex:1; min-width:180px;">
+                    <strong>${escapeHtml(tp.topic)}</strong> — ממוצע <span style="color:#5a4ed1; font-weight:bold;">${tp.avg}</span>/5 · ${tp.n}${dist(tp)}</div>`).join('');
                 panel.innerHTML = `<div style="background:#eef; padding:14px; border-radius:8px; margin-bottom:14px;">
-                    <strong>סיכום שביעות רצון</strong> — ממוצע <span style="font-size:1.3rem; color:#5a4ed1; font-weight:bold;">${s.avg}</span>/5 · ${s.n} משובים
-                    <div style="margin-top:8px;"><div>★5 ${bar(s.s5)}</div><div>★4 ${bar(s.s4)}</div><div>★3 ${bar(s.s3)}</div><div>★2 ${bar(s.s2)}</div><div>★1 ${bar(s.s1)}</div></div>
+                    <strong>סיכום שביעות רצון (כללי)</strong> — ממוצע <span style="font-size:1.3rem; color:#5a4ed1; font-weight:bold;">${s.avg}</span>/5 · ${s.n} משובים
+                    ${dist(s)}
+                    ${topics?`<div style="margin-top:12px;"><strong>לפי נושא:</strong><div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:8px;">${topics}</div></div>`:''}
                 </div>`;
             } catch (err) { panel.style.display = 'none'; }
         }
@@ -2679,7 +2686,7 @@
                     html += `<tr><td colspan="7" style="background:#f8f9fa; padding:10px 14px;">
                         ${c.serial_number ? `<div style="margin-bottom:8px;"><strong>סריאלי:</strong> ${escapeHtml(c.serial_number)}</div>` : ''}
                         <div style="margin-bottom:8px;"><strong>תיאור:</strong> ${escapeHtml(c.description||'—')}</div>
-                        ${c.type==='משוב' ? `<div style="margin-bottom:8px;"><strong>דירוג:</strong> ${c.score?'★'+c.score+'/5':'—'}</div>` : ''}
+                        ${c.type==='משוב' ? `<div style="margin-bottom:8px;"><strong>נושא:</strong> ${escapeHtml(c.feedback_topic||'—')} · <strong>דירוג:</strong> ${c.score?'★'+c.score+'/5':'—'}</div>` : ''}
                         ${c.type==='תלונה' ? `
                           <div style="margin-bottom:8px;"><strong>סיווג:</strong> ${escapeHtml(c.classification||'—')}</div>
                           <div style="margin-bottom:8px;"><strong>מענה ראשוני:</strong> ${escapeHtml(c.initial_response||'—')}</div>
@@ -2703,7 +2710,10 @@
                     <div class="form-group"><label>סוג</label><select id="ecm_type_${c.id}" onchange="onEditCommType(${c.id})">${['שיחה','מכירה','תלונה','משוב','אחר'].map(v=>opt(v,c.type)).join('')}</select></div>
                     <div class="form-group"><label>תאריך</label><input type="date" id="ecm_date_${c.id}" value="${dt}"></div>
                 </div>
-                <div id="ecm_feedback_${c.id}" class="form-group" style="display:${c.type==='משוב'?'block':'none'};"><label>דירוג שביעות רצון (1–5)</label><select id="ecm_score_${c.id}"><option value="">—</option>${[5,4,3,2,1].map(v=>`<option value="${v}" ${String(c.score)===String(v)?'selected':''}>${v}</option>`).join('')}</select></div>
+                <div id="ecm_feedback_${c.id}" style="display:${c.type==='משוב'?'block':'none'};"><div class="form-row">
+                    <div class="form-group"><label>נושא המשוב</label><select id="ecm_topic_${c.id}">${['שירות','מהירות הגעת המוצר','קלות ההזמנה','איכות המוצר'].map(v=>opt(v,c.feedback_topic)).join('')}</select></div>
+                    <div class="form-group"><label>דירוג (1–5)</label><select id="ecm_score_${c.id}"><option value="">—</option>${[5,4,3,2,1].map(v=>`<option value="${v}" ${String(c.score)===String(v)?'selected':''}>${v}</option>`).join('')}</select></div>
+                </div></div>
                 <div class="form-row">
                     <div class="form-group"><label>שם לקוח</label><input type="text" id="ecm_name_${c.id}" value="${escapeHtml(c.customer_name||'')}"></div>
                     <div class="form-group"><label>טלפון</label><input type="text" id="ecm_phone_${c.id}" value="${escapeHtml(c.customer_phone||'')}"></div>
@@ -2748,7 +2758,8 @@
                 initial_response: document.getElementById('commResponse').value.trim(),
                 resolution: document.getElementById('commResolution').value.trim(),
                 status: document.getElementById('commStatus').value,
-                score: document.getElementById('commScore').value || null
+                score: document.getElementById('commScore').value || null,
+                feedback_topic: document.getElementById('commTopic').value || null
             };
             try {
                 const res = await fetch(`${API_URL}/api/admin/communications`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(body) });
@@ -2778,7 +2789,8 @@
                 initial_response: document.getElementById('ecm_response_'+id).value.trim(),
                 resolution: document.getElementById('ecm_resolution_'+id).value.trim(),
                 status: document.getElementById('ecm_status_'+id).value,
-                score: (document.getElementById('ecm_score_'+id) ? document.getElementById('ecm_score_'+id).value : '') || null
+                score: (document.getElementById('ecm_score_'+id) ? document.getElementById('ecm_score_'+id).value : '') || null,
+                feedback_topic: (document.getElementById('ecm_topic_'+id) ? document.getElementById('ecm_topic_'+id).value : '') || null
             };
             try {
                 const res = await fetch(`${API_URL}/api/admin/communications/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(body) });
