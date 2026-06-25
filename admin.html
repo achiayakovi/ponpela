@@ -1973,7 +1973,7 @@
                     </div>
                 </div>` : ''}
                 <h4 style="margin:18px 0 8px;">מוצרים
-                    ${(order.status === 'pending' || order.status === 'preparing')
+                    ${order.status !== 'cancelled'
                         ? `<button class="btn" onclick='openEditOrder(${order.id})' style="padding:3px 12px; font-size:13px; margin-right:10px;">✏️ ערוך הזמנה</button>`
                         : ''}
                 </h4>
@@ -2031,7 +2031,7 @@
                     editProductsList = await fetch(`${API_URL}/api/admin/all-products`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json());
                 }
                 const order = await fetch(`${API_URL}/api/admin/order/${id}`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json());
-                if (order.status !== 'pending' && order.status !== 'preparing') { showMessage('ניתן לערוך רק לפני שילוח', 'error'); return; }
+                if (order.status === 'cancelled') { showMessage('לא ניתן לערוך הזמנה מבוטלת', 'error'); return; }
                 editOrderId = id;
                 editItems = order.items.map(it => ({ product_id: it.product_id, quantity: it.quantity, name: it.product_name, price: parseFloat(it.price) }));
                 document.getElementById('editOrderTitle').textContent = '#' + id;
