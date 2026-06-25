@@ -248,6 +248,17 @@
             grid-template-columns: 1fr 1fr;
             gap: 15px;
         }
+        /* כפתורי דירוג עגולים 1–5 */
+        .fb-row { margin-bottom: 14px; }
+        .fb-row .fb-lbl { display: block; margin-bottom: 6px; font-weight: 600; color: #2c3e50; }
+        .fb-nums { display: flex; gap: 8px; }
+        .fb-btn {
+            width: 40px; height: 40px; border-radius: 50%;
+            border: 2px solid #c9cfe8; background: #fff; color: #5060c0;
+            font-size: 15px; font-family: inherit; cursor: pointer; transition: all .12s;
+        }
+        .fb-btn:hover { border-color: #5060c0; }
+        .fb-btn.sel { background: #5060c0; color: #fff; border-color: #5060c0; }
         
         /* Messages */
         .message {
@@ -591,10 +602,18 @@
                         <option value="תלונה">תלונה</option><option value="משוב">משוב (שביעות רצון)</option><option value="אחר">אחר</option></select></div>
                     <div class="form-group"><label>תאריך</label><input type="date" id="commDate"></div>
                 </div>
-                <div id="feedbackFields" style="display:none;"><div class="form-row">
-                    <div class="form-group"><label>נושא המשוב</label><select id="commTopic"><option value="שירות">שירות</option><option value="מהירות הגעת המוצר">מהירות הגעת המוצר</option><option value="קלות ההזמנה">קלות ההזמנה</option><option value="איכות המוצר">איכות המוצר</option></select></div>
-                    <div class="form-group"><label>דירוג (1–5)</label><select id="commScore"><option value="">—</option><option value="5">5</option><option value="4">4</option><option value="3">3</option><option value="2">2</option><option value="1">1</option></select></div>
-                </div></div>
+                <div id="feedbackFields" style="display:none;">
+                    <div class="fb-row" data-topic="שירות"><span class="fb-lbl">שירות</span><div class="fb-nums">
+                        <button type="button" class="fb-btn" value="1" onclick="pickFb(this)">1</button><button type="button" class="fb-btn" value="2" onclick="pickFb(this)">2</button><button type="button" class="fb-btn" value="3" onclick="pickFb(this)">3</button><button type="button" class="fb-btn" value="4" onclick="pickFb(this)">4</button><button type="button" class="fb-btn" value="5" onclick="pickFb(this)">5</button>
+                    </div></div>
+                    <div class="fb-row" data-topic="מהירות הגעת המוצר"><span class="fb-lbl">מהירות הגעת המוצר</span><div class="fb-nums">
+                        <button type="button" class="fb-btn" value="1" onclick="pickFb(this)">1</button><button type="button" class="fb-btn" value="2" onclick="pickFb(this)">2</button><button type="button" class="fb-btn" value="3" onclick="pickFb(this)">3</button><button type="button" class="fb-btn" value="4" onclick="pickFb(this)">4</button><button type="button" class="fb-btn" value="5" onclick="pickFb(this)">5</button>
+                    </div></div>
+                    <div class="fb-row" data-topic="קלות ההזמנה"><span class="fb-lbl">קלות ההזמנה</span><div class="fb-nums">
+                        <button type="button" class="fb-btn" value="1" onclick="pickFb(this)">1</button><button type="button" class="fb-btn" value="2" onclick="pickFb(this)">2</button><button type="button" class="fb-btn" value="3" onclick="pickFb(this)">3</button><button type="button" class="fb-btn" value="4" onclick="pickFb(this)">4</button><button type="button" class="fb-btn" value="5" onclick="pickFb(this)">5</button>
+                    </div></div>
+                    <small style="color:#888;">בחר/י דירוג 1–5 לכל נושא רלוונטי. הערות → בשדה "תיאור" למטה.</small>
+                </div>
                 <div class="form-group" style="position:relative;"><label>חיפוש לקוח (שם/טלפון/סריאלי)</label>
                     <input type="text" id="custSearch" placeholder="הקלד לחיפוש..." oninput="searchCustomer()" autocomplete="off">
                     <div id="custResults" style="display:none; position:absolute; z-index:10; background:#fff; border:1px solid #ccc; border-radius:6px; width:100%; max-height:220px; overflow:auto;"></div>
@@ -2722,10 +2741,10 @@
                     <div class="form-group"><label>סוג</label><select id="ecm_type_${c.id}" onchange="onEditCommType(${c.id})">${['שיחה','מכירה','תלונה','משוב','אחר'].map(v=>opt(v,c.type)).join('')}</select></div>
                     <div class="form-group"><label>תאריך</label><input type="date" id="ecm_date_${c.id}" value="${dt}"></div>
                 </div>
-                <div id="ecm_feedback_${c.id}" style="display:${c.type==='משוב'?'block':'none'};"><div class="form-row">
+                <div id="ecm_feedback_${c.id}" style="display:${c.type==='משוב'?'block':'none'};">
                     <div class="form-group"><label>נושא המשוב</label><select id="ecm_topic_${c.id}">${['שירות','מהירות הגעת המוצר','קלות ההזמנה','איכות המוצר'].map(v=>opt(v,c.feedback_topic)).join('')}</select></div>
-                    <div class="form-group"><label>דירוג (1–5)</label><select id="ecm_score_${c.id}"><option value="">—</option>${[5,4,3,2,1].map(v=>`<option value="${v}" ${String(c.score)===String(v)?'selected':''}>${v}</option>`).join('')}</select></div>
-                </div></div>
+                    <div class="fb-row"><span class="fb-lbl">דירוג (1–5)</span><div class="fb-nums">${[1,2,3,4,5].map(v=>`<button type="button" class="fb-btn ${String(c.score)===String(v)?'sel':''}" value="${v}" onclick="pickFb(this)">${v}</button>`).join('')}</div></div>
+                </div>
                 <div class="form-row">
                     <div class="form-group"><label>שם לקוח</label><input type="text" id="ecm_name_${c.id}" value="${escapeHtml(c.customer_name||'')}"></div>
                     <div class="form-group"><label>טלפון</label><input type="text" id="ecm_phone_${c.id}" value="${escapeHtml(c.customer_phone||'')}"></div>
@@ -2755,30 +2774,48 @@
         function startEditComm(id) { expandedCommId = id; editingCommId = id; renderComm(); }
         function cancelEditComm() { editingCommId = null; renderComm(); }
 
+        // בחירת דירוג עגול — מסמן את הכפתור הנבחר בשורה (בחירה אמיתית, בולטת)
+        function pickFb(btn) {
+            btn.parentElement.querySelectorAll('.fb-btn').forEach(b => b.classList.remove('sel'));
+            btn.classList.add('sel');
+        }
         async function addCommunication(e) {
             e.preventDefault();
             const token = localStorage.getItem('adminToken');
-            const body = {
+            const type = document.getElementById('commType').value;
+            const common = {
                 comm_date: document.getElementById('commDate').value || null,
-                type: document.getElementById('commType').value,
                 customer_name: document.getElementById('commName').value.trim(),
                 customer_phone: document.getElementById('commPhone').value.trim(),
                 serial_number: document.getElementById('commSerial').value.trim(),
                 user_id: document.getElementById('commUserId').value || null,
-                description: document.getElementById('commDesc').value.trim(),
-                classification: document.getElementById('commClassification').value || null,
-                initial_response: document.getElementById('commResponse').value.trim(),
-                resolution: document.getElementById('commResolution').value.trim(),
-                status: document.getElementById('commStatus').value,
-                score: document.getElementById('commScore').value || null,
-                feedback_topic: document.getElementById('commTopic').value || null
+                description: document.getElementById('commDesc').value.trim()
             };
+            const post = (b) => fetch(`${API_URL}/api/admin/communications`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(b) });
             try {
-                const res = await fetch(`${API_URL}/api/admin/communications`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(body) });
-                if (!res.ok) { const dd = await res.json(); showMessage(dd.error || 'שגיאה', 'error'); return; }
-                showMessage('נשמר', 'success');
+                if (type === 'משוב') {
+                    // רשומה לכל פרמטר שדורג (כפתורים עגולים 1–5)
+                    const rows = document.querySelectorAll('#feedbackFields .fb-row');
+                    let posted = 0;
+                    for (const row of rows) {
+                        const sel = row.querySelector('.fb-btn.sel');
+                        if (!sel) continue;
+                        const res = await post({ ...common, type: 'משוב', feedback_topic: row.dataset.topic, score: sel.value, status: 'סגורה' });
+                        if (res.ok) posted++;
+                    }
+                    if (!posted) { showMessage('בחר דירוג לפחות לנושא אחד', 'error'); return; }
+                    showMessage(`נשמרו ${posted} משובים`, 'success');
+                    document.querySelectorAll('#feedbackFields .fb-btn.sel').forEach(b => b.classList.remove('sel'));
+                } else {
+                    const res = await post({ ...common, type,
+                        classification: document.getElementById('commClassification').value || null,
+                        initial_response: document.getElementById('commResponse').value.trim(),
+                        resolution: document.getElementById('commResolution').value.trim(),
+                        status: document.getElementById('commStatus').value });
+                    if (!res.ok) { const dd = await res.json(); showMessage(dd.error || 'שגיאה', 'error'); return; }
+                    showMessage('נשמר', 'success');
+                }
                 ['commName','commPhone','commSerial','commDesc','commResponse','commResolution','commUserId','commDate'].forEach(id => document.getElementById(id).value = '');
-                document.getElementById('commScore').value = '';
                 document.getElementById('commType').value = 'שיחה';
                 document.getElementById('commClassification').value = '';
                 document.getElementById('commStatus').value = 'פתוחה';
@@ -2801,7 +2838,7 @@
                 initial_response: document.getElementById('ecm_response_'+id).value.trim(),
                 resolution: document.getElementById('ecm_resolution_'+id).value.trim(),
                 status: document.getElementById('ecm_status_'+id).value,
-                score: (document.getElementById('ecm_score_'+id) ? document.getElementById('ecm_score_'+id).value : '') || null,
+                score: (function(){const b=document.querySelector('#ecm_feedback_'+id+' .fb-btn.sel');return b?b.value:null;})(),
                 feedback_topic: (document.getElementById('ecm_topic_'+id) ? document.getElementById('ecm_topic_'+id).value : '') || null
             };
             try {
