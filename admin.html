@@ -282,13 +282,34 @@
             color: #7f8c8d;
         }
         
+        /* כל בורר (חוץ מ-pills) — עיגול אחיד + חץ מותאם (selects נייטיביים מתעלמים מ-border-radius בכפתור החץ) */
+        select:not(.status-select) {
+            -webkit-appearance: none;
+            appearance: none;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 10px 12px 10px 32px;
+            background-color: #fff;
+            font-family: inherit;
+            font-size: 1rem;
+            cursor: pointer;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%2212%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23888%22 stroke-width=%223%22><path d=%22M6 9l6 6 6-6%22/></svg>');
+            background-repeat: no-repeat;
+            background-position: left 12px center;
+        }
         /* Status Select */
         select.status-select {
-            padding: 5px 10px;
+            padding: 5px 28px 5px 12px;
             border-radius: 20px;
             border: 1px solid #ddd;
             font-weight: 600;
             cursor: pointer;
+            -webkit-appearance: none;
+            appearance: none;
+            background-color: #fff;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%2212%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23888%22 stroke-width=%223%22><path d=%22M6 9l6 6 6-6%22/></svg>');
+            background-repeat: no-repeat;
+            background-position: left 10px center;
         }
         
         /* Responsive */
