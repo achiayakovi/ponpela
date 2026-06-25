@@ -600,6 +600,14 @@
                         <div class="form-group"><label>סטטוס</label><select id="rcStatus"><option value="נקלט">נקלט</option><option value="הסגר">הסגר</option></select></div>
                     </div>
                     <div class="form-group"><label>נזק / הערות בדיקת מדגם</label><input type="text" id="rcDamage" placeholder="ממצאי בדיקה / נזקים"></div>
+                    <div style="border-top:1px solid #e0e0e0; margin-top:10px; padding-top:10px;">
+                        <label style="font-weight:600;">סריאליים (אופציונלי — רק למוצרים עם סריאלי)</label>
+                        <div class="form-row" style="margin-top:6px;">
+                            <div class="form-group"><label>טווח מ-</label><input type="number" id="rcSerFrom"></div>
+                            <div class="form-group"><label>עד</label><input type="number" id="rcSerTo"></div>
+                        </div>
+                        <div class="form-group"><label>או רשימה (מופרדת בפסיק/שורה — גובר על הטווח)</label><textarea id="rcSerList" rows="2"></textarea></div>
+                    </div>
                     <div>
                         <button type="submit" class="btn btn-primary">צור קליטה</button>
                         <button type="button" class="btn" onclick="toggleReceivingAdd()">ביטול</button>
@@ -2613,11 +2621,24 @@
                     })
                 });
                 if (!res.ok) { const d = await res.json(); showMessage(d.error || 'שגיאה', 'error'); return; }
-                showMessage('קליטה נוצרה', 'success');
+                const created = await res.json();
+                // סריאליים אופציונליים — נוצרים ישר עם הקליטה
+                const serFrom = document.getElementById('rcSerFrom').value, serTo = document.getElementById('rcSerTo').value, serList = document.getElementById('rcSerList').value.trim();
+                if (created.id && (serList || (serFrom && serTo))) {
+                    const sres = await fetch(`${API_URL}/api/admin/receiving/${created.id}/serials`, {
+                        method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        body: JSON.stringify({ from: serFrom || null, to: serTo || null, list: serList || null })
+                    });
+                    const sd = await sres.json();
+                    if (!sres.ok) { showMessage('הקליטה נוצרה אך הסריאליים נכשלו: ' + (sd.error || ''), 'error'); }
+                    else { showMessage(`קליטה נוצרה · נוספו ${sd.added} סריאליים (דילוג ${sd.skipped})`, 'success'); }
+                } else {
+                    showMessage('קליטה נוצרה', 'success');
+                }
                 e.target.reset();
                 document.getElementById('rcNewProduct').style.display = 'none';
                 document.getElementById('receivingAddForm').style.display = 'none';
-                loadReceivingList(); loadRcProducts();
+                loadReceivingList(); loadRcProducts(); loadSerials();
             } catch (err) { showMessage('שגיאה ביצירת קליטה', 'error'); }
         }
 
