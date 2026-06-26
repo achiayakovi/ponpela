@@ -551,6 +551,7 @@
                 </div>
                 <div class="form-group"><label>כותרת *</label><input type="text" id="procTitle" required placeholder="בקרת רשומות"></div>
                 <div class="form-group"><label>קובץ PDF *</label><input type="file" id="procFile" accept="application/pdf" required></div>
+                <div class="form-group"><label style="font-weight:normal;"><input type="checkbox" id="procEmpVisible"> 👁️ להציג לעובדים (אחרת — רק מנהל)</label></div>
                 <div>
                     <button type="submit" class="btn btn-primary">העלה גרסה</button>
                     <button type="button" class="btn" onclick="toggleProcedureAdd()">ביטול</button>
@@ -2460,13 +2461,15 @@
                 const canEdit = adminHasArea('procedures');
                 const upBtn = document.getElementById('procedureUploadBtn');
                 if (upBtn) upBtn.style.display = canEdit ? '' : 'none';
-                let html = '<div class="table-container"><table><thead><tr><th>קוד</th><th>כותרת</th><th>גרסה</th><th>עודכן</th><th>ע"י</th><th>פעולות</th></tr></thead><tbody>';
+                let html = '<div class="table-container"><table><thead><tr><th>קוד</th><th>כותרת</th><th>גרסה</th>' + (canEdit ? '<th>גלוּת</th>' : '') + '<th>עודכן</th><th>ע"י</th><th>פעולות</th></tr></thead><tbody>';
                 procs.forEach(p => {
                     const updated = p.updated_at ? new Date(p.updated_at).toLocaleDateString('he-IL') : '';
+                    const visCell = canEdit ? `<td><button class="btn" onclick="toggleProcVisibility(${p.id}, ${p.employee_visible ? 'false' : 'true'})" style="padding:2px 8px; font-size:12px;">${p.employee_visible ? '👁️ עובדים' : '🔒 מנהל'}</button></td>` : '';
                     html += `<tr>
                         <td>${escapeHtml(p.code || '')}</td>
                         <td>${escapeHtml(p.title)}</td>
                         <td>${escapeHtml(p.version || '')}</td>
+                        ${visCell}
                         <td>${escapeHtml(updated)}</td>
                         <td>${escapeHtml(p.handled_by_name || p.created_by_name || '')}</td>
                         <td>
@@ -2509,7 +2512,8 @@
                         code: document.getElementById('procCode').value.trim(),
                         title: document.getElementById('procTitle').value.trim(),
                         version: document.getElementById('procVersion').value.trim(),
-                        file: base64, filename: file.name, contentType: file.type || 'application/pdf'
+                        file: base64, filename: file.name, contentType: file.type || 'application/pdf',
+                        employee_visible: document.getElementById('procEmpVisible').checked
                     })
                 });
                 const data = await res.json();
@@ -2551,6 +2555,18 @@
                 showMessage('הנוהל נמחק', 'success');
                 loadProcedures();
             } catch (err) { showMessage('שגיאה במחיקה', 'error'); }
+        }
+        async function toggleProcVisibility(id, vis) {
+            const token = localStorage.getItem('adminToken');
+            try {
+                const res = await fetch(`${API_URL}/api/admin/procedures/${id}/visibility`, {
+                    method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ employee_visible: vis })
+                });
+                if (!res.ok) { showMessage('שגיאה בעדכון', 'error'); return; }
+                showMessage(vis ? 'הנוהל גלוי לעובדים' : 'הנוהל מוסתר מעובדים', 'success');
+                loadProcedures();
+            } catch (err) { showMessage('שגיאה בעדכון', 'error'); }
         }
 
         // ===== משתמשי ניהול והרשאות =====
