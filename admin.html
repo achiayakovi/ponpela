@@ -383,6 +383,7 @@
             <button class="tab active" data-area="warranties" onclick="switchTab('warranties')">אחריות</button>
             <button class="tab" data-area="orders" onclick="switchTab('orders')">הזמנות</button>
             <button class="tab" data-area="products" onclick="switchTab('products')">מוצרים</button>
+            <button class="tab" data-area="settings" onclick="switchTab('settings')">הגדרות</button>
             <button class="tab" data-area="stock" onclick="switchTab('stock')">מלאי</button>
             <button class="tab" data-area="users" onclick="switchTab('users')">משתמשים</button>
             <button class="tab" data-area="receiving" onclick="switchTab('receiving')">קליטה</button>
@@ -481,6 +482,28 @@
             <button class="btn btn-primary" onclick="openProductModal()" style="margin-bottom: 20px;">+ הוספת מוצר</button>
             <div id="productsLoading" class="loading">טוען...</div>
             <div id="productsContent"></div>
+        </div>
+
+        <!-- Settings Section -->
+        <div id="settingsSection" class="section">
+            <h2>הגדרות</h2>
+            <div style="background: white; padding: 25px; border-radius: 12px; border: 1px solid #e0e6ed; max-width: 600px;">
+                <h3 style="margin-bottom: 12px; color: #2c3e50;">קטגוריות מוצרים — תפריט החנות</h3>
+                <p style="color: #7f8c8d; margin-bottom: 20px; font-size: 0.95rem;">הקטגוריות שמופיעות בסינון החנות ובשדה קטגוריה בעריכת מוצר.</p>
+                <div id="categoriesList" style="margin-bottom: 20px;"></div>
+                <div style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;">
+                    <div class="form-group" style="flex: 2; min-width: 140px; margin: 0;">
+                        <label>ערך (מזהה)</label>
+                        <input type="text" id="newCategoryValue" placeholder="למשל: pumps">
+                    </div>
+                    <div class="form-group" style="flex: 3; min-width: 160px; margin: 0;">
+                        <label>תווית (טקסט מוצג)</label>
+                        <input type="text" id="newCategoryLabel" placeholder="למשל: משאבות חשמליות">
+                    </div>
+                    <button class="btn btn-primary" onclick="addCategory()" style="margin: 0; height: 46px;">הוסף</button>
+                </div>
+                <div id="categoryMessage" style="margin-top: 15px; display: none;"></div>
+            </div>
         </div>
 
         <!-- Stock Section -->
@@ -1043,10 +1066,6 @@
                     <label>קטגוריה</label>
                     <select id="productCategory">
                         <option value="">בחר קטגוריה</option>
-                        <option value="משאבות חשמליות">משאבות חשמליות</option>
-                        <option value="אביזרים וחלפים">אביזרים וחלפים</option>
-                        <option value="אחסון חלב">אחסון חלב</option>
-                        <option value="מתנות">מתנות</option>
                     </select>
                 </div>
                 
@@ -1328,6 +1347,7 @@
             if (tab === 'warranties') loadWarranties();
             else if (tab === 'orders') loadOrders();
             else if (tab === 'products') loadProducts();
+            else if (tab === 'settings') renderCategoriesList();
             else if (tab === 'stock') loadStock();
             else if (tab === 'users') loadUsers();
             else if (tab === 'receiving') loadReceiving();
@@ -1707,7 +1727,6 @@
                 document.getElementById('productId').value = product.id;
                 document.getElementById('productName').value = product.name;
                 document.getElementById('productSku').value = product.sku || '';
-                document.getElementById('productCategory').value = product.category || '';
                 document.getElementById('productShortDescription').value = product.short_description || '';
                 document.getElementById('productDescription').value = product.description || '';
                 document.getElementById('productPrice').value = product.price;
@@ -1724,12 +1743,89 @@
                 document.getElementById('productId').value = '';
                 document.getElementById('productStockQuantity').value = '0';
             }
-            
+
+            loadProductCategoryOptions(product && product.category ? product.category : '');
             modal.classList.add('active');
         }
 
         function closeProductModal() {
             document.getElementById('productModal').classList.remove('active');
+        }
+
+        // ===== ניהול קטגוריות =====
+        async function loadProductCategoryOptions(selected) {
+            const select = document.getElementById('productCategory');
+            if (!select) return;
+            try {
+                const res = await fetch(`${API_URL}/api/categories`);
+                const cats = await res.json();
+                select.innerHTML = '<option value="">בחר קטגוריה</option>' +
+                    cats.map(c => `<option value="${escapeHtml(c.value)}">${escapeHtml(c.label)}</option>`).join('');
+                select.value = selected || '';
+            } catch (err) { console.error('Failed to load categories:', err); }
+        }
+
+        async function renderCategoriesList() {
+            const container = document.getElementById('categoriesList');
+            if (!container) return;
+            container.innerHTML = '<p style="color:#7f8c8d;">טוען...</p>';
+            try {
+                const res = await fetch(`${API_URL}/api/categories`);
+                const cats = await res.json();
+                if (!cats.length) { container.innerHTML = '<p style="color:#7f8c8d;">אין קטגוריות מוגדרות</p>'; return; }
+                container.innerHTML = cats.map(c => `
+                    <div style="display:flex;align-items:center;gap:10px;padding:10px;background:#ecf0f1;border-radius:8px;margin-bottom:8px;">
+                        <span style="color:#7f8c8d;font-size:0.85rem;width:120px;">${escapeHtml(c.value)}</span>
+                        <span style="color:#2c3e50;flex:1;">${escapeHtml(c.label)}</span>
+                        <button class="btn btn-delete" onclick="removeCategory('${escapeJsAttr(c.value)}')" style="padding:4px 12px;">הסר</button>
+                    </div>
+                `).join('');
+            } catch (err) {
+                container.innerHTML = '<p style="color:#e74c3c;">שגיאה בטעינה</p>';
+            }
+        }
+
+        async function addCategory() {
+            const value = document.getElementById('newCategoryValue').value.trim();
+            const label = document.getElementById('newCategoryLabel').value.trim();
+            const msg = document.getElementById('categoryMessage');
+            const token = localStorage.getItem('adminToken');
+            if (!value || !label) {
+                msg.style.display = 'block'; msg.style.color = '#e74c3c';
+                msg.textContent = 'יש למלא גם ערך וגם תווית'; return;
+            }
+            try {
+                const res = await fetch(`${API_URL}/api/admin/categories`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ value, label })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error);
+                document.getElementById('newCategoryValue').value = '';
+                document.getElementById('newCategoryLabel').value = '';
+                msg.style.display = 'block'; msg.style.color = '#27ae60';
+                msg.textContent = 'נוסף בהצלחה';
+                setTimeout(() => msg.style.display = 'none', 2000);
+                renderCategoriesList();
+            } catch (err) {
+                msg.style.display = 'block'; msg.style.color = '#e74c3c';
+                msg.textContent = err.message || 'שגיאה בהוספה';
+            }
+        }
+
+        async function removeCategory(value) {
+            const token = localStorage.getItem('adminToken');
+            if (!confirm('למחוק קטגוריה זו?')) return;
+            try {
+                await fetch(`${API_URL}/api/admin/categories/${encodeURIComponent(value)}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                renderCategoriesList();
+            } catch (err) {
+                alert('שגיאה במחיקה');
+            }
         }
 
         async function saveProduct(e) {

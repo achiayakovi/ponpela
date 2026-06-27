@@ -883,14 +883,8 @@
                     <p>מוצרים איכותיים במחיר הוגן</p>
                 </div>
 
-                <!-- Category Filter -->
-                <div class="category-filter" id="categoryFilter" style="display: none;">
-                    <button class="category-btn active" onclick="filterByCategory('')">הכל</button>
-                    <button class="category-btn" onclick="filterByCategory('משאבות חשמליות')">משאבות חשמליות</button>
-                    <button class="category-btn" onclick="filterByCategory('אביזרים וחלפים')">אביזרים וחלפים</button>
-                    <button class="category-btn" onclick="filterByCategory('אחסון חלב')">אחסון חלב</button>
-                    <button class="category-btn" onclick="filterByCategory('מתנות')">מתנות</button>
-                </div>
+                <!-- Category Filter (נטען דינמית מ-/api/categories) -->
+                <div class="category-filter" id="categoryFilter" style="display: none;"></div>
 
                 <div id="productsContainer" class="products-grid">
                     <div class="loading">טוען מוצרים...</div>
@@ -981,6 +975,7 @@
             const categoryFilter = document.getElementById('categoryFilter');
             if (categoryFilter && products.length > 0) {
                 categoryFilter.style.display = 'flex';
+                renderCategoryFilter();
             }
 
             const cart = JSON.parse(localStorage.getItem('cart') || '[]');
@@ -1201,12 +1196,32 @@
             }
         });
 
+        // טעינת כפתורי הסינון דינמית מהקטגוריות המנוהלות בפאנל הניהול
+        async function renderCategoryFilter() {
+            const wrap = document.getElementById('categoryFilter');
+            if (!wrap) return;
+            try {
+                const res = await fetch(`${API_URL}/api/categories`);
+                const cats = await res.json();
+                wrap.innerHTML = '';
+                const mk = (label, value, active) => {
+                    const b = document.createElement('button');
+                    b.className = 'category-btn' + (active ? ' active' : '');
+                    b.textContent = label;
+                    b.addEventListener('click', () => filterByCategory(value, b));
+                    return b;
+                };
+                wrap.appendChild(mk('הכל', '', true));
+                cats.forEach(c => wrap.appendChild(mk(c.label, c.value, false)));
+            } catch (err) { console.error('Failed to load categories:', err); }
+        }
+
         // סינון לפי קטגוריה
-        function filterByCategory(category) {
+        function filterByCategory(category, btnEl) {
             document.querySelectorAll('.category-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
-            event.target.classList.add('active');
+            (btnEl || event.target).classList.add('active');
 
             const filtered = category === '' ? 
                 allProducts : 
