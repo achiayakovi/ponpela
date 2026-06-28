@@ -464,6 +464,9 @@
                 </div>
             </div>
 
+            <div style="margin:10px 0;">
+                <input type="text" id="orderSearch" placeholder="חיפוש לפי שם/טלפון/מספר הזמנה..." oninput="renderOrders()" style="width:100%; max-width:420px; padding:12px; border:2px solid #e0e0e0; border-radius:8px; font-family:inherit;">
+            </div>
             <div id="ordersFilter" style="margin:10px 0; display:none; align-items:center; gap:8px;">
                 <label style="font-size:14px; color:#555;">מסנן סקר:</label>
                 <select id="surveyFilter" onchange="renderOrders()" style="padding:6px 10px; border-radius:8px; border:1px solid #ccc;">
@@ -574,6 +577,9 @@
         <!-- Users Section -->
         <div id="usersSection" class="section">
             <h2>ניהול משתמשים</h2>
+            <div style="margin-bottom:14px;">
+                <input type="text" id="userSearch" placeholder="חיפוש לפי שם/טלפון/אימייל/מספר מכשיר..." oninput="loadUsers()" style="width:100%; max-width:420px; padding:12px; border:2px solid #e0e0e0; border-radius:8px; font-family:inherit;">
+            </div>
             <div id="usersLoading" class="loading">טוען...</div>
             <div id="usersContent"></div>
         </div>
@@ -767,6 +773,7 @@
                 </div>
             </form>
             <div style="margin-bottom:10px; display:flex; gap:10px; flex-wrap:wrap;">
+                <input type="text" id="commSearch" placeholder="חיפוש שם/טלפון/מספר מכשיר..." oninput="loadCommunications()" style="flex:1; min-width:200px; padding:12px; border:2px solid #e0e0e0; border-radius:8px; font-family:inherit;">
                 <select id="commFilterType" onchange="loadCommunications()" style="padding:12px; border:2px solid #e0e0e0; border-radius:8px; font-family:inherit; font-size:1rem; background:#fff; cursor:pointer; -webkit-appearance:none; appearance:none; background-image:url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%2212%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23888%22 stroke-width=%223%22><path d=%22M6 9l6 6 6-6%22/></svg>'); background-repeat:no-repeat; background-position:left 12px center; padding-left:34px;">
                     <option value="">כל הסוגים</option>
                     <option value="שיחה">שיחה</option><option value="מכירה">מכירה</option>
@@ -2020,7 +2027,12 @@
             const filter = (document.getElementById('surveyFilter') || {}).value || 'all';
             if (!Array.isArray(ordersData) || ordersData.length === 0) { content.innerHTML = '<p class="empty-state">אין הזמנות</p>'; return; }
             // מסנן לפי מצב הסקר (כל שלב נחשב — מתאים אם אחד מהשלבים תואם)
+            const txt = (((document.getElementById('orderSearch')||{}).value) || '').trim().toLowerCase();
             const rows = ordersData.filter(o => {
+                if (txt) {
+                    const hay = `${o.id} ${o.full_name||''} ${o.email||''} ${o.guest_name||''} ${o.guest_phone||''} ${o.phone||''}`.toLowerCase();
+                    if (!hay.includes(txt)) return false;
+                }
                 if (filter === 'all') return true;
                 const states = [surveyStageState(o, 'purchase'), surveyStageState(o, 'day30')];
                 return states.includes(filter);
@@ -2352,7 +2364,8 @@
             loading.style.display = 'block';
             document.getElementById('usersContent').innerHTML = '';
             try {
-                const res = await fetch(`${API_URL}/api/admin/users`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const uq = ((document.getElementById('userSearch')||{}).value || '').trim();
+                const res = await fetch(`${API_URL}/api/admin/users${uq?('?q='+encodeURIComponent(uq)):''}`, { headers: { 'Authorization': `Bearer ${token}` } });
                 usersData = await res.json();
                 loading.style.display = 'none';
                 renderUsersList();
@@ -3482,7 +3495,8 @@
             const type = document.getElementById('commFilterType').value;
             const statusEl = document.getElementById('commFilterStatus');
             const status = statusEl ? statusEl.value : '';
-            const qs = new URLSearchParams(); if (type) qs.set('type', type); if (status) qs.set('status', status);
+            const q = ((document.getElementById('commSearch')||{}).value || '').trim();
+            const qs = new URLSearchParams(); if (type) qs.set('type', type); if (status) qs.set('status', status); if (q) qs.set('q', q);
             try {
                 const res = await fetch(`${API_URL}/api/admin/communications${qs.toString() ? '?'+qs.toString() : ''}`, { headers: { 'Authorization': `Bearer ${token}` } });
                 commData = await res.json();
