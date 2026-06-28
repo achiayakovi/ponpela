@@ -2146,7 +2146,7 @@
                     <td>${escapeHtml(o.full_name || o.email || o.guest_name || '')}</td>
                     <td>₪${o.total_amount}</td>
                     <td onclick="event.stopPropagation();">${orderStatusSelect(o)}</td>
-                    <td onclick="event.stopPropagation();">${surveyStageCell(o, 'purchase', 'רכישה')}${surveyStageCell(o, 'day30', '30 יום')}</td>
+                    <td onclick="event.stopPropagation();">${o.surveyable===false?'<span style="color:#aaa;font-size:12px;">ללא סקר</span>':(surveyStageCell(o, 'purchase', 'רכישה')+surveyStageCell(o, 'day30', '30 יום'))}</td>
                     <td>${new Date(o.created_at).toLocaleDateString('he-IL')}</td></tr>`;
                 if (open) h += `<tr><td colspan="7" style="background:#f8f9fa; padding:10px 14px;"><div id="orderDetail_${o.id}" onclick="event.stopPropagation();">טוען...</div></td></tr>`;
             });
