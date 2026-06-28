@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מעקב הזמנה · פונפלה</title>
+<style>
+  body{font-family:Arial,Helvetica,sans-serif;background:#f5f7fa;color:#2c3e50;margin:0;display:flex;min-height:100vh;align-items:center;justify-content:center;}
+  .card{background:#fff;border-radius:16px;padding:32px 28px;max-width:440px;width:90%;text-align:center;box-shadow:0 10px 40px rgba(80,96,192,.12);}
+  .oid{color:#5a6c7d;font-size:15px;}
+  .status{font-size:28px;font-weight:bold;margin:14px 0;color:#236474;}
+  .row{color:#5a6c7d;margin:6px 0;font-size:15px;}
+  .steps{display:flex;justify-content:space-between;margin-top:26px;gap:6px;}
+  .step{flex:1;font-size:12px;color:#aab4c0;border-top:3px solid #e3e8ef;padding-top:8px;}
+  .step.active{color:#236474;border-top-color:#236474;font-weight:bold;}
+</style>
+</head>
+<body>
+<div class="card" id="card"><div class="status">טוען...</div></div>
+<script>
+  const API_URL='https://ponpela-backend-production.up.railway.app';
+  const token=new URLSearchParams(location.search).get('token');
+  const card=document.getElementById('card');
+  async function load(){
+    if(!token){card.innerHTML='<div class="status">קישור לא תקין</div>';return;}
+    try{
+      const r=await fetch(`${API_URL}/api/track/${encodeURIComponent(token)}`);
+      if(!r.ok){card.innerHTML='<div class="status">הזמנה לא נמצאה</div>';return;}
+      const o=await r.json();
+      const dm=o.delivery_method==='איסוף';
+      const LABELS={pending:'ממתין לטיפול',preparing:'בהכנה',dispatched:dm?'מוכן לאיסוף':'נשלח',completed:'הושלם',cancelled:'בוטל'};
+      const order=['pending','preparing','dispatched','completed'];
+      const idx=order.indexOf(o.status);
+      const names=['ממתין','בהכנה',dm?'מוכן לאיסוף':'נשלח','הושלם'];
+      const steps=names.map((s,i)=>`<div class="step ${idx>=0&&i<=idx?'active':''}">${s}</div>`).join('');
+      card.innerHTML=`<div class="oid">הזמנה #${o.id}</div>`+
+        `<div class="status">${LABELS[o.status]||o.status}</div>`+
+        (o.status==='cancelled'?'':`<div class="steps">${steps}</div>`)+
+        (dm&&o.pickup_name?`<div class="row">📍 איסוף: ${o.pickup_name}${o.pickup_address?' · '+o.pickup_address:''}</div>`:'')+
+        `<div class="row">סכום: ₪${o.total_amount}</div>`;
+    }catch(e){card.innerHTML='<div class="status">שגיאה בטעינה</div>';}
+  }
+  load();
+</script>
+</body>
+</html>
