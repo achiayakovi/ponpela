@@ -3564,13 +3564,14 @@
             const chip = document.getElementById('commOrderChip');
             if (kind === 'order') {
                 document.getElementById('commOrderId').value = id;
-                document.getElementById('commSerial').value = '';
-                // מילוי שם/טלפון מההזמנה
+                // מילוי שם/טלפון + סריאל מההזמנה (מהאחריות המקושרת) — לא מאפסים ידנית
                 try {
                     const token = localStorage.getItem('adminToken');
                     const o = await fetch(`${API_URL}/api/admin/order/${id}`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json());
                     document.getElementById('commName').value = o.full_name || o.guest_name || document.getElementById('commName').value;
                     document.getElementById('commPhone').value = o.phone || o.guest_phone || document.getElementById('commPhone').value;
+                    const serials = (o.warranties || []).map(w => w.machine_number).filter(Boolean);
+                    if (serials.length) document.getElementById('commSerial').value = serials.join(', ');
                     const prods = (o.items || []).map(it => it.product_name).filter(Boolean).join(', ');
                     chip.innerHTML = `<span style="background:#eef;padding:4px 10px;border-radius:12px;">מצורף: הזמנה #${id}${prods ? ' — ' + escapeHtml(prods) : ''} <a href="#" onclick="clearCommOrder();return false;" style="color:#c0392b;">✕</a></span>`;
                 } catch (e) { chip.innerHTML = `מצורף: הזמנה #${id}`; }
