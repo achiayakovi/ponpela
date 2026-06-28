@@ -427,7 +427,16 @@
         <!-- Orders Section -->
         <div id="ordersSection" class="section">
             <h2>ניהול הזמנות</h2>
-            <button class="btn btn-primary" onclick="toggleManualOrder()" style="margin-bottom:14px;">➕ הזמנה טלפונית</button>
+            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; align-items:center;">
+                <input type="text" id="orderSearch" placeholder="חיפוש לפי שם/טלפון/מספר הזמנה..." oninput="renderOrders()" style="flex:1; min-width:200px; padding:12px; border:2px solid #e0e0e0; border-radius:8px; font-family:inherit;">
+                <select id="surveyFilter" onchange="renderOrders()" style="padding:11px; border:2px solid #e0e0e0; border-radius:8px; font-family:inherit; background:#fff; cursor:pointer;">
+                    <option value="all">כל הסקרים</option>
+                    <option value="pending">טרם הגיבו</option>
+                    <option value="notsent">לא נשלחו</option>
+                    <option value="done">הגיבו</option>
+                </select>
+                <button class="btn btn-primary" onclick="toggleManualOrder()">➕ הזמנה טלפונית</button>
+            </div>
 
             <div id="manualOrderForm" style="display:none; background:#f8f9fa; padding:16px; border-radius:8px; margin-bottom:20px;">
                 <h3>הזמנה טלפונית</h3>
@@ -464,18 +473,6 @@
                 </div>
             </div>
 
-            <div style="margin:10px 0;">
-                <input type="text" id="orderSearch" placeholder="חיפוש לפי שם/טלפון/מספר הזמנה..." oninput="renderOrders()" style="width:100%; max-width:420px; padding:12px; border:2px solid #e0e0e0; border-radius:8px; font-family:inherit;">
-            </div>
-            <div id="ordersFilter" style="margin:10px 0; display:none; align-items:center; gap:8px;">
-                <label style="font-size:14px; color:#555;">מסנן סקר:</label>
-                <select id="surveyFilter" onchange="renderOrders()" style="padding:6px 10px; border-radius:8px; border:1px solid #ccc;">
-                    <option value="all">הכל</option>
-                    <option value="pending">טרם הגיבו</option>
-                    <option value="notsent">לא נשלחו</option>
-                    <option value="done">הגיבו</option>
-                </select>
-            </div>
             <div id="ordersLoading" class="loading">טוען...</div>
             <div id="ordersContent"></div>
         </div>
@@ -1983,7 +1980,6 @@
                 const res = await fetch(`${API_URL}/api/admin/orders`, { headers: { 'Authorization': `Bearer ${token}` } });
                 ordersData = await res.json();
                 loading.style.display = 'none';
-                document.getElementById('ordersFilter').style.display = 'flex';
                 renderOrders();
             } catch (err) {
                 loading.innerHTML = 'שגיאה';
