@@ -1273,8 +1273,12 @@
                 </div>
                 <div style="margin-bottom:14px;">
                     <strong>אופן קבלה:</strong>
-                    <label style="margin-right:10px;"><input type="radio" name="editDelivery" value="משלוח"> משלוח</label>
-                    <label style="margin-right:10px;"><input type="radio" name="editDelivery" value="איסוף"> איסוף</label>
+                    <label style="margin-right:10px;"><input type="radio" name="editDelivery" value="משלוח" onchange="syncEditPickup()"> משלוח</label>
+                    <label style="margin-right:10px;"><input type="radio" name="editDelivery" value="איסוף" onchange="syncEditPickup()"> איסוף</label>
+                    <div id="editPickupWrap" style="display:none; margin-top:10px;">
+                        <label style="display:block; margin-bottom:6px; font-weight:600;">נקודת איסוף:</label>
+                        <select id="editPickupSel" style="width:100%; padding:8px;"></select>
+                    </div>
                 </div>
                 <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #eee; padding-top:12px;">
                     <strong style="font-size:17px;">סה"כ: ₪<span id="editTotal">0</span></strong>
@@ -2297,6 +2301,16 @@
                     `<option value="${p.id}">${escapeHtml(p.name)} — ₪${p.sale_price || p.price} (מלאי ${p.stock_quantity})</option>`).join('');
                 const dm = order.delivery_method === 'איסוף' ? 'איסוף' : 'משלוח';
                 document.querySelectorAll('input[name="editDelivery"]').forEach(r => r.checked = (r.value === dm));
+                try {
+                    const pls = await fetch(`${API_URL}/api/admin/pickup-locations`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json());
+                    const active = Array.isArray(pls) ? pls.filter(p => p.is_active) : [];
+                    const sel = document.getElementById('editPickupSel');
+                    sel.innerHTML = active.length
+                        ? active.map(p => `<option value="${p.id}">${escapeHtml(p.name)}${p.address ? (' — ' + escapeHtml(p.address)) : ''}</option>`).join('')
+                        : '<option value="">— אין נקודות איסוף —</option>';
+                    if (order.pickup_location_id) sel.value = String(order.pickup_location_id);
+                } catch (e) {}
+                syncEditPickup();
                 renderEditItems();
                 document.getElementById('editOrderModal').classList.add('active');
             } catch (err) { showMessage('שגיאה בטעינת ההזמנה', 'error'); }
@@ -2328,12 +2342,15 @@
             renderEditItems();
         }
         function closeEditOrder() { document.getElementById('editOrderModal').classList.remove('active'); editOrderId = null; editItems = []; }
+        function syncEditPickup() { const isPickup = ((document.querySelector('input[name="editDelivery"]:checked') || {}).value) === 'איסוף'; const w = document.getElementById('editPickupWrap'); if (w) w.style.display = isPickup ? 'block' : 'none'; }
         async function saveEditOrder() {
             if (!editItems.length) { showMessage('הזמנה חייבת לכלול לפחות מוצר אחד', 'error'); return; }
             const token = localStorage.getItem('adminToken');
+            const dmSel = (document.querySelector('input[name="editDelivery"]:checked') || {}).value || 'משלוח';
             const body = {
                 items: editItems.map(it => ({ product_id: it.product_id, quantity: it.quantity })),
-                delivery_method: (document.querySelector('input[name="editDelivery"]:checked') || {}).value || 'משלוח'
+                delivery_method: dmSel,
+                pickup_location_id: dmSel === 'איסוף' ? (parseInt(document.getElementById('editPickupSel').value, 10) || null) : null
             };
             try {
                 const res = await fetch(`${API_URL}/api/admin/orders/${editOrderId}/items`, {
