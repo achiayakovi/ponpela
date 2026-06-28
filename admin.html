@@ -111,7 +111,8 @@
         
         /* Buttons */
         .btn {
-            padding: 10px 20px;
+            padding: 7px 15px;
+            font-size: 0.9rem;
             border: none;
             border-radius: 8px;
             cursor: pointer;
@@ -2221,11 +2222,16 @@
                     const dt = new Date(b.mtime).toLocaleString('he-IL');
                     h += `<tr><td>${escapeHtml(dt)}</td><td>${(b.size / 1024).toFixed(1)}KB</td>
                         <td style="font-size:11px; color:#888;">${escapeHtml(b.name)}</td>
-                        <td><button class="btn btn-primary" onclick="restoreBackup('${escapeJsAttr(b.name)}')">♻️ שחזר</button>
+                        <td><button class="btn" onclick="downloadBackup('${escapeJsAttr(b.name)}')">⬇️ הורד</button>
+                            <button class="btn btn-primary" onclick="restoreBackup('${escapeJsAttr(b.name)}')">♻️ שחזר</button>
                             <button class="btn btn-danger" onclick="deleteBackup('${escapeJsAttr(b.name)}')">🗑️ מחק</button></td></tr>`;
                 });
                 content.innerHTML = h + '</tbody></table></div>';
             } catch (e) { loading.style.display = 'none'; content.innerHTML = '<p>שגיאה בטעינת גיבויים.</p>'; }
+        }
+        async function downloadBackup(name){
+            const t = localStorage.getItem('adminToken');
+            try{ const r = await fetch(`${API_URL}/api/admin/backups/${encodeURIComponent(name)}`,{headers:{'Authorization':`Bearer ${t}`}}); if(!r.ok)throw new Error('שגיאה'); const blob = await r.blob(); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url; a.download=name; a.click(); URL.revokeObjectURL(url); }catch(e){ showMessage('שגיאה בהורדה','error'); }
         }
         async function backupNow() {
             const btn = document.getElementById('backupNowBtn');
