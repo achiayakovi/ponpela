@@ -601,6 +601,11 @@
                                 <label for="address">כתובת משלוח *</label>
                                 <textarea id="address" required placeholder="רחוב, מספר בית, עיר, מיקוד"></textarea>
                             </div>
+                            <div class="form-group" id="pickupGroup" style="display:none;">
+                                <label for="pickupLocation">נקודת איסוף *</label>
+                                <select id="pickupLocation"></select>
+                                <div id="pickupInfo" style="font-size:13px; color:#7f8c8d; margin-top:6px;"></div>
+                            </div>
                             <div class="form-group">
                                 <label for="notes">הערות להזמנה</label>
                                 <textarea id="notes" placeholder="הערות נוספות (אופציונלי)"></textarea>
@@ -740,9 +745,32 @@
             const method = (document.querySelector('input[name="deliveryMethod"]:checked') || {}).value || 'משלוח';
             const group = document.getElementById('addressGroup');
             const addr = document.getElementById('address');
+            const pickupGroup = document.getElementById('pickupGroup');
+            const pickupSel = document.getElementById('pickupLocation');
             const isShip = method === 'משלוח';
             group.style.display = isShip ? '' : 'none';
             if (addr) addr.required = isShip;
+            if (pickupGroup) pickupGroup.style.display = isShip ? 'none' : '';
+            if (pickupSel) pickupSel.required = !isShip;
+            if (!isShip) showPickupInfo();
+        }
+        let pickupLocations = [];
+        async function loadPickupLocations() {
+            const sel = document.getElementById('pickupLocation'); if (!sel) return;
+            try { pickupLocations = await fetch(`${API_URL}/api/pickup-locations`).then(r => r.json()); } catch (e) { pickupLocations = []; }
+            if (!Array.isArray(pickupLocations) || !pickupLocations.length) {
+                sel.innerHTML = '<option value="">— אין נקודות איסוף זמינות —</option>';
+            } else {
+                sel.innerHTML = pickupLocations.map(p => `<option value="${p.id}">${p.name} — ${p.address}</option>`).join('');
+            }
+            sel.onchange = showPickupInfo;
+            showPickupInfo();
+        }
+        function showPickupInfo() {
+            const sel = document.getElementById('pickupLocation'); const info = document.getElementById('pickupInfo');
+            if (!sel || !info) return;
+            const p = pickupLocations.find(x => String(x.id) === String(sel.value));
+            info.textContent = p ? [p.address, p.phone ? ('טלפון: ' + p.phone) : '', p.hours ? ('שעות: ' + p.hours) : ''].filter(Boolean).join(' · ') : '';
         }
 
         // מסך הצלחה מתמשך אחרי שליחת הזמנה (במקום טוסט שנעלם)
@@ -812,6 +840,12 @@
             const cart = JSON.parse(localStorage.getItem('cart') || '[]');
 
             const deliveryMethod = (document.querySelector('input[name="deliveryMethod"]:checked') || {}).value || 'משלוח';
+            const pickupId = (document.getElementById('pickupLocation') || {}).value || '';
+            if (deliveryMethod === 'איסוף' && !pickupId) {
+                showToast('יש לבחור נקודת איסוף', 'error');
+                submitBtn.disabled = false; submitBtn.textContent = 'שלח הזמנה';
+                return;
+            }
             const orderData = {
                 items: cart.map(item => ({
                     product_id: item.id,
@@ -819,6 +853,7 @@
                 })),
                 delivery_method: deliveryMethod,
                 shipping_address: deliveryMethod === 'משלוח' ? document.getElementById('address').value : '',
+                pickup_location_id: deliveryMethod === 'איסוף' ? parseInt(pickupId, 10) : null,
                 notes: (document.getElementById('notes') ? document.getElementById('notes').value : '')
             };
 
@@ -956,6 +991,7 @@
         window.addEventListener('scroll', updateAccountButtonPosition);
         loadOrderSummary();
         loadUserProfile();
+        loadPickupLocations();
         updateCartBadge();
     </script>
     <script src="accessibility.js"></script>

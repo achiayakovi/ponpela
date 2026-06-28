@@ -505,6 +505,21 @@
                 </div>
                 <div id="categoryMessage" style="margin-top: 15px; display: none;"></div>
             </div>
+
+            <div style="background:#fff; padding:25px; border-radius:12px; border:1px solid #e0e0e0; max-width:600px; margin-top:20px;">
+                <h3 style="margin-bottom:20px;">כתובות איסוף עצמי</h3>
+                <p style="color:#7f8c8d; margin-bottom:20px; font-size:0.95rem;">הנקודות שיוצגו ללקוח בקליטה כשבוחר "איסוף עצמי".</p>
+                <div id="pickupList" style="margin-bottom:20px;"></div>
+                <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
+                    <input type="text" id="newPickupName" placeholder="שם נקודה (למשל: סניף מרכז)" style="flex:2; min-width:160px;">
+                    <input type="text" id="newPickupAddress" placeholder="כתובת" style="flex:3; min-width:180px;">
+                </div>
+                <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
+                    <input type="text" id="newPickupPhone" placeholder="טלפון (אופציונלי)" style="flex:1; min-width:140px;">
+                    <input type="text" id="newPickupHours" placeholder="שעות פעילות (אופציונלי)" style="flex:1; min-width:140px;">
+                </div>
+                <button class="btn btn-primary" onclick="addPickupLocation()">הוסף נקודת איסוף</button>
+            </div>
         </div>
 
         <!-- Stock Section -->
@@ -1352,7 +1367,7 @@
             if (tab === 'warranties') loadWarranties();
             else if (tab === 'orders') loadOrders();
             else if (tab === 'products') loadProducts();
-            else if (tab === 'settings') renderCategoriesList();
+            else if (tab === 'settings') { renderCategoriesList(); loadPickupLocationsAdmin(); }
             else if (tab === 'stock') loadStock();
             else if (tab === 'users') loadUsers();
             else if (tab === 'receiving') loadReceiving();
@@ -1770,6 +1785,45 @@
             } catch (err) { console.error('Failed to load categories:', err); }
         }
 
+        // ===== כתובות איסוף עצמי =====
+        async function loadPickupLocationsAdmin(){
+            const t=localStorage.getItem('adminToken'); const el=document.getElementById('pickupList'); if(!el) return;
+            try{
+                const list=await fetch(`${API_URL}/api/admin/pickup-locations`,{headers:{'Authorization':`Bearer ${t}`}}).then(r=>r.json());
+                if(!Array.isArray(list)||!list.length){ el.innerHTML='<p style="color:#7f8c8d;">אין נקודות איסוף עדיין.</p>'; return; }
+                el.innerHTML=list.map(p=>`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px;border:1px solid #e0e0e0;border-radius:8px;margin-bottom:8px;">
+                    <div><strong>${escapeHtml(p.name)}</strong> ${p.is_active?'':'<span style="color:#e74c3c;">(לא פעיל)</span>'}<br><span style="color:#7f8c8d;font-size:0.9rem;">${escapeHtml(p.address)}${p.phone?' · '+escapeHtml(p.phone):''}${p.hours?' · '+escapeHtml(p.hours):''}</span></div>
+                    <div style="display:flex;gap:6px;">
+                        <button class="btn" onclick="togglePickupActive(${p.id},${p.is_active?'false':'true'})">${p.is_active?'השבת':'הפעל'}</button>
+                        <button class="btn btn-danger" onclick="deletePickupLocation(${p.id})">מחק</button>
+                    </div>
+                </div>`).join('');
+            }catch(e){ el.innerHTML='<p style="color:#e74c3c;">שגיאה בטעינה</p>'; }
+        }
+        async function addPickupLocation(){
+            const t=localStorage.getItem('adminToken');
+            const name=document.getElementById('newPickupName').value.trim();
+            const address=document.getElementById('newPickupAddress').value.trim();
+            const phone=document.getElementById('newPickupPhone').value.trim();
+            const hours=document.getElementById('newPickupHours').value.trim();
+            if(!name||!address){ showMessage('שם וכתובת נדרשים','error'); return; }
+            try{
+                const r=await fetch(`${API_URL}/api/admin/pickup-locations`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${t}`},body:JSON.stringify({name,address,phone,hours})});
+                if(!r.ok){ const d=await r.json().catch(()=>({})); throw new Error(d.error||'שגיאה'); }
+                ['newPickupName','newPickupAddress','newPickupPhone','newPickupHours'].forEach(id=>document.getElementById(id).value='');
+                showMessage('נקודת איסוף נוספה','success'); loadPickupLocationsAdmin();
+            }catch(e){ showMessage(e.message||'שגיאה','error'); }
+        }
+        async function togglePickupActive(id,active){
+            const t=localStorage.getItem('adminToken');
+            try{ await fetch(`${API_URL}/api/admin/pickup-locations/${id}`,{method:'PUT',headers:{'Content-Type':'application/json','Authorization':`Bearer ${t}`},body:JSON.stringify({is_active:active})}); loadPickupLocationsAdmin(); }catch(e){ showMessage('שגיאה','error'); }
+        }
+        async function deletePickupLocation(id){
+            if(!confirm('למחוק נקודת איסוף זו?')) return;
+            const t=localStorage.getItem('adminToken');
+            try{ await fetch(`${API_URL}/api/admin/pickup-locations/${id}`,{method:'DELETE',headers:{'Authorization':`Bearer ${t}`}}); showMessage('נמחק','success'); loadPickupLocationsAdmin(); }catch(e){ showMessage('שגיאה','error'); }
+        }
+
         async function renderCategoriesList() {
             const container = document.getElementById('categoriesList');
             if (!container) return;
@@ -2074,7 +2128,7 @@
                     ${field('לקוח', escapeHtml(order.full_name || order.guest_name || '-') + (isGuest ? ' <span style="color:#e67e22;">(אורח)</span>' : ''))}
                     ${field('אימייל', escapeHtml(order.email || order.guest_email || '-'))}
                     ${field('טלפון', escapeHtml(order.phone || order.guest_phone || '-'))}
-                    ${field('אופן קבלה', escapeHtml(order.delivery_method || 'משלוח'))}
+                    ${field('אופן קבלה', order.delivery_method === 'איסוף' ? ('איסוף עצמי' + (order.pickup_name ? ' · ' + escapeHtml(order.pickup_name) : '') + (order.pickup_address ? ' (' + escapeHtml(order.pickup_address) + ')' : '')) : 'משלוח')}
                     ${field('כתובת', escapeHtml(order.shipping_address || '-'))}
                     ${field('סכום', '₪' + order.total_amount)}
                     ${field('סטטוס', escapeHtml(orderStatusHe(order.status)))}
