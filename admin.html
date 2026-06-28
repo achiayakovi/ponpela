@@ -2029,7 +2029,7 @@
             let h = '<div class="table-container"><table><thead><tr><th></th><th>מספר</th><th>לקוח</th><th>סכום</th><th>סטטוס</th><th>סקר</th><th>תאריך</th></tr></thead><tbody>';
             rows.forEach(o => {
                 const open = expandedOrderId === o.id;
-                h += `<tr style="cursor:pointer;" onclick="toggleOrderExpand(${o.id})">
+                h += `<tr style="cursor:pointer;${o.status === 'cancelled' ? 'background:#fde8e8;color:#c0392b;font-weight:600;' : ''}" onclick="toggleOrderExpand(${o.id})">
                     <td>${open ? '▲' : '▼'}</td>
                     <td>#${o.id}</td>
                     <td>${escapeHtml(o.full_name || o.email || o.guest_name || '')}</td>
