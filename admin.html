@@ -1187,6 +1187,13 @@
                             <option value="true">כן (שנה ויום)</option>
                         </select>
                     </div>
+                    <div class="form-group">
+                        <label>שליחת סקר</label>
+                        <select id="productSendSurvey">
+                            <option value="true">כן — שלח סקר</option>
+                            <option value="false">לא — בלי סקר</option>
+                        </select>
+                    </div>
                 </div>
                 
                 <button type="submit" class="btn btn-primary">שמור</button>
@@ -1797,6 +1804,7 @@
                 document.getElementById('productBadge').value = product.badge || '';
                 document.getElementById('productInStock').value = product.in_stock.toString();
                 document.getElementById('productHasWarranty').value = product.has_warranty.toString();
+                document.getElementById('productSendSurvey').value = (product.send_survey !== false).toString();
             } else {
                 title.textContent = 'הוספת מוצר';
                 document.getElementById('productForm').reset();
@@ -2003,7 +2011,8 @@
                 sku: document.getElementById('productSku').value || null,
                 badge: document.getElementById('productBadge').value || null,
                 in_stock: document.getElementById('productInStock').value === 'true',
-                has_warranty: document.getElementById('productHasWarranty').value === 'true'
+                has_warranty: document.getElementById('productHasWarranty').value === 'true',
+                send_survey: document.getElementById('productSendSurvey').value === 'true'
             };
 
             try {
