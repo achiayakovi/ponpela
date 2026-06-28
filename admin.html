@@ -748,11 +748,15 @@
                     <button type="button" class="btn" onclick="toggleCommAdd()">ביטול</button>
                 </div>
             </form>
-            <div style="margin-bottom:10px;">
+            <div style="margin-bottom:10px; display:flex; gap:10px; flex-wrap:wrap;">
                 <select id="commFilterType" onchange="loadCommunications()" style="padding:12px; border:2px solid #e0e0e0; border-radius:8px; font-family:inherit; font-size:1rem; background:#fff; cursor:pointer; -webkit-appearance:none; appearance:none; background-image:url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%2212%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23888%22 stroke-width=%223%22><path d=%22M6 9l6 6 6-6%22/></svg>'); background-repeat:no-repeat; background-position:left 12px center; padding-left:34px;">
                     <option value="">כל הסוגים</option>
                     <option value="שיחה">שיחה</option><option value="מכירה">מכירה</option>
                     <option value="תלונה">תלונה</option><option value="משוב">משוב</option><option value="אחר">אחר</option>
+                </select>
+                <select id="commFilterStatus" onchange="loadCommunications()" style="padding:12px; border:2px solid #e0e0e0; border-radius:8px; font-family:inherit; font-size:1rem; background:#fff; cursor:pointer;">
+                    <option value="">כל הסטטוסים</option>
+                    <option value="פתוחה">פתוחה</option><option value="בטיפול">בטיפול</option><option value="סגורה">סגורה</option>
                 </select>
             </div>
             <div id="satStatsPanel" style="display:none;"></div>
@@ -3415,8 +3419,11 @@
         async function loadCommunications() {
             const token = localStorage.getItem('adminToken');
             const type = document.getElementById('commFilterType').value;
+            const statusEl = document.getElementById('commFilterStatus');
+            const status = statusEl ? statusEl.value : '';
+            const qs = new URLSearchParams(); if (type) qs.set('type', type); if (status) qs.set('status', status);
             try {
-                const res = await fetch(`${API_URL}/api/admin/communications${type ? '?type='+encodeURIComponent(type) : ''}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const res = await fetch(`${API_URL}/api/admin/communications${qs.toString() ? '?'+qs.toString() : ''}`, { headers: { 'Authorization': `Bearer ${token}` } });
                 commData = await res.json();
                 renderComm();
                 loadSatStats(type === 'משוב');
