@@ -624,6 +624,11 @@
             </form>
             <div id="adminUsersLoading" class="loading">טוען...</div>
             <div id="adminUsersContent"></div>
+            <hr style="margin:24px 0; border:none; border-top:1px solid #e0e0e0;">
+            <h3 style="margin-bottom:8px;">📋 יומן פעילות אדמין</h3>
+            <p style="color:#7f8c8d; margin-bottom:10px;">מי ביצע כל פעולת כתיבה בפאנל ומתי (כל המודולים).</p>
+            <button class="btn" onclick="loadActivityLog()" style="margin-bottom:12px;">🔄 רענן יומן</button>
+            <div id="activityLogContent"></div>
         </div>
 
         <!-- Receiving Section -->
@@ -1388,7 +1393,7 @@
             else if (tab === 'changes') loadChanges();
             else if (tab === 'recalls') loadRecalls();
             else if (tab === 'procedures') loadProcedures();
-            else if (tab === 'admin_users') loadAdminUsers();
+            else if (tab === 'admin_users') { loadAdminUsers(); loadActivityLog(); }
             else if (tab === 'backups') loadBackups();
         }
 
@@ -2784,6 +2789,17 @@
         let adminUsersData = [];
         let expandedAdminId = null, editingAdminId = null;
 
+        async function loadActivityLog(){
+            const t=localStorage.getItem('adminToken'); const el=document.getElementById('activityLogContent'); if(!el)return;
+            el.innerHTML='<p class="loading">טוען...</p>';
+            try{
+                const res=await fetch(`${API_URL}/api/admin/activity-log?limit=300`,{headers:{'Authorization':`Bearer ${t}`}});
+                const rows=await res.json();
+                if(!res.ok||!Array.isArray(rows)){ el.innerHTML='<p style="color:#7f8c8d;">צפייה ביומן — למנהל-על בלבד</p>'; return; }
+                if(!rows.length){ el.innerHTML='<p>אין פעילות עדיין</p>'; return; }
+                el.innerHTML='<div class="table-container"><table><thead><tr><th>תאריך</th><th>אדמין</th><th>פעולה</th><th>נתיב</th></tr></thead><tbody>'+rows.map(r=>`<tr><td style="white-space:nowrap;">${new Date(r.created_at).toLocaleString('he-IL')}</td><td>${escapeHtml(r.admin_name||'-')}</td><td>${escapeHtml(r.description||'')}</td><td style="color:#888;font-size:12px;direction:ltr;text-align:left;">${escapeHtml(r.method||'')} ${escapeHtml(r.path||'')}</td></tr>`).join('')+'</tbody></table></div>';
+            }catch(e){ el.innerHTML='<p style="color:#e74c3c;">שגיאה בטעינה</p>'; }
+        }
         async function loadAdminUsers() {
             const token = localStorage.getItem('adminToken');
             const loading = document.getElementById('adminUsersLoading');
