@@ -480,17 +480,17 @@
             padding: 5px 15px;
             border-radius: 20px;
             font-size: 0.9rem;
+            font-weight: 600;
+            background: #eef1f7;
+            color: #334;
         }
 
-        .status-pending {
-            background: #ffeaa7;
-            color: #d63031;
-        }
-
-        .status-confirmed {
-            background: #55efc4;
-            color: #00b894;
-        }
+        .status-pending { background: #ffeaa7; color: #d63031; }
+        .status-confirmed,
+        .status-preparing { background: #dfe6ff; color: #2440b0; }
+        .status-dispatched { background: #d6efff; color: #0a6aa1; }
+        .status-completed { background: #55efc4; color: #00755a; }
+        .status-cancelled { background: #ffd6d6; color: #c0392b; }
 
         .order-items {
             margin-top: 15px;
