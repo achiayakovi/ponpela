@@ -435,6 +435,14 @@
                     <option value="notsent">לא נשלחו</option>
                     <option value="done">הגיבו</option>
                 </select>
+                <select id="statusFilter" onchange="renderOrders()" style="padding:11px; border:2px solid #e0e0e0; border-radius:8px; font-family:inherit; background:#fff; cursor:pointer;">
+                    <option value="all">כל הסטטוסים</option>
+                    <option value="pending">ממתין</option>
+                    <option value="preparing">הכנת הזמנה</option>
+                    <option value="dispatched">נשלח / מוכן לאיסוף</option>
+                    <option value="completed">הושלם</option>
+                    <option value="cancelled">בוטל</option>
+                </select>
                 <button class="btn btn-primary" onclick="toggleManualOrder()">➕ הזמנה טלפונית</button>
             </div>
 
@@ -2105,6 +2113,7 @@
         function renderOrders() {
             const content = document.getElementById('ordersContent');
             const filter = (document.getElementById('surveyFilter') || {}).value || 'all';
+            const stf = (document.getElementById('statusFilter') || {}).value || 'all';
             if (!Array.isArray(ordersData) || ordersData.length === 0) { content.innerHTML = '<p class="empty-state">אין הזמנות</p>'; return; }
             // מסנן לפי מצב הסקר (כל שלב נחשב — מתאים אם אחד מהשלבים תואם)
             const txt = (((document.getElementById('orderSearch')||{}).value) || '').trim().toLowerCase();
@@ -2113,6 +2122,7 @@
                     const hay = `${o.id} ${o.full_name||''} ${o.email||''} ${o.guest_name||''} ${o.guest_phone||''} ${o.phone||''}`.toLowerCase();
                     if (!hay.includes(txt)) return false;
                 }
+                if (stf !== 'all' && o.status !== stf) return false;
                 if (filter === 'all') return true;
                 const states = [surveyStageState(o, 'purchase'), surveyStageState(o, 'day30')];
                 return states.includes(filter);
