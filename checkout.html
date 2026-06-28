@@ -745,6 +745,62 @@
             if (addr) addr.required = isShip;
         }
 
+        // מסך הצלחה מתמשך אחרי שליחת הזמנה (במקום טוסט שנעלם)
+        function showOrderSuccess(order, cart, isLoggedIn, hasEmail) {
+            const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+            const total = (order && order.total_amount != null)
+                ? Number(order.total_amount)
+                : cart.reduce((s, it) => s + (it.price * it.quantity), 0);
+            const itemsHTML = cart.map(it => `
+                <div class="success-item">
+                    <span>${esc(it.name)} <span style="opacity:.65;">x${it.quantity}</span></span>
+                    <span style="white-space:nowrap;">₪${(it.price * it.quantity).toFixed(2)}</span>
+                </div>`).join('');
+            const emailLine = hasEmail ? ' אישור הזמנה נשלח לכתובת המייל שלך.' : '';
+            const primaryBtn = isLoggedIn
+                ? `<a href="account.html" class="success-btn primary">לאזור האישי</a>`
+                : `<a href="index.html" class="success-btn primary">לדף הבית</a>`;
+
+            if (!document.getElementById('orderSuccessStyles')) {
+                const st = document.createElement('style');
+                st.id = 'orderSuccessStyles';
+                st.textContent = `
+                #orderSuccessOverlay{position:fixed;inset:0;z-index:99999;background:rgba(10,15,25,.55);display:flex;align-items:center;justify-content:center;padding:20px;}
+                #orderSuccessOverlay .success-card{background:#fff;color:#2c2c3a;max-width:460px;width:100%;max-height:90vh;overflow:auto;border-radius:18px;padding:32px 26px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.35);font-family:'Heebo','Rubik',Arial,sans-serif;}
+                #orderSuccessOverlay .success-check{width:64px;height:64px;border-radius:50%;background:#27ae60;color:#fff;font-size:36px;line-height:64px;margin:0 auto 14px;}
+                #orderSuccessOverlay h2{margin:0 0 6px;font-size:1.6rem;}
+                #orderSuccessOverlay .success-sub{margin:0 0 16px;color:#6b6b7b;line-height:1.5;}
+                #orderSuccessOverlay .success-order-no{margin-bottom:14px;font-size:1.05rem;}
+                #orderSuccessOverlay .success-items{text-align:right;margin:0 0 6px;}
+                #orderSuccessOverlay .success-item{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid rgba(0,0,0,.08);}
+                #orderSuccessOverlay .success-total{display:flex;justify-content:space-between;font-weight:700;font-size:1.15rem;padding:12px 0 18px;border-top:2px solid rgba(0,0,0,.1);margin-top:6px;}
+                #orderSuccessOverlay .success-actions{display:flex;flex-direction:column;gap:10px;}
+                #orderSuccessOverlay .success-btn{display:block;padding:13px;border-radius:10px;text-decoration:none;font-weight:600;border:1px solid #5a4ed1;color:#5a4ed1;}
+                #orderSuccessOverlay .success-btn.primary{background:#5a4ed1;color:#fff;border-color:#5a4ed1;}`;
+                document.head.appendChild(st);
+            }
+
+            const overlay = document.createElement('div');
+            overlay.id = 'orderSuccessOverlay';
+            overlay.setAttribute('role', 'dialog');
+            overlay.setAttribute('aria-modal', 'true');
+            overlay.innerHTML = `
+                <div class="success-card">
+                    <div class="success-check">✓</div>
+                    <h2>ההזמנה התקבלה!</h2>
+                    <p class="success-sub">אנחנו מטפלים בה במהירות האפשרית.${emailLine}</p>
+                    <div class="success-order-no">מספר הזמנה: <strong>#${order.id}</strong></div>
+                    <div class="success-items">${itemsHTML}</div>
+                    <div class="success-total"><span>סה"כ</span><span>₪${total.toFixed(2)}</span></div>
+                    <div class="success-actions">
+                        ${primaryBtn}
+                        <a href="shop.html" class="success-btn">להמשך קנייה</a>
+                    </div>
+                </div>`;
+            document.body.appendChild(overlay);
+            document.body.style.overflow = 'hidden';
+        }
+
         document.getElementById('checkoutForm').addEventListener('submit', async (e) => {
             e.preventDefault();
 
@@ -779,14 +835,14 @@
                 if (!response.ok) throw new Error('שגיאה ביצירת הזמנה');
 
                 const order = await response.json();
-                
-                // ניקוי עגלה
+
+                // מסך הצלחה מתמשך — מוצג לאורח ולמחובר כאחד, עד שהמשתמש בוחר לאן להמשיך
+                const emailEl = document.getElementById('email');
+                const hasEmail = !!(emailEl && (emailEl.value || '').trim());
+                showOrderSuccess(order, cart, !!token, hasEmail);
+
+                // ניקוי עגלה לאחר שצילמנו אותה למסך ההצלחה
                 localStorage.removeItem('cart');
-                
-                showToast(`ההזמנה נשלחה בהצלחה! מספר הזמנה: ${order.id}`, 'success', 3000);
-                setTimeout(() => {
-                    window.location.href = 'account.html';
-                }, 3000);
             } catch (error) {
                 console.error('Error:', error);
                 showToast('שגיאה בשליחת ההזמנה. אנא נסה שוב.', 'error');
