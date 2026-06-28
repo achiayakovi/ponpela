@@ -2280,7 +2280,7 @@
 
         // Users
         // Users — שורות נפתחות
-        let usersData = [], expandedUserId = null;
+        let usersData = [], expandedUserId = null, editingUserId = null;
         async function loadUsers() {
             const token = localStorage.getItem('adminToken');
             const loading = document.getElementById('usersLoading');
@@ -2300,6 +2300,7 @@
             if (!Array.isArray(usersData) || !usersData.length) { content.innerHTML = '<p class="empty-state">אין לקוחות</p>'; return; }
             let h = '<div class="table-container"><table><thead><tr><th></th><th>שם</th><th>אימייל</th><th>טלפון</th><th>אדמין</th></tr></thead><tbody>';
             usersData.forEach(u => {
+                if (editingUserId === u.id) { h += `<tr><td colspan="5" style="padding:0;">${userEditForm(u)}</td></tr>`; return; }
                 const open = expandedUserId === u.id;
                 h += `<tr style="cursor:pointer;" onclick="toggleUserExpand(${u.id})">
                     <td>${open ? '▲' : '▼'}</td>
@@ -2314,13 +2315,38 @@
                             <div style="padding:3px 0;"><span style="color:#888;">תאריך הצטרפות: </span>${new Date(u.created_at).toLocaleDateString('he-IL')}</div>
                             <div style="padding:3px 0;"><span style="color:#888;">אדמין: </span>${u.is_admin ? 'כן' : 'לא'}</div>
                         </div>
-                        <div style="margin-top:10px;"><button class="btn btn-primary" onclick="event.stopPropagation();openResetPasswordModal('${escapeJsAttr(u.email)}', '${escapeJsAttr(u.full_name)}')">איפוס סיסמה</button></div></td></tr>`;
+                        <div style="margin-top:10px;"><button class="btn btn-primary" onclick="event.stopPropagation();startEditUser(${u.id})">ערוך</button>
+                        <button class="btn btn-edit" onclick="event.stopPropagation();openResetPasswordModal('${escapeJsAttr(u.email)}', '${escapeJsAttr(u.full_name)}')">איפוס סיסמה</button></div></td></tr>`;
                 }
             });
             h += '</tbody></table></div>';
             content.innerHTML = h;
         }
-        function toggleUserExpand(id){ expandedUserId = expandedUserId === id ? null : id; renderUsersList(); }
+        function userEditForm(u){
+            return `<div style="padding:16px; background:#fafbfc;">
+                <div class="form-row"><div class="form-group"><label>שם מלא</label><input type="text" id="eu_name_${u.id}" value="${escapeHtml(u.full_name||'')}"></div>
+                <div class="form-group"><label>טלפון</label><input type="text" id="eu_phone_${u.id}" value="${escapeHtml(u.phone||'')}"></div></div>
+                <div class="form-group"><label>כתובת</label><input type="text" id="eu_address_${u.id}" value="${escapeHtml(u.address||'')}"></div>
+                <label style="display:block; margin-bottom:8px;"><input type="checkbox" id="eu_admin_${u.id}" ${u.is_admin?'checked':''}> אדמין</label>
+                <div><button class="btn btn-success" onclick="saveUserInline(${u.id})">שמור</button> <button class="btn" onclick="cancelEditUser()">בטל</button></div></div>`;
+        }
+        function toggleUserExpand(id){ if(editingUserId===id) return; editingUserId=null; expandedUserId = expandedUserId === id ? null : id; renderUsersList(); }
+        function startEditUser(id){ expandedUserId=id; editingUserId=id; renderUsersList(); }
+        function cancelEditUser(){ editingUserId=null; renderUsersList(); }
+        async function saveUserInline(id){
+            const token = localStorage.getItem('adminToken');
+            const body = {
+                full_name: document.getElementById('eu_name_'+id).value.trim(),
+                phone: document.getElementById('eu_phone_'+id).value.trim(),
+                address: document.getElementById('eu_address_'+id).value.trim(),
+                is_admin: document.getElementById('eu_admin_'+id).checked
+            };
+            try {
+                const res = await fetch(`${API_URL}/api/admin/users/${id}`, { method:'PUT', headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`}, body: JSON.stringify(body) });
+                if(!res.ok){ const d=await res.json().catch(()=>({})); showMessage(d.error||'שגיאה בעדכון','error'); return; }
+                editingUserId=null; loadUsers();
+            } catch(e){ showMessage('שגיאה בשמירה','error'); }
+        }
 
         function openResetPasswordModal(email, name) {
             document.getElementById('resetUserEmail').value = email;
