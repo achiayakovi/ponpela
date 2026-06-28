@@ -706,6 +706,8 @@
         <div id="communicationsSection" class="section">
             <h2>תקשורת לקוחות</h2>
             <button class="btn btn-primary" onclick="toggleCommAdd()" style="margin-bottom:14px;">➕ רשומה חדשה</button>
+            <button class="btn" onclick="toggleSatStats()" style="margin-bottom:14px;">📊 שביעות רצון</button>
+            <div id="satStatsPanel" style="display:none; margin-bottom:16px;"></div>
             <form id="commAddForm" onsubmit="addCommunication(event)" style="display:none; background:#fafbfc; padding:16px; border-radius:8px; margin-bottom:20px;">
                 <div class="form-row">
                     <div class="form-group"><label>סוג</label><select id="commType" onchange="onCommTypeChange()">
@@ -765,7 +767,6 @@
                 </div>
             </form>
             <div style="margin-bottom:10px; display:flex; gap:10px; flex-wrap:wrap;">
-                <button class="btn" type="button" onclick="toggleSatStats()">📊 שביעות רצון</button>
                 <select id="commFilterType" onchange="loadCommunications()" style="padding:12px; border:2px solid #e0e0e0; border-radius:8px; font-family:inherit; font-size:1rem; background:#fff; cursor:pointer; -webkit-appearance:none; appearance:none; background-image:url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%2212%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23888%22 stroke-width=%223%22><path d=%22M6 9l6 6 6-6%22/></svg>'); background-repeat:no-repeat; background-position:left 12px center; padding-left:34px;">
                     <option value="">כל הסוגים</option>
                     <option value="שיחה">שיחה</option><option value="מכירה">מכירה</option>
@@ -776,7 +777,6 @@
                     <option value="פתוחה">פתוחה</option><option value="בטיפול">בטיפול</option><option value="סגורה">סגורה</option>
                 </select>
             </div>
-            <div id="satStatsPanel" style="display:none;"></div>
             <div id="communicationsContent"></div>
         </div>
 
@@ -3487,7 +3487,6 @@
                 const res = await fetch(`${API_URL}/api/admin/communications${qs.toString() ? '?'+qs.toString() : ''}`, { headers: { 'Authorization': `Bearer ${token}` } });
                 commData = await res.json();
                 renderComm();
-                loadSatStats(type === 'משוב');
             } catch (err) { document.getElementById('communicationsContent').innerHTML = '<p>שגיאה בטעינה.</p>'; }
         }
 
