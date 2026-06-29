@@ -953,7 +953,7 @@
                     <div class="form-group"><label>סוג</label><select id="riskType">
                         <option value="סיכון">סיכון</option><option value="הזדמנות">הזדמנות</option></select></div>
                     <div class="form-group"><label>סטטוס</label><select id="riskStatus">
-                        <option value="פעיל">פעיל</option><option value="בטיפול">בטיפול</option><option value="מבוקר">מבוקר</option><option value="סגור">סגור</option></select></div>
+                        <option value="פעיל">פעיל</option><option value="מבוקר">מבוקר</option><option value="סגור">סגור</option></select></div>
                 </div>
                 <div class="form-row">
                     <div class="form-group"><label>סבירות (1–3)</label><select id="riskProb">
@@ -4639,7 +4639,7 @@
             return `<div style="padding:16px; background:#fafbfc;">
                 <div class="form-row">
                     <div class="form-group"><label>סוג</label><select id="er_type_${r.id}">${opt('סיכון',r.risk_type)}${opt('הזדמנות',r.risk_type)}</select></div>
-                    <div class="form-group"><label>סטטוס</label><select id="er_status_${r.id}">${opt('פעיל',r.status)}${opt('בטיפול',r.status)}${opt('מבוקר',r.status)}${opt('סגור',r.status)}</select></div>
+                    <div class="form-group"><label>סטטוס</label><select id="er_status_${r.id}">${opt('פעיל',r.status)}${opt('מבוקר',r.status)}${opt('סגור',r.status)}</select></div>
                 </div>
                 <div class="form-row">
                     <div class="form-group"><label>סבירות (1–3)</label><select id="er_prob_${r.id}">${opt(1,r.probability,'1 – נמוכה')}${opt(2,r.probability,'2 – בינונית')}${opt(3,r.probability,'3 – גבוהה')}</select></div>
