@@ -3236,7 +3236,7 @@
             const content = document.getElementById('receivingListContent');
             if (!Array.isArray(receivingData) || receivingData.length === 0) { content.innerHTML = '<p>אין קליטות עדיין.</p>'; return; }
             const _t=receivingData.length, _c=receivingData.filter(r=>!(r.damage_notes&&String(r.damage_notes).trim())).length, _p=_t?Math.round(_c/_t*100):0;
-            let html = kpiRow([kpiCardHtml(_c+' / '+_t, _p+'% ללא אי-התאמה', 'קליטות תקינות (ללא אי-התאמה)')]);
+            let html = kpiRow([kpiCardHtml(_c+' / '+_t, _p+'% תקינות', 'קליטות תקינות')]);
             html += '<div class="table-container"><table><thead><tr><th></th><th>סוג</th><th>תאריך</th><th>ספק / מקור</th><th>דגם</th><th>כמות</th><th>סטטוס</th><th>סריאליים</th><th>ע"י</th></tr></thead><tbody>';
             receivingData.forEach(r => {
                 if (editingReceivingId === r.id) { html += `<tr><td colspan="9" style="padding:0;">${receivingEditForm(r)}</td></tr>`; return; }
