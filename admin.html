@@ -953,7 +953,7 @@
                     <div class="form-group"><label>סוג</label><select id="riskType">
                         <option value="סיכון">סיכון</option><option value="הזדמנות">הזדמנות</option></select></div>
                     <div class="form-group"><label>סטטוס</label><select id="riskStatus">
-                        <option value="פעיל">פעיל</option><option value="בטיפול">בטיפול</option><option value="סגור">סגור</option></select></div>
+                        <option value="פעיל">פעיל</option><option value="בטיפול">בטיפול</option><option value="מבוקר">מבוקר</option><option value="סגור">סגור</option></select></div>
                 </div>
                 <div class="form-row">
                     <div class="form-group"><label>סבירות (1–3)</label><select id="riskProb">
@@ -4610,7 +4610,7 @@
         function renderRisks() {
             const content = document.getElementById('riskContent');
             if (!Array.isArray(riskData) || riskData.length === 0) { content.innerHTML = '<p>אין רשומות.</p>'; return; }
-            const _hi=riskData.filter(r=>(r.score||0)>=6); const _hiOpen=_hi.filter(r=>r.status&&r.status!=='טופל'&&r.status!=='סגור').length;
+            const _hi=riskData.filter(r=>(r.score||0)>=6); const _hiOpen=_hi.filter(r=>r.status&&r.status!=='סגור'&&r.status!=='מבוקר').length;
             let html = kpiRow([kpiCardHtml(String(_hiOpen), 'מתוך '+_hi.length+' סיכונים גבוהים', 'סיכונים גבוהים פתוחים')]) + '<div class="table-container"><table><thead><tr><th></th><th>סוג</th><th>תיאור</th><th>דירוג</th><th>סטטוס</th><th>ע"י</th></tr></thead><tbody>';
             riskData.forEach(r => {
                 if (editingRiskId === r.id) { html += `<tr><td colspan="6" style="padding:0;">${riskEditForm(r)}</td></tr>`; return; }
@@ -4639,7 +4639,7 @@
             return `<div style="padding:16px; background:#fafbfc;">
                 <div class="form-row">
                     <div class="form-group"><label>סוג</label><select id="er_type_${r.id}">${opt('סיכון',r.risk_type)}${opt('הזדמנות',r.risk_type)}</select></div>
-                    <div class="form-group"><label>סטטוס</label><select id="er_status_${r.id}">${opt('פעיל',r.status)}${opt('בטיפול',r.status)}${opt('סגור',r.status)}</select></div>
+                    <div class="form-group"><label>סטטוס</label><select id="er_status_${r.id}">${opt('פעיל',r.status)}${opt('בטיפול',r.status)}${opt('מבוקר',r.status)}${opt('סגור',r.status)}</select></div>
                 </div>
                 <div class="form-row">
                     <div class="form-group"><label>סבירות (1–3)</label><select id="er_prob_${r.id}">${opt(1,r.probability,'1 – נמוכה')}${opt(2,r.probability,'2 – בינונית')}${opt(3,r.probability,'3 – גבוהה')}</select></div>
