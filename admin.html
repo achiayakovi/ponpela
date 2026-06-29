@@ -3678,7 +3678,12 @@
         function renderComm() {
             const content = document.getElementById('communicationsContent');
             if (!Array.isArray(commData) || commData.length === 0) { content.innerHTML = '<p>אין רשומות.</p>'; return; }
-            let html = '<div class="table-container"><table><thead><tr><th></th><th>תאריך</th><th>סוג</th><th>לקוח</th><th>טלפון</th><th>סטטוס</th><th>ע"י</th></tr></thead><tbody>';
+            const _avgOf=(c)=>{const fs=c.feedback_scores; if(fs&&typeof fs==='object'){const v=Object.values(fs).map(Number).filter(n=>!isNaN(n)); if(v.length)return v.reduce((a,b)=>a+b,0)/v.length;} return (typeof c.score==='number')?c.score:null;};
+            const _vals=commData.filter(c=>c.type==='משוב').map(_avgOf).filter(n=>n!=null);
+            const _avg=_vals.length?(_vals.reduce((a,b)=>a+b,0)/_vals.length).toFixed(1):'—';
+            const _comp=commData.filter(c=>c.type==='תלונה'); const _openComp=_comp.filter(c=>c.status&&c.status!=='סגורה').length;
+            let html = kpiRow([ kpiCardHtml(_avg+' ★', _vals.length+' משובים', 'שביעות רצון ממוצעת'), kpiCardHtml(String(_openComp), 'מתוך '+_comp.length+' תלונות', 'תלונות פתוחות') ]);
+            html += '<div class="table-container"><table><thead><tr><th></th><th>תאריך</th><th>סוג</th><th>לקוח</th><th>טלפון</th><th>סטטוס</th><th>ע"י</th></tr></thead><tbody>';
             commData.forEach(c => {
                 if (editingCommId === c.id) { html += `<tr><td colspan="7" style="padding:0;">${commEditForm(c)}</td></tr>`; return; }
                 const d = c.comm_date ? new Date(c.comm_date).toLocaleDateString('he-IL') : '';
@@ -3884,7 +3889,8 @@
         function renderCapa() {
             const content = document.getElementById('capaContent');
             if (!Array.isArray(capaData) || capaData.length === 0) { content.innerHTML = '<p>אין רשומות CAPA.</p>'; return; }
-            let html = '<div class="table-container"><table><thead><tr><th></th><th>#</th><th>מקור</th><th>כותרת</th><th>אחראי</th><th>יעד</th><th>סטטוס</th><th>ע"י</th></tr></thead><tbody>';
+            const _cl=capaData.filter(c=>c.closed_date&&c.opened_date); const _days=_cl.map(c=>Math.round((new Date(c.closed_date)-new Date(c.opened_date))/86400000)).filter(n=>!isNaN(n)&&n>=0); const _cavg=_days.length?Math.round(_days.reduce((a,b)=>a+b,0)/_days.length)+' ימים':'—';
+            let html = kpiRow([kpiCardHtml(_cavg, _cl.length+'/'+capaData.length+' סגורות', 'זמן ממוצע לסגירת CAPA')]) + '<div class="table-container"><table><thead><tr><th></th><th>#</th><th>מקור</th><th>כותרת</th><th>אחראי</th><th>יעד</th><th>סטטוס</th><th>ע"י</th></tr></thead><tbody>';
             capaData.forEach(c => {
                 if (editingCapaId === c.id) { html += `<tr><td colspan="8" style="padding:0;">${capaEditForm(c)}</td></tr>`; return; }
                 const due = c.due_date ? new Date(c.due_date).toLocaleDateString('he-IL') : '';
@@ -4069,7 +4075,8 @@
         function renderSuppliers() {
             const content = document.getElementById('suppliersContent');
             if (!Array.isArray(suppliersData) || suppliersData.length === 0) { content.innerHTML = '<p>אין ספקים.</p>'; return; }
-            let html = '<div class="table-container"><table><thead><tr><th></th><th>שם</th><th>סטטוס</th><th>קריטי</th><th>תעודות</th><th>ע"י</th></tr></thead><tbody>';
+            const _ap=suppliersData.filter(s=>s.approval_status==='מאושר').length; const _cr=suppliersData.filter(s=>s.is_critical).length;
+            let html = kpiRow([kpiCardHtml(_ap+'/'+suppliersData.length, _cr+' קריטיים', 'ספקים מאושרים')]) + '<div class="table-container"><table><thead><tr><th></th><th>שם</th><th>סטטוס</th><th>קריטי</th><th>תעודות</th><th>ע"י</th></tr></thead><tbody>';
             suppliersData.forEach(s => {
                 if (editingSupplierId === s.id) { html += `<tr><td colspan="6" style="padding:0;">${supplierEditForm(s)}</td></tr>`; return; }
                 const open = expandedSupplierId === s.id;
@@ -4459,7 +4466,7 @@
         function renderNc() {
             const content = document.getElementById('nonconformitiesContent');
             if (!Array.isArray(ncData) || ncData.length === 0) { content.innerHTML = '<p>אין רשומות.</p>'; return; }
-            let html = '<div class="table-container"><table><thead><tr><th></th><th>תאריך</th><th>מקור</th><th>דגם</th><th>סריאלי</th><th>סטטוס</th><th>ע"י</th></tr></thead><tbody>';
+            const _no=ncData.filter(n=>n.status&&n.status!=='סגור').length; let html = kpiRow([kpiCardHtml(String(_no), 'מתוך '+ncData.length, 'מוצר לא מתאים פתוח')]) + '<div class="table-container"><table><thead><tr><th></th><th>תאריך</th><th>מקור</th><th>דגם</th><th>סריאלי</th><th>סטטוס</th><th>ע"י</th></tr></thead><tbody>';
             ncData.forEach(n => {
                 if (editingNcId === n.id) { html += `<tr><td colspan="7" style="padding:0;">${ncEditForm(n)}</td></tr>`; return; }
                 const d = n.nc_date ? new Date(n.nc_date).toLocaleDateString('he-IL') : '';
@@ -4602,7 +4609,8 @@
         function renderRisks() {
             const content = document.getElementById('riskContent');
             if (!Array.isArray(riskData) || riskData.length === 0) { content.innerHTML = '<p>אין רשומות.</p>'; return; }
-            let html = '<div class="table-container"><table><thead><tr><th></th><th>סוג</th><th>תיאור</th><th>דירוג</th><th>סטטוס</th><th>ע"י</th></tr></thead><tbody>';
+            const _hi=riskData.filter(r=>(r.score||0)>=6); const _hiOpen=_hi.filter(r=>r.status&&r.status!=='טופל'&&r.status!=='סגור').length;
+            let html = kpiRow([kpiCardHtml(String(_hiOpen), 'מתוך '+_hi.length+' סיכונים גבוהים', 'סיכונים גבוהים פתוחים')]) + '<div class="table-container"><table><thead><tr><th></th><th>סוג</th><th>תיאור</th><th>דירוג</th><th>סטטוס</th><th>ע"י</th></tr></thead><tbody>';
             riskData.forEach(r => {
                 if (editingRiskId === r.id) { html += `<tr><td colspan="6" style="padding:0;">${riskEditForm(r)}</td></tr>`; return; }
                 const open = expandedRiskId === r.id;
@@ -4720,7 +4728,8 @@
         function renderTraining() {
             const content = document.getElementById('trainingContent');
             if (!Array.isArray(trainingData) || trainingData.length === 0) { content.innerHTML = '<p>אין רשומות.</p>'; return; }
-            let html = '<div class="table-container"><table><thead><tr><th></th><th>עובד</th><th>נושא</th><th>תאריך</th><th>סטטוס</th><th>ע"י</th></tr></thead><tbody>';
+            const _td=trainingData.filter(t=>t.status==='הושלם').length; const _tp=trainingData.length?Math.round(_td/trainingData.length*100):0;
+            let html = kpiRow([kpiCardHtml(_td+'/'+trainingData.length, _tp+'%', 'הדרכות שהושלמו')]) + '<div class="table-container"><table><thead><tr><th></th><th>עובד</th><th>נושא</th><th>תאריך</th><th>סטטוס</th><th>ע"י</th></tr></thead><tbody>';
             trainingData.forEach(t => {
                 const editing = editingTrainingId === t.id;
                 if (editing) {
@@ -4831,7 +4840,7 @@
         function toggleVigAdd(){const f=document.getElementById('vigAddForm');f.style.display=f.style.display==='none'?'block':'none';}
         async function loadAdverseEvents(){const t=localStorage.getItem('adminToken');try{const r=await fetch(`${API_URL}/api/admin/adverse-events`,{headers:{'Authorization':`Bearer ${t}`}});vigData=await r.json();renderVig();}catch(e){document.getElementById('vigilanceContent').innerHTML='<p>שגיאה בטעינה.</p>';}}
         function renderVig(){const c=document.getElementById('vigilanceContent');if(!Array.isArray(vigData)||!vigData.length){c.innerHTML='<p>אין רשומות.</p>';return;}
-            let h='<div class="table-container"><table><thead><tr><th></th><th>תאריך</th><th>חומרה</th><th>סריאלי</th><th>דווח לאמ"ר</th><th>סטטוס</th><th>ע"י</th></tr></thead><tbody>';
+            const _rep=vigData.filter(e=>e.reported_to_amar).length; let h=kpiRow([kpiCardHtml(String(vigData.length), _rep+' דווחו לאמ"ר', 'אירועים חריגים')]) + '<div class="table-container"><table><thead><tr><th></th><th>תאריך</th><th>חומרה</th><th>סריאלי</th><th>דווח לאמ"ר</th><th>סטטוס</th><th>ע"י</th></tr></thead><tbody>';
             vigData.forEach(v=>{if(edVig===v.id){h+=`<tr><td colspan="7" style="padding:0;">${vigEditForm(v)}</td></tr>`;return;}
                 const d=v.event_date?new Date(v.event_date).toLocaleDateString('he-IL'):'';const open=expVig===v.id;
                 h+=`<tr style="cursor:pointer;" onclick="toggleVigExpand(${v.id})"><td>${open?'▲':'▼'}</td><td>${escapeHtml(d)}</td><td>${escapeHtml(v.severity||'')}</td><td>${escapeHtml(v.serial_number||'')}</td><td>${v.reported_to_amar?'כן':'<span style=\"color:#c0392b;\">לא</span>'}</td><td>${escapeHtml(v.status||'')}</td><td>${escapeHtml(v.handled_by_name||'')}</td></tr>`;
@@ -4861,7 +4870,7 @@
         function toggleChangeAdd(){const f=document.getElementById('changeAddForm');f.style.display=f.style.display==='none'?'block':'none';}
         async function loadChanges(){const t=localStorage.getItem('adminToken');try{const r=await fetch(`${API_URL}/api/admin/changes`,{headers:{'Authorization':`Bearer ${t}`}});chData=await r.json();renderChanges();}catch(e){document.getElementById('changesContent').innerHTML='<p>שגיאה בטעינה.</p>';}}
         function renderChanges(){const c=document.getElementById('changesContent');if(!Array.isArray(chData)||!chData.length){c.innerHTML='<p>אין רשומות.</p>';return;}
-            let h='<div class="table-container"><table><thead><tr><th></th><th>תאריך</th><th>תיאור</th><th>סטטוס</th><th>ע"י</th></tr></thead><tbody>';
+            const _co=chData.filter(c=>c.status&&c.status!=='הושלם'&&c.status!=='סגור').length; let h=kpiRow([kpiCardHtml(String(chData.length), _co+' פתוחים', 'שינויים מתועדים')]) + '<div class="table-container"><table><thead><tr><th></th><th>תאריך</th><th>תיאור</th><th>סטטוס</th><th>ע"י</th></tr></thead><tbody>';
             chData.forEach(c2=>{if(edCh===c2.id){h+=`<tr><td colspan="5" style="padding:0;">${changeEditForm(c2)}</td></tr>`;return;}
                 const d=c2.change_date?new Date(c2.change_date).toLocaleDateString('he-IL'):'';const open=expCh===c2.id;
                 h+=`<tr style="cursor:pointer;" onclick="toggleChExpand(${c2.id})"><td>${open?'▲':'▼'}</td><td>${escapeHtml(d)}</td><td>${escapeHtml((c2.description||'').slice(0,60))}</td><td>${escapeHtml(c2.status||'')}</td><td>${escapeHtml(c2.handled_by_name||'')}</td></tr>`;
@@ -4912,7 +4921,7 @@
         function auditFindings(a){return (a.checklist||[]).filter(x=>x.result==='ממצא');}
         function auditMark(result){if(result==='ממצא')return '<span style="color:#c0392b;">✗</span>';if(result==='תקין')return '<span style="color:#27ae60;">✓</span>';return '•';}
         function renderAudits(){const c=document.getElementById('auditsContent');if(!Array.isArray(auData)||!auData.length){c.innerHTML='<p>אין מבדקים.</p>';return;}
-            let h='<div class="table-container"><table><thead><tr><th></th><th>תאריך</th><th>מבצע</th><th>סטטוס</th><th>ממצאים</th><th>ע"י</th></tr></thead><tbody>';
+            const _find=auData.reduce((s,a)=>s+((a.checklist||[]).filter(x=>x.result==='ממצא').length),0); let h=kpiRow([kpiCardHtml(String(auData.length), _find+' ממצאים', 'מבדקים פנימיים')]) + '<div class="table-container"><table><thead><tr><th></th><th>תאריך</th><th>מבצע</th><th>סטטוס</th><th>ממצאים</th><th>ע"י</th></tr></thead><tbody>';
             auData.forEach(a=>{if(edAu===a.id){h+=`<tr><td colspan="6" style="padding:0;">${auditEditForm(a)}</td></tr>`;return;}
                 const d=a.audit_date?new Date(a.audit_date).toLocaleDateString('he-IL'):'';const open=expAu===a.id;const nf=auditFindings(a).length;
                 h+=`<tr style="cursor:pointer;" onclick="toggleAuExpand(${a.id})"><td>${open?'▲':'▼'}</td><td>${escapeHtml(d)}</td><td>${escapeHtml(a.auditor||'')}</td><td>${escapeHtml(a.status||'')}</td><td>${nf?'<span style="color:#c0392b; font-weight:bold;">'+nf+'</span>':'0'}</td><td>${escapeHtml(a.handled_by_name||'')}</td></tr>`;
@@ -4959,7 +4968,7 @@
         function toggleMrAdd(){const f=document.getElementById('mrAddForm');const show=f.style.display==='none';f.style.display=show?'block':'none';if(show){document.getElementById('mrInputs').innerHTML=mrInputsHtml([]);document.getElementById('mrDecisions').innerHTML='';}}
         async function loadMgmtReviews(){const t=localStorage.getItem('adminToken');try{const r=await fetch(`${API_URL}/api/admin/management-review`,{headers:{'Authorization':`Bearer ${t}`}});mrData=await r.json();renderMrs();}catch(e){document.getElementById('management_reviewContent').innerHTML='<p>שגיאה בטעינה.</p>';}}
         function renderMrs(){const c=document.getElementById('management_reviewContent');if(!Array.isArray(mrData)||!mrData.length){c.innerHTML='<p>אין סקרים.</p>';return;}
-            let h='<div class="table-container"><table><thead><tr><th></th><th>תאריך</th><th>משתתפים</th><th>סטטוס</th><th>החלטות</th><th>ע"י</th></tr></thead><tbody>';
+            const _lastMr=(mrData[0]&&mrData[0].review_date)?new Date(mrData[0].review_date).toLocaleDateString('he-IL'):'—'; let h=kpiRow([kpiCardHtml(String(mrData.length), 'אחרון: '+_lastMr, 'סקרי הנהלה')]) + '<div class="table-container"><table><thead><tr><th></th><th>תאריך</th><th>משתתפים</th><th>סטטוס</th><th>החלטות</th><th>ע"י</th></tr></thead><tbody>';
             mrData.forEach(m=>{if(edMr===m.id){h+=`<tr><td colspan="6" style="padding:0;">${mrEditForm(m)}</td></tr>`;return;}
                 const d=m.review_date?new Date(m.review_date).toLocaleDateString('he-IL'):'';const open=expMr===m.id;const nd=(m.decisions||[]).length;
                 h+=`<tr style="cursor:pointer;" onclick="toggleMrExpand(${m.id})"><td>${open?'▲':'▼'}</td><td>${escapeHtml(d)}</td><td>${escapeHtml(m.participants||'')}</td><td>${escapeHtml(m.status||'')}</td><td>${nd}</td><td>${escapeHtml(m.handled_by_name||'')}</td></tr>`;
@@ -4994,7 +5003,7 @@
         function toggleRecallAdd(){const f=document.getElementById('recallAddForm');f.style.display=f.style.display==='none'?'block':'none';}
         async function loadRecalls(){const t=localStorage.getItem('adminToken');try{const r=await fetch(`${API_URL}/api/admin/recalls`,{headers:{'Authorization':`Bearer ${t}`}});rclData=await r.json();renderRecalls();}catch(e){document.getElementById('recallsContent').innerHTML='<p>שגיאה בטעינה.</p>';}}
         function renderRecalls(){const c=document.getElementById('recallsContent');if(!Array.isArray(rclData)||!rclData.length){c.innerHTML='<p>אין קמפיינים.</p>';return;}
-            let h='<div class="table-container"><table><thead><tr><th></th><th>תאריך</th><th>כותרת</th><th>סטטוס</th><th>ע"י</th></tr></thead><tbody>';
+            const _ro=rclData.filter(r=>r.status&&r.status!=='סגור').length; let h=kpiRow([kpiCardHtml(String(rclData.length), _ro+' פתוחים', 'קמפייני ריקול')]) + '<div class="table-container"><table><thead><tr><th></th><th>תאריך</th><th>כותרת</th><th>סטטוס</th><th>ע"י</th></tr></thead><tbody>';
             rclData.forEach(r2=>{if(edRcl===r2.id){h+=`<tr><td colspan="5" style="padding:0;">${recallEditForm(r2)}</td></tr>`;return;}
                 const d=r2.recall_date?new Date(r2.recall_date).toLocaleDateString('he-IL'):'';const open=expRcl===r2.id;
                 h+=`<tr style="cursor:pointer;" onclick="toggleRclExpand(${r2.id})"><td>${open?'▲':'▼'}</td><td>${escapeHtml(d)}</td><td>${escapeHtml(r2.title||'')}</td><td>${escapeHtml(r2.status||'')}</td><td>${escapeHtml(r2.handled_by_name||'')}</td></tr>`;
