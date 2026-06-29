@@ -6,7 +6,7 @@
   var STORAGE_KEY = 'ponpelaTermsAccepted_v1';
   var TERMS_URL = 'terms.html';
   var LINK = '#9fb0ff'; // צבע קישורי הפוטר (פוטר כהה) — קריא גם אחרי ביקור
-  var COPYRIGHT = '<span dir="ltr">&copy; 2026</span> פונפלה · כל הזכויות שמורות';
+  var COPYRIGHT = '&copy; 2026 פונפלה · כל הזכויות שמורות';
 
   function currentFile() {
     var p = location.pathname;
@@ -31,7 +31,7 @@
     var footer = document.querySelector('footer .container') || document.querySelector('footer');
     if (!footer || footer.querySelector('.footer-legal')) return;
     var cp = document.querySelector('footer .container > p') || document.querySelector('footer p');
-    if (cp) cp.innerHTML = COPYRIGHT;
+    if (cp) { cp.setAttribute('dir', 'ltr'); cp.innerHTML = COPYRIGHT; }
     var div = document.createElement('div');
     div.className = 'footer-legal';
     div.innerHTML =
