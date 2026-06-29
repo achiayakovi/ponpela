@@ -19,7 +19,7 @@
     div.innerHTML =
       '<a href="' + TERMS_URL + '">תקנון ותנאי שימוש</a>·' +
       '<a href="' + TERMS_URL + '#privacy">מדיניות פרטיות</a>·' +
-      '<a href="' + TERMS_URL + '#accessibility">הצהרת נגישות</a>';
+      '<a href="accessibility.html">הצהרת נגישות</a>';
     footer.appendChild(div);
   }
 
