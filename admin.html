@@ -4902,6 +4902,9 @@
             {cat:'שירות לקוח',qs:['התלונות מתועדות ומסווגות (פגם/שימוש שגוי/אירוע)?','מענה ראשוני ללקוח תוך יום עסקים?','נפתחו פעולות מתקנות (CAPA) כנדרש?','אירועים חריגים דווחו לאמ״ר במועד?','קיימת מוכנות לאיתור והחזרת יחידות (ריקול)?','שביעות רצון לקוחות נמדדת (סקרי רכישה/30 יום)?']}
         ];
         const AUDIT_RESULTS=['—','תקין','ממצא','לא רלוונטי'];
+        function customAuqRow(a){a=a||{};const opts=AUDIT_RESULTS.map(r=>`<option value="${r}" ${a.result===r?'selected':''}>${r}</option>`).join('');
+            return `<div class="auq-custom" style="display:flex; gap:8px; align-items:center; margin:5px 0; flex-wrap:wrap;"><input class="auq-cq" placeholder="שאלת ביקורת מותאמת" value="${escapeHtml(a.question||'')}" style="flex:1; min-width:200px;"><select class="auq-result" style="width:130px;">${opts}</select><input class="auq-note" placeholder="ממצא / הערה" value="${escapeHtml(a.note||'')}" style="flex:1; min-width:160px;"><button type="button" class="btn btn-danger" onclick="this.parentElement.remove()">×</button></div>`;}
+        function addCustomAuq(btn){btn.previousElementSibling.insertAdjacentHTML('beforeend', customAuqRow());}
         function auditChecklistHtml(answers){
             const get=(ci,qi)=>{const cat=AUDIT_CHECKLIST[ci].cat,q=AUDIT_CHECKLIST[ci].qs[qi];return (answers||[]).find(a=>a.category===cat&&a.question===q)||{};};
             let h='';
@@ -4913,9 +4916,12 @@
                         <select class="auq-result" style="width:130px;">${opts}</select>
                         <input class="auq-note" placeholder="ממצא / הערה" value="${escapeHtml(a.note||'')}" style="flex:1; min-width:160px;"></div>`;});
             });
+            const known=new Set(); AUDIT_CHECKLIST.forEach(g=>g.qs.forEach(q=>known.add(g.cat+'||'+q)));
+            const customs=(answers||[]).filter(a=>!known.has(a.category+'||'+a.question));
+            h+=`<div style="margin-top:14px; font-weight:600; color:#5a4ed1;">פריטים מותאמים</div><div class="auq-cwrap">${customs.map(customAuqRow).join('')}</div><button type="button" class="btn" onclick="addCustomAuq(this)" style="margin-top:6px;">➕ הוסף פריט</button>`;
             return h;
         }
-        function gatherChecklist(container){const ans=[];container.querySelectorAll('.auq-row').forEach(row=>{const ci=+row.dataset.ci,qi=+row.dataset.qi;const result=row.querySelector('.auq-result').value;const note=row.querySelector('.auq-note').value.trim();if((result&&result!=='—')||note)ans.push({category:AUDIT_CHECKLIST[ci].cat,question:AUDIT_CHECKLIST[ci].qs[qi],result:result==='—'?'':result,note});});return ans;}
+        function gatherChecklist(container){const ans=[];container.querySelectorAll('.auq-row').forEach(row=>{const ci=+row.dataset.ci,qi=+row.dataset.qi;const result=row.querySelector('.auq-result').value;const note=row.querySelector('.auq-note').value.trim();if((result&&result!=='—')||note)ans.push({category:AUDIT_CHECKLIST[ci].cat,question:AUDIT_CHECKLIST[ci].qs[qi],result:result==='—'?'':result,note});});container.querySelectorAll('.auq-custom').forEach(row=>{const q=row.querySelector('.auq-cq').value.trim();if(!q)return;const result=row.querySelector('.auq-result').value;const note=row.querySelector('.auq-note').value.trim();ans.push({category:'מותאם',question:q,result:result==='—'?'':result,note});});return ans;}
         function toggleAuditAdd(){const f=document.getElementById('auditAddForm');const show=f.style.display==='none';f.style.display=show?'block':'none';if(show)document.getElementById('auChecklist').innerHTML=auditChecklistHtml([]);}
         async function loadAudits(){const t=localStorage.getItem('adminToken');try{const r=await fetch(`${API_URL}/api/admin/audits`,{headers:{'Authorization':`Bearer ${t}`}});auData=await r.json();renderAudits();}catch(e){document.getElementById('auditsContent').innerHTML='<p>שגיאה בטעינה.</p>';}}
         function auditFindings(a){return (a.checklist||[]).filter(x=>x.result==='ממצא');}
@@ -4955,9 +4961,14 @@
         // ===== סקר הנהלה (management_review) =====
         let mrData=[], edMr=null, expMr=null;
         const MR_INPUTS=['החלטות מסקר קודם — סטטוס','שינויים בהקשר/בעלי עניין','שביעות רצון ומשוב לקוחות','עמידה ביעדי איכות (משלוח/תלונות)','ביצועי תהליכים והתאמת המוצר/השירות','תוצאות ניטור ומדידה','אי-התאמות ופעולות מתקנות (CAPA)','ממצאי המבדק הפנימי','ביצועי ספקים (TPH/מחסן/הפצה)','מצב סיכונים והזדמנויות','נאותות משאבים'];
+        function customMrRow(x){x=x||{};return `<div class="form-group mr-custom" style="display:flex;gap:8px;align-items:flex-start;"><input class="mr-ctopic" placeholder="נושא מותאם" value="${escapeHtml(x.topic||'')}" style="flex:1;"><textarea class="mr-cdata" rows="2" style="flex:2;">${escapeHtml(x.data||'')}</textarea><button type="button" class="btn btn-danger" onclick="this.parentElement.remove()">×</button></div>`;}
+        function addCustomMr(btn){btn.previousElementSibling.insertAdjacentHTML('beforeend', customMrRow());}
         function mrInputsHtml(inputs){const get=(topic)=>{const f=(inputs||[]).find(x=>x.topic===topic);return f?f.data:'';};
-            return MR_INPUTS.map((topic,i)=>`<div class="form-group mr-input" data-topic-i="${i}"><label>${i+1}. ${topic}</label><textarea class="mr-data" rows="2">${escapeHtml(get(topic))}</textarea></div>`).join('');}
-        function gatherMrInputs(container){const arr=[];container.querySelectorAll('.mr-input').forEach(el=>{const i=+el.dataset.topicI;arr.push({topic:MR_INPUTS[i],data:el.querySelector('.mr-data').value.trim()});});return arr;}
+            let h=MR_INPUTS.map((topic,i)=>`<div class="form-group mr-input" data-topic-i="${i}"><label>${i+1}. ${topic}</label><textarea class="mr-data" rows="2">${escapeHtml(get(topic))}</textarea></div>`).join('');
+            const known=new Set(MR_INPUTS); const customs=(inputs||[]).filter(x=>!known.has(x.topic));
+            h+=`<div class="mr-cwrap">${customs.map(customMrRow).join('')}</div><button type="button" class="btn" onclick="addCustomMr(this)" style="margin-top:6px;">➕ הוסף קלט מותאם</button>`;
+            return h;}
+        function gatherMrInputs(container){const arr=[];container.querySelectorAll('.mr-input').forEach(el=>{const i=+el.dataset.topicI;arr.push({topic:MR_INPUTS[i],data:el.querySelector('.mr-data').value.trim()});});container.querySelectorAll('.mr-custom').forEach(el=>{const t=el.querySelector('.mr-ctopic').value.trim();if(!t)return;arr.push({topic:t,data:el.querySelector('.mr-cdata').value.trim()});});return arr;}
         function mrDecRowHtml(d){d=d||{};return `<div class="mr-dec-row" style="display:flex; gap:8px; margin:4px 0; flex-wrap:wrap;">
             <input class="mr-dec-action" placeholder="פעולה לביצוע" value="${escapeHtml(d.action||'')}" style="flex:2; min-width:180px;">
             <input class="mr-dec-resp" placeholder="אחראי" value="${escapeHtml(d.responsible||'')}" style="flex:1; min-width:120px;">
