@@ -5,13 +5,28 @@
   var ACCENT = '#667eea';
   var STORAGE_KEY = 'ponpelaTermsAccepted_v1';
   var TERMS_URL = 'terms.html';
+  var LINK = '#9fb0ff'; // צבע קישורי הפוטר (פוטר כהה) — קריא גם אחרי ביקור
 
   function currentFile() {
     var p = location.pathname;
     return p.substring(p.lastIndexOf('/') + 1) || 'index.html';
   }
 
+  // ---- עיצוב פוטר אחיד (מרכוז + מרווח + צבע visited קבוע) ----
+  function injectFooterStyle() {
+    if (document.getElementById('legal-style')) return;
+    var st = document.createElement('style');
+    st.id = 'legal-style';
+    st.textContent =
+      'footer{text-align:center;}' +
+      'footer .container>p{margin:0;}' +
+      'footer .footer-legal{margin-top:12px;font-size:.85rem;line-height:1.9;}' +
+      'footer .footer-legal a,footer .footer-legal a:visited{color:' + LINK + ';text-decoration:none;margin:0 7px;font-weight:500;}' +
+      'footer .footer-legal a:hover{text-decoration:underline;}';
+    document.head.appendChild(st);
+  }
   function injectFooterLinks() {
+    injectFooterStyle();
     var footer = document.querySelector('footer .container') || document.querySelector('footer');
     if (!footer || footer.querySelector('.footer-legal')) return;
     var div = document.createElement('div');
