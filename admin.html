@@ -3232,6 +3232,22 @@
 
         function kpiCardHtml(big, sub, lbl){ return `<div class="kpi-card"><div class="kpi-big">${big}</div><div class="kpi-sub">${sub}</div><div class="kpi-lbl">${escapeHtml(lbl)}</div></div>`; }
         function kpiRow(cards){ return `<div class="kpi-row">${cards.join('')}</div>`; }
+        function versionsBtn(table, id){ return `<button class="btn" onclick="event.stopPropagation();showVersions('${table}',${id})">🕘 גרסאות</button>`; }
+        async function showVersions(table, id){
+            const t=localStorage.getItem('adminToken'); let rows=[];
+            try{const r=await fetch(`${API_URL}/api/admin/record-versions/${table}/${id}`,{headers:{'Authorization':`Bearer ${t}`}}); rows=await r.json();}catch(e){}
+            const body=(!Array.isArray(rows)||!rows.length)?'<p>אין גרסאות קודמות לרשומה זו.</p>':rows.map(v=>{
+                const dt=v.edited_at?new Date(v.edited_at).toLocaleString('he-IL'):'';
+                const data=v.data||{};
+                const items=Object.entries(data).filter(([k])=>!['created_at','updated_at','created_by','handled_by'].includes(k)).map(([k,val])=>`<div><strong>${escapeHtml(k)}:</strong> ${escapeHtml(val==null?'':(typeof val==='object'?JSON.stringify(val):String(val)))}</div>`).join('');
+                return `<div style="border:1px solid #e0e6ed;border-radius:8px;padding:10px;margin-bottom:10px;"><div style="font-weight:600;color:#667eea;">גרסה ${v.version_no} · ${escapeHtml(dt)} · ${escapeHtml(v.edited_by_name||'')}</div><div style="margin-top:6px;font-size:.88rem;line-height:1.5;">${items}</div></div>`;
+            }).join('');
+            const ov=document.createElement('div'); ov.className='vov';
+            ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:flex;align-items:center;justify-content:center;';
+            ov.onclick=(e)=>{if(e.target===ov)ov.remove();};
+            ov.innerHTML=`<div dir="rtl" style="background:#fff;border-radius:12px;max-width:660px;width:92%;max-height:82vh;overflow:auto;padding:22px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;"><h3 style="margin:0;">🕘 היסטוריית גרסאות</h3><button class="btn" onclick="this.closest('.vov').remove()">✕</button></div>${body}</div>`;
+            document.body.appendChild(ov);
+        }
         function renderReceiving() {
             const content = document.getElementById('receivingListContent');
             if (!Array.isArray(receivingData) || receivingData.length === 0) { content.innerHTML = '<p>אין קליטות עדיין.</p>'; return; }
@@ -3265,7 +3281,7 @@
                                 <button class="btn btn-success" onclick="addSerialsToReceiving(${r.id})">הוסף סריאליים</button>
                             </div>
                         </div>
-                        <div><button class="btn btn-primary" onclick="event.stopPropagation();startEditReceiving(${r.id})">ערוך</button>
+                        <div><button class="btn btn-primary" onclick="event.stopPropagation();startEditReceiving(${r.id})">ערוך</button> ${versionsBtn('receiving',r.id)}
                         <button class="btn btn-danger" onclick="event.stopPropagation();deleteReceiving(${r.id})">מחק</button></div></td></tr>`;
                 }
             });
@@ -3455,7 +3471,7 @@
                         <td>${escapeHtml(s.status || '')}</td>
                         <td>${escapeHtml(s.created_by_name || '')}</td>
                         <td>
-                          <button class="btn btn-primary" onclick="editSerial(${s.id})">ערוך</button>
+                          <button class="btn btn-primary" onclick="editSerial(${s.id})">ערוך</button> ${versionsBtn('serials',s.id)}
                           <button class="btn" onclick="flagSerialNc(${s.id})">סמן כלא-מתאים</button>
                           <button class="btn btn-danger" onclick="deleteSerial(${s.id})">מחק</button>
                         </td>
@@ -3707,7 +3723,7 @@
                           <div style="margin-bottom:8px;"><strong>החלטת סגירה:</strong> ${escapeHtml(c.resolution||'—')}</div>
                           <div style="margin-bottom:8px;"><strong>CAPA:</strong> ${capaBtn}</div>
                           ${c.classification==='אירוע' ? `<div style="margin-bottom:8px;"><strong>אירוע Vigilance:</strong> ${c.adverse_event_id ? 'אירוע #'+c.adverse_event_id : `<button class="btn" onclick="event.stopPropagation();openVigFromComm(${c.id})">פתח אירוע Vigilance</button>`}</div>` : ''}` : ''}
-                        <div><button class="btn btn-primary" onclick="event.stopPropagation();startEditComm(${c.id})">ערוך</button>
+                        <div><button class="btn btn-primary" onclick="event.stopPropagation();startEditComm(${c.id})">ערוך</button> ${versionsBtn('communications',c.id)}
                         <button class="btn btn-danger" onclick="event.stopPropagation();deleteCommunication(${c.id})">מחק</button></div></td></tr>`;
                 }
             });
@@ -3908,7 +3924,7 @@
                         <div style="margin-bottom:8px;"><strong>אימות אפקטיביות:</strong> ${escapeHtml(c.verification||'—')}</div>
                         <div>
                           ${(c.source==='תלונה' && c.source_ref) ? `<button class="btn" onclick="event.stopPropagation();viewSourceComplaint(${c.source_ref})">צפה בתלונה</button>` : ''}
-                          <button class="btn btn-primary" onclick="event.stopPropagation();startEditCapa(${c.id})">ערוך</button>
+                          <button class="btn btn-primary" onclick="event.stopPropagation();startEditCapa(${c.id})">ערוך</button> ${versionsBtn('capa',c.id)}
                           <button class="btn btn-danger" onclick="event.stopPropagation();deleteCapa(${c.id})">מחק</button></div></td></tr>`;
                 }
             });
@@ -4090,7 +4106,7 @@
                         <div style="margin-bottom:8px;"><strong>איש קשר:</strong> ${escapeHtml(s.contact_person||'—')} · ${escapeHtml(s.phone||'')} · ${escapeHtml(s.email||'')}</div>
                         <div style="margin-bottom:8px;"><strong>קריטריון אישור:</strong> ${escapeHtml(s.criterion||'—')}</div>
                         <div style="margin-bottom:8px;"><strong>הערות:</strong> ${escapeHtml(s.notes||'—')}</div>
-                        <div><button class="btn btn-primary" onclick="event.stopPropagation();startEditSupplier(${s.id})">ערוך</button>
+                        <div><button class="btn btn-primary" onclick="event.stopPropagation();startEditSupplier(${s.id})">ערוך</button> ${versionsBtn('suppliers',s.id)}
                         <button class="btn" onclick="event.stopPropagation();openCapaFromSupplier(${s.id})">פתח CAPA</button>
                         <button class="btn btn-danger" onclick="event.stopPropagation();deleteSupplier(${s.id})">מחק</button></div></td></tr>`;
                 }
@@ -4481,7 +4497,7 @@
                         <div style="margin-bottom:8px;"><strong>החלטה:</strong> ${escapeHtml(n.disposition||'—')}</div>
                         <div style="margin-bottom:8px;"><strong>תיאור:</strong> ${escapeHtml(n.description||'—')}</div>
                         <div style="margin-bottom:8px;"><strong>CAPA:</strong> ${capaBtn}</div>
-                        <div><button class="btn btn-primary" onclick="event.stopPropagation();startEditNc(${n.id})">ערוך</button>
+                        <div><button class="btn btn-primary" onclick="event.stopPropagation();startEditNc(${n.id})">ערוך</button> ${versionsBtn('nonconformities',n.id)}
                         <button class="btn btn-danger" onclick="event.stopPropagation();deleteNc(${n.id})">מחק</button></div></td></tr>`;
                 }
             });
@@ -4625,7 +4641,7 @@
                         <div style="margin-bottom:8px;"><strong>סבירות × השפעה:</strong> ${r.probability||'-'} × ${r.impact||'-'} = ${r.score||'-'}</div>
                         <div style="margin-bottom:8px;"><strong>טיפול:</strong> ${escapeHtml(r.treatment||'—')}</div>
                         <div style="margin-bottom:8px;"><strong>תאריך סקירה:</strong> ${escapeHtml(rev)}</div>
-                        <div><button class="btn btn-primary" onclick="event.stopPropagation();startEditRisk(${r.id})">ערוך</button>
+                        <div><button class="btn btn-primary" onclick="event.stopPropagation();startEditRisk(${r.id})">ערוך</button> ${versionsBtn('risk_register',r.id)}
                         <button class="btn btn-danger" onclick="event.stopPropagation();deleteRisk(${r.id})">מחק</button></div></td></tr>`;
                 }
             });
@@ -4747,7 +4763,7 @@
                     html += `<tr><td colspan="6" style="background:#f8f9fa; padding:10px 14px;">
                         <div style="margin-bottom:8px;"><strong>אימות:</strong> ${escapeHtml(t.verification||'—')}</div>
                         <div style="margin-bottom:8px;"><strong>הערות:</strong> ${escapeHtml(t.notes||'—')}</div>
-                        <div><button class="btn btn-primary" onclick="event.stopPropagation();startEditTraining(${t.id})">ערוך</button>
+                        <div><button class="btn btn-primary" onclick="event.stopPropagation();startEditTraining(${t.id})">ערוך</button> ${versionsBtn('training',t.id)}
                         <button class="btn btn-danger" onclick="event.stopPropagation();deleteTraining(${t.id})">מחק</button></div></td></tr>`;
                 }
             });
@@ -4847,7 +4863,7 @@
                 h+=`<tr style="cursor:pointer;" onclick="toggleVigExpand(${v.id})"><td>${open?'▲':'▼'}</td><td>${escapeHtml(d)}</td><td>${escapeHtml(v.severity||'')}</td><td>${escapeHtml(v.serial_number||'')}</td><td>${v.reported_to_amar?'כן':'<span style=\"color:#c0392b;\">לא</span>'}</td><td>${escapeHtml(v.status||'')}</td><td>${escapeHtml(v.handled_by_name||'')}</td></tr>`;
                 if(open){const rd=v.report_date?new Date(v.report_date).toLocaleDateString('he-IL'):'—';
                     const capaBtnV = v.capa_id ? `<strong>CAPA #${v.capa_id}</strong>` : `<button class="btn" onclick="event.stopPropagation();openCapaFromVig(${v.id})">פתח CAPA</button>`;
-                    h+=`<tr><td colspan="7" style="background:#f8f9fa; padding:10px 14px;"><div style="margin-bottom:8px;"><strong>תיאור:</strong> ${escapeHtml(v.description||'—')}</div><div style="margin-bottom:8px;"><strong>תאריך דיווח:</strong> ${escapeHtml(rd)} · <strong>אישור אמ"ר:</strong> ${escapeHtml(v.amar_confirmation||'—')}</div><div style="margin-bottom:8px;"><strong>CAPA:</strong> ${capaBtnV}</div><div><button class="btn btn-primary" onclick="event.stopPropagation();startEditVig(${v.id})">ערוך</button> <button class="btn btn-danger" onclick="event.stopPropagation();deleteVig(${v.id})">מחק</button></div></td></tr>`;}});
+                    h+=`<tr><td colspan="7" style="background:#f8f9fa; padding:10px 14px;"><div style="margin-bottom:8px;"><strong>תיאור:</strong> ${escapeHtml(v.description||'—')}</div><div style="margin-bottom:8px;"><strong>תאריך דיווח:</strong> ${escapeHtml(rd)} · <strong>אישור אמ"ר:</strong> ${escapeHtml(v.amar_confirmation||'—')}</div><div style="margin-bottom:8px;"><strong>CAPA:</strong> ${capaBtnV}</div><div><button class="btn btn-primary" onclick="event.stopPropagation();startEditVig(${v.id})">ערוך</button> ${versionsBtn('adverse_events',v.id)} <button class="btn btn-danger" onclick="event.stopPropagation();deleteVig(${v.id})">מחק</button></div></td></tr>`;}});
             h+='</tbody></table></div>';c.innerHTML=h;}
         function vigEditForm(v){const dt=v.event_date?v.event_date.slice(0,10):'';const rdt=v.report_date?v.report_date.slice(0,10):'';const opt=(x,cur)=>`<option value="${x}" ${cur===x?'selected':''}>${x}</option>`;
             return `<div style="padding:16px; background:#fafbfc;"><div class="form-row"><div class="form-group"><label>תאריך אירוע</label><input type="date" id="evDate_${v.id}" value="${dt}"></div><div class="form-group"><label>סריאלי</label><input type="text" id="evSerial_${v.id}" value="${escapeHtml(v.serial_number||'')}"></div></div>
@@ -4937,7 +4953,7 @@
                     h+=`<tr><td colspan="6" style="background:#f8f9fa; padding:10px 14px;"><div style="margin-bottom:8px;"><strong>היקף:</strong> ${escapeHtml(a.scope||'—')}</div>
                         <div style="margin-bottom:8px;"><strong>צ'קליסט:</strong><div style="margin-top:4px;">${items}</div></div>
                         <div style="margin-bottom:8px;"><strong>סיכום ממצאים:</strong> ${escapeHtml(a.findings||'—')}</div>
-                        <div>${capaBtn} <button class="btn btn-primary" onclick="event.stopPropagation();startEditAu(${a.id})">ערוך</button> <button class="btn btn-danger" onclick="event.stopPropagation();deleteAu(${a.id})">מחק</button></div></td></tr>`;}});
+                        <div>${capaBtn} <button class="btn btn-primary" onclick="event.stopPropagation();startEditAu(${a.id})">ערוך</button> ${versionsBtn('audits',a.id)} <button class="btn btn-danger" onclick="event.stopPropagation();deleteAu(${a.id})">מחק</button></div></td></tr>`;}});
             h+='</tbody></table></div>';c.innerHTML=h;}
         function auditEditForm(a){const dt=a.audit_date?a.audit_date.slice(0,10):'';
             return `<div style="padding:16px; background:#fafbfc;"><div class="form-row"><div class="form-group"><label>תאריך</label><input type="date" id="au_date_${a.id}" value="${dt}"></div>
@@ -4988,7 +5004,7 @@
                     const decs=(m.decisions||[]).length?`<table style="width:100%; margin-top:4px;"><thead><tr><th>פעולה</th><th>אחראי</th><th>תאריך יעד</th></tr></thead><tbody>${m.decisions.map(de=>`<tr><td>${escapeHtml(de.action||'')}</td><td>${escapeHtml(de.responsible||'')}</td><td>${escapeHtml(de.due_date?String(de.due_date).slice(0,10):'')}</td></tr>`).join('')}</tbody></table>`:'<span style="color:#888;">אין החלטות.</span>';
                     h+=`<tr><td colspan="6" style="background:#f8f9fa; padding:10px 14px;"><div style="margin-bottom:8px;"><strong>קלטים:</strong><div style="margin-top:4px;">${inputs}</div></div>
                         <div style="margin-bottom:8px;"><strong>החלטות ותפוקות:</strong>${decs}</div>
-                        <div><button class="btn btn-primary" onclick="event.stopPropagation();startEditMr(${m.id})">ערוך</button> <button class="btn btn-danger" onclick="event.stopPropagation();deleteMr(${m.id})">מחק</button></div></td></tr>`;}});
+                        <div><button class="btn btn-primary" onclick="event.stopPropagation();startEditMr(${m.id})">ערוך</button> ${versionsBtn('management_review',m.id)} <button class="btn btn-danger" onclick="event.stopPropagation();deleteMr(${m.id})">מחק</button></div></td></tr>`;}});
             h+='</tbody></table></div>';c.innerHTML=h;}
         function mrEditForm(m){const dt=m.review_date?m.review_date.slice(0,10):'';
             const decs=(m.decisions||[]).map(d=>mrDecRowHtml(d)).join('');
