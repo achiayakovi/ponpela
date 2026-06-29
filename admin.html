@@ -404,6 +404,7 @@
             <button class="tab" data-area="communications" onclick="switchTab('communications')">תקשורת לקוחות</button>
             <button class="tab" data-area="capa" onclick="switchTab('capa')">CAPA</button>
             <button class="tab" data-area="suppliers" onclick="switchTab('suppliers')">ספקים</button>
+            <button class="tab" data-area="purchase_orders" data-area-view="suppliers" onclick="switchTab('purchase_orders')">הזמנות רכש</button>
             <button class="tab" data-area="nonconformities" onclick="switchTab('nonconformities')">מוצר לא מתאים</button>
             <button class="tab" data-area="risk" onclick="switchTab('risk')">סיכונים</button>
             <button class="tab" data-area="training" onclick="switchTab('training')">הדרכות</button>
@@ -925,6 +926,38 @@
             <div id="supplierDocsContent"></div>
         </div>
 
+        <!-- Purchase Orders Section -->
+        <div id="purchase_ordersSection" class="section">
+            <h2>הזמנות רכש</h2>
+            <button class="btn btn-primary" onclick="togglePOAdd()" style="margin-bottom:14px;">➕ הזמנה חדשה</button>
+            <button class="btn" onclick="exportCsv('purchase_orders')" style="margin-bottom:14px;">📥 ייצוא CSV</button>
+            <form id="poAddForm" onsubmit="addPO(event)" style="display:none; background:#fafbfc; padding:16px; border-radius:8px; margin-bottom:20px;">
+                <div class="form-row">
+                    <div class="form-group"><label>ספק</label><select id="poSupplier"></select></div>
+                    <div class="form-group"><label>תאריך הזמנה</label><input type="date" id="poDate"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>דגם</label><input type="text" id="poModel"></div>
+                    <div class="form-group"><label>כמות</label><input type="number" id="poQty" min="0"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>תאריך אספקה</label><input type="date" id="poDelivery"></div>
+                    <div class="form-group"><label>טווח סריאלים</label><input type="text" id="poSerialRange" placeholder="למשל 1001-1200"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>סטטוס</label><select id="poStatus">
+                        <option value="טיוטה">טיוטה</option><option value="פתוחה">פתוחה</option><option value="סגורה">סגורה</option></select></div>
+                    <div class="form-group"><label>קובץ הזמנה (PDF/תמונה)</label><input type="file" id="poFile" accept="application/pdf,image/*"></div>
+                </div>
+                <div class="form-group"><label>הערות</label><textarea id="poNotes" rows="2"></textarea></div>
+                <div>
+                    <button type="submit" class="btn btn-primary">שמור הזמנה</button>
+                    <button type="button" class="btn" onclick="togglePOAdd()">ביטול</button>
+                </div>
+            </form>
+            <div id="poContent"></div>
+        </div>
+
         <!-- Nonconformities Section -->
         <div id="nonconformitiesSection" class="section">
             <h2>מוצר לא מתאים</h2>
@@ -1428,7 +1461,7 @@
         }
 
         // אזורי "צפייה בלבד" שמספיקים כדי להיכנס לטאב (אך לא לערוך)
-        const TAB_VIEW_ALIAS = { procedures: 'procedures_view' };
+        const TAB_VIEW_ALIAS = { procedures: 'procedures_view', purchase_orders: 'suppliers' };
         function switchTab(tab) {
             window.currentTab = tab;
             // חסימת גישה לאזור לא-מורשה (הגנה גם אם הטאב הוצג בטעות)
@@ -1450,6 +1483,7 @@
             else if (tab === 'communications') loadCommunications();
             else if (tab === 'capa') loadCapa();
             else if (tab === 'suppliers') loadSuppliers();
+            else if (tab === 'purchase_orders') loadPurchaseOrders();
             else if (tab === 'nonconformities') loadNonconformities();
             else if (tab === 'risk') loadRisks();
             else if (tab === 'training') loadTraining();
@@ -3270,7 +3304,7 @@
             }catch(e){ showMessage('שגיאה בייצוא','error'); }
         }
         function exportBtn(table){ return `<button class="btn" onclick="exportCsv('${table}')" style="margin-bottom:14px;">📥 ייצוא CSV</button>`; }
-        const PRINT_SKIP=['id','archived','created_by','handled_by','user_id','order_id','file_data','content_type','product_id','receiving_id','is_legacy','capa_id','adverse_event_id'];
+        const PRINT_SKIP=['id','archived','created_by','handled_by','user_id','order_id','file_data','content_type','product_id','receiving_id','is_legacy','capa_id','adverse_event_id','supplier_id','has_file'];
         function printRecord(rec,title){
             const rows=Object.entries(rec).filter(([k,v])=>!PRINT_SKIP.includes(k)&&v!=null&&v!=='').map(([k,v])=>{
                 let val=(v&&typeof v==='object')?Object.entries(v).map(([t,s])=>`${t}: ${s}`).join(' · '):((/date|_at$/.test(k))?new Date(v).toLocaleDateString('he-IL'):String(v));
@@ -3283,9 +3317,9 @@
         }
         // הדפסת רשומה מתוך מערך גלובלי לפי id
         function printFrom(arr,id,title){ const r=(arr||[]).find(x=>x.id===id); if(r) printRecord(r,title); }
-        const FIELD_HE={id:'מזהה',comm_date:'תאריך',type:'סוג',customer_name:'שם לקוח',customer_phone:'טלפון',serial_number:'מספר סריאלי',user_id:'משתמש',order_id:'הזמנה',description:'תיאור',classification:'סיווג',initial_response:'מענה ראשוני',resolution:'פתרון',status:'סטטוס',score:'ציון',feedback_topic:'נושא משוב',feedback_scores:'דירוגי משוב',survey_stage:'שלב סקר',capa_id:'CAPA',adverse_event_id:'אירוע חריג',receiving_date:'תאריך',supplier_name:'ספק',shipment_ref:'אסמכתת משלוח',model:'דגם',quantity_declared:'כמות מוצהרת',quantity_received:'כמות שהתקבלה',damage_notes:'נזק/ממצאים',sample_size:'גודל מדגם',sample_findings:'ממצאי מדגם',notes:'הערות',receiving_type:'סוג קליטה',product_id:'מוצר',receiving_id:'קליטה',is_legacy:'ישן',source:'מקור',title:'כותרת',root_cause:'שורש הבעיה',corrective_action:'פעולה מתקנת',verification:'אימות',responsible:'אחראי',due_date:'תאריך יעד',opened_date:'נפתח',closed_date:'נסגר',name:'שם',contact_person:'איש קשר',phone:'טלפון',email:'מייל',approval_status:'סטטוס אישור',criterion:'קריטריון',is_critical:'קריטי',employee_name:'עובד',topic:'נושא',training_date:'תאריך',event_date:'תאריך',severity:'חומרה',reported_to_amar:'דווח לאמ"ר',report_date:'תאריך דיווח',amar_confirmation:'אישור אמ"ר',auditor:'מבקר',scope:'היקף',checklist:'צ\'קליסט',findings:'ממצאים',risk_type:'סוג',probability:'סבירות',impact:'השפעה',treatment:'טיפול',review_date:'תאריך סקירה',participants:'משתתפים',inputs:'קלטים',decisions:'החלטות',nc_date:'תאריך',product_model:'דגם',disposition:'החלטה',change_date:'תאריך',impact_assessment:'הערכת השפעה',approval:'אישור',implementation:'יישום',recall_date:'תאריך',reason:'סיבה',archived:'בארכיון'};
+        const FIELD_HE={id:'מזהה',comm_date:'תאריך',type:'סוג',customer_name:'שם לקוח',customer_phone:'טלפון',serial_number:'מספר סריאלי',user_id:'משתמש',order_id:'הזמנה',description:'תיאור',classification:'סיווג',initial_response:'מענה ראשוני',resolution:'פתרון',status:'סטטוס',score:'ציון',feedback_topic:'נושא משוב',feedback_scores:'דירוגי משוב',survey_stage:'שלב סקר',capa_id:'CAPA',adverse_event_id:'אירוע חריג',receiving_date:'תאריך',supplier_name:'ספק',shipment_ref:'אסמכתת משלוח',model:'דגם',quantity_declared:'כמות מוצהרת',quantity_received:'כמות שהתקבלה',damage_notes:'נזק/ממצאים',sample_size:'גודל מדגם',sample_findings:'ממצאי מדגם',notes:'הערות',receiving_type:'סוג קליטה',product_id:'מוצר',receiving_id:'קליטה',is_legacy:'ישן',source:'מקור',title:'כותרת',root_cause:'שורש הבעיה',corrective_action:'פעולה מתקנת',verification:'אימות',responsible:'אחראי',due_date:'תאריך יעד',opened_date:'נפתח',closed_date:'נסגר',name:'שם',contact_person:'איש קשר',phone:'טלפון',email:'מייל',approval_status:'סטטוס אישור',criterion:'קריטריון',is_critical:'קריטי',employee_name:'עובד',topic:'נושא',training_date:'תאריך',event_date:'תאריך',severity:'חומרה',reported_to_amar:'דווח לאמ"ר',report_date:'תאריך דיווח',amar_confirmation:'אישור אמ"ר',auditor:'מבקר',scope:'היקף',checklist:'צ\'קליסט',findings:'ממצאים',risk_type:'סוג',probability:'סבירות',impact:'השפעה',treatment:'טיפול',review_date:'תאריך סקירה',participants:'משתתפים',inputs:'קלטים',decisions:'החלטות',nc_date:'תאריך',product_model:'דגם',disposition:'החלטה',change_date:'תאריך',impact_assessment:'הערכת השפעה',approval:'אישור',implementation:'יישום',recall_date:'תאריך',reason:'סיבה',archived:'בארכיון',po_date:'תאריך הזמנה',delivery_date:'תאריך אספקה',serial_range:'טווח סריאלים',quantity:'כמות',file_name:'קובץ'};
         let SHOW_ARCHIVED=false;
-        (function(){ const _f=window.fetch; window.fetch=function(u,o){ try{ if(SHOW_ARCHIVED && typeof u==='string' && /\/api\/admin\/(communications|capa|suppliers|training|risks|nonconformities|adverse-events|changes|audits|management-review|recalls)(\?|$)/.test(u)){ u += (u.includes('?')?'&':'?')+'showArchived=1'; } }catch(e){} return _f.call(this,u,o); }; })();
+        (function(){ const _f=window.fetch; window.fetch=function(u,o){ try{ if(SHOW_ARCHIVED && typeof u==='string' && /\/api\/admin\/(communications|capa|suppliers|training|risks|nonconformities|adverse-events|changes|audits|management-review|recalls|purchase-orders)(\?|$)/.test(u)){ u += (u.includes('?')?'&':'?')+'showArchived=1'; } }catch(e){} return _f.call(this,u,o); }; })();
         function toggleArchive(on){ SHOW_ARCHIVED=on; if(window.currentTab) switchTab(window.currentTab); }
         const ARCHIVE_MODULES=[['communications','תקשורת/תלונות'],['capa','CAPA'],['suppliers','ספקים'],['training','הדרכות'],['risk_register','סיכונים'],['nonconformities','מוצר לא מתאים'],['adverse_events','אירועים חריגים'],['changes','שינויים'],['audits','מבדקים'],['management_review','סקר הנהלה'],['recalls','ריקול']];
         function showArchivePicker(){
@@ -4547,6 +4581,108 @@
                     ).join('');
                 } catch (err) { box.innerHTML = ''; }
             }, 300);
+        }
+
+        // ===== הזמנות רכש (PO) =====
+        let poData = [], poSuppliers = [], expPO = null, edPO = null;
+        function togglePOAdd(){ const f=document.getElementById('poAddForm'); f.style.display=f.style.display==='none'?'block':'none'; }
+        async function loadPurchaseOrders(){
+            const t=localStorage.getItem('adminToken');
+            try{
+                const [pos, sups] = await Promise.all([
+                    fetch(`${API_URL}/api/admin/purchase-orders`,{headers:{'Authorization':`Bearer ${t}`}}).then(r=>r.json()),
+                    fetch(`${API_URL}/api/admin/suppliers`,{headers:{'Authorization':`Bearer ${t}`}}).then(r=>r.json())
+                ]);
+                poData=Array.isArray(pos)?pos:[]; poSuppliers=Array.isArray(sups)?sups:[];
+                const sel=document.getElementById('poSupplier');
+                if(sel) sel.innerHTML='<option value="">— ללא —</option>'+poSuppliers.map(s=>`<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('');
+                renderPOs();
+            }catch(e){ document.getElementById('poContent').innerHTML='<p>שגיאה בטעינה.</p>'; }
+        }
+        function poStatusBadge(s){ const c=s==='סגורה'?'#27ae60':(s==='פתוחה'?'#2471a3':'#888'); return `<span style="color:${c};font-weight:600;">${escapeHtml(s||'')}</span>`; }
+        function renderPOs(){
+            const c=document.getElementById('poContent');
+            if(!poData.length){ c.innerHTML='<p>אין הזמנות רכש.</p>'; return; }
+            const _open=poData.filter(p=>p.status&&p.status!=='סגורה').length;
+            let h=kpiRow([kpiCardHtml(String(poData.length), _open+' פתוחות', 'הזמנות רכש')]) + '<div class="table-container"><table><thead><tr><th></th><th>תאריך</th><th>ספק</th><th>דגם</th><th>כמות</th><th>סטטוס</th><th>ע"י</th></tr></thead><tbody>';
+            poData.forEach(p=>{
+                if(edPO===p.id){ h+=`<tr><td colspan="7" style="padding:0;">${poEditForm(p)}</td></tr>`; return; }
+                const d=p.po_date?new Date(p.po_date).toLocaleDateString('he-IL'):'';
+                const open=expPO===p.id;
+                h+=`<tr class="${p.archived?'qms-arch':''}" style="cursor:pointer;" onclick="togglePOExpand(${p.id})"><td>${open?'▲':'▼'}</td><td>${escapeHtml(d)}</td><td>${escapeHtml(p.supplier_name||'—')}</td><td>${escapeHtml(p.model||'')}</td><td>${p.quantity??''}</td><td>${poStatusBadge(p.status)}</td><td>${escapeHtml(p.handled_by_name||'')}</td></tr>`;
+                if(open){
+                    const dd=p.delivery_date?new Date(p.delivery_date).toLocaleDateString('he-IL'):'—';
+                    h+=`<tr><td colspan="7" style="background:#f8f9fa; padding:10px 14px;">
+                        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:2px 24px;">
+                            <div><span style="color:#888;">תאריך אספקה: </span>${escapeHtml(dd)}</div>
+                            <div><span style="color:#888;">טווח סריאלים: </span>${escapeHtml(p.serial_range||'—')}</div>
+                            <div><span style="color:#888;">קובץ: </span>${p.has_file?`<a href="#" onclick="event.preventDefault();event.stopPropagation();openPOFile(${p.id})">📎 ${escapeHtml(p.file_name||'הצג')}</a>`:'—'}</div>
+                        </div>
+                        ${p.notes?`<div style="margin-top:6px;"><span style="color:#888;">הערות: </span>${escapeHtml(p.notes)}</div>`:''}
+                        <div style="margin-top:10px;"><button class="btn btn-primary" onclick="event.stopPropagation();startEditPO(${p.id})">ערוך</button> ${versionsBtn('purchase_orders',p.id)}${p.archived?restoreBtn('purchase_orders',p.id):''}
+                        <button class="btn" onclick="event.stopPropagation();printFrom(poData,${p.id},'הזמנת רכש #${p.id}')">🖨️ PDF</button>
+                        <button class="btn btn-danger" onclick="event.stopPropagation();deletePO(${p.id})">מחק</button></div></td></tr>`;
+                }
+            });
+            h+='</tbody></table></div>'; c.innerHTML=h;
+        }
+        function poSupplierSelect(id, cur){ return `<select id="${id}"><option value="">— ללא —</option>${poSuppliers.map(s=>`<option value="${s.id}" ${cur===s.id?'selected':''}>${escapeHtml(s.name)}</option>`).join('')}</select>`; }
+        function poEditForm(p){
+            const pd=p.po_date?p.po_date.slice(0,10):''; const dd=p.delivery_date?p.delivery_date.slice(0,10):'';
+            const opt=(x,cur)=>`<option value="${x}" ${cur===x?'selected':''}>${x}</option>`;
+            return `<div style="padding:16px; background:#fafbfc;">
+                <div class="form-row"><div class="form-group"><label>ספק</label>${poSupplierSelect('epo_sup_'+p.id, p.supplier_id)}</div>
+                <div class="form-group"><label>תאריך הזמנה</label><input type="date" id="epo_date_${p.id}" value="${pd}"></div></div>
+                <div class="form-row"><div class="form-group"><label>דגם</label><input type="text" id="epo_model_${p.id}" value="${escapeHtml(p.model||'')}"></div>
+                <div class="form-group"><label>כמות</label><input type="number" id="epo_qty_${p.id}" value="${p.quantity??''}"></div></div>
+                <div class="form-row"><div class="form-group"><label>תאריך אספקה</label><input type="date" id="epo_deliv_${p.id}" value="${dd}"></div>
+                <div class="form-group"><label>טווח סריאלים</label><input type="text" id="epo_range_${p.id}" value="${escapeHtml(p.serial_range||'')}"></div></div>
+                <div class="form-row"><div class="form-group"><label>סטטוס</label><select id="epo_status_${p.id}">${['טיוטה','פתוחה','סגורה'].map(x=>opt(x,p.status)).join('')}</select></div>
+                <div class="form-group"><label>החלפת קובץ (אופ')</label><input type="file" id="epo_file_${p.id}" accept="application/pdf,image/*"></div></div>
+                <div class="form-group"><label>הערות</label><textarea id="epo_notes_${p.id}" rows="2">${escapeHtml(p.notes||'')}</textarea></div>
+                <div><button class="btn btn-success" onclick="savePOInline(${p.id})">שמור</button> <button class="btn" onclick="cancelEditPO()">בטל</button></div></div>`;
+        }
+        function togglePOExpand(id){ if(edPO===id) return; edPO=null; expPO=expPO===id?null:id; renderPOs(); }
+        function startEditPO(id){ expPO=id; edPO=id; renderPOs(); }
+        function cancelEditPO(){ edPO=null; renderPOs(); }
+        async function openPOFile(id){
+            const t=localStorage.getItem('adminToken');
+            try{ const res=await fetch(`${API_URL}/api/admin/purchase-orders/${id}/file`,{headers:{'Authorization':`Bearer ${t}`}});
+                if(!res.ok){ showMessage('הקובץ לא נמצא','error'); return; }
+                const blob=await res.blob(); const url=URL.createObjectURL(blob); window.open(url,'_blank'); setTimeout(()=>URL.revokeObjectURL(url),60000);
+            }catch(e){ showMessage('שגיאה בטעינת הקובץ','error'); }
+        }
+        async function addPO(e){
+            e.preventDefault(); const t=localStorage.getItem('adminToken');
+            const body={ supplier_id: document.getElementById('poSupplier').value||null, po_date: document.getElementById('poDate').value||null,
+                model: document.getElementById('poModel').value.trim(), quantity: document.getElementById('poQty').value||null,
+                delivery_date: document.getElementById('poDelivery').value||null, serial_range: document.getElementById('poSerialRange').value.trim(),
+                status: document.getElementById('poStatus').value, notes: document.getElementById('poNotes').value.trim() };
+            const f=document.getElementById('poFile').files[0];
+            if(f){ if(f.size>8*1024*1024){ showMessage('הקובץ גדול מדי (מקס 8MB)','error'); return; } body.file=await fileToBase64(f); body.filename=f.name; body.contentType=f.type||'application/pdf'; }
+            try{ const r=await fetch(`${API_URL}/api/admin/purchase-orders`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${t}`},body:JSON.stringify(body)});
+                if(!r.ok){ const d=await r.json().catch(()=>({})); showMessage(d.error||'שגיאה','error'); return; }
+                showMessage('נשמר','success'); e.target.reset(); document.getElementById('poAddForm').style.display='none'; loadPurchaseOrders();
+            }catch(err){ showMessage('שגיאה בשמירה','error'); }
+        }
+        async function savePOInline(id){
+            const t=localStorage.getItem('adminToken');
+            const body={ supplier_id: document.getElementById('epo_sup_'+id).value||null, po_date: document.getElementById('epo_date_'+id).value||null,
+                model: document.getElementById('epo_model_'+id).value.trim(), quantity: document.getElementById('epo_qty_'+id).value||null,
+                delivery_date: document.getElementById('epo_deliv_'+id).value||null, serial_range: document.getElementById('epo_range_'+id).value.trim(),
+                status: document.getElementById('epo_status_'+id).value, notes: document.getElementById('epo_notes_'+id).value.trim() };
+            const f=document.getElementById('epo_file_'+id).files[0];
+            if(f){ if(f.size>8*1024*1024){ showMessage('הקובץ גדול מדי (מקס 8MB)','error'); return; } body.file=await fileToBase64(f); body.filename=f.name; body.contentType=f.type||'application/pdf'; }
+            try{ const r=await fetch(`${API_URL}/api/admin/purchase-orders/${id}`,{method:'PUT',headers:{'Content-Type':'application/json','Authorization':`Bearer ${t}`},body:JSON.stringify(body)});
+                if(!r.ok){ const d=await r.json().catch(()=>({})); showMessage(d.error||'שגיאה','error'); return; }
+                showMessage('עודכן','success'); edPO=null; loadPurchaseOrders();
+            }catch(err){ showMessage('שגיאה בשמירה','error'); }
+        }
+        async function deletePO(id){
+            if(!confirm('למחוק את ההזמנה?')) return; const t=localStorage.getItem('adminToken');
+            try{ const r=await fetch(`${API_URL}/api/admin/purchase-orders/${id}`,{method:'DELETE',headers:{'Authorization':`Bearer ${t}`}});
+                if(!r.ok){ showMessage('שגיאה במחיקה','error'); return; } showMessage('נמחק','success'); expPO=null; loadPurchaseOrders();
+            }catch(err){ showMessage('שגיאה','error'); }
         }
 
         // ===== מוצר לא מתאים (שורה נפתחת + עריכה בעיצוב האתר) =====
