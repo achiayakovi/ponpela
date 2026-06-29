@@ -359,7 +359,7 @@
                 <h1>🎛️ פאנל ניהול - פונפלה</h1>
                 <p style="color: #7f8c8d; margin-top: 5px;">שלום, <span id="adminName">אדמין</span></p>
             </div>
-            <button class="logout" onclick="logout()">יציאה</button>
+            <div><button class="btn" onclick="showArchivePicker()" style="margin-left:8px;">📦 ארכיון</button><button class="logout" onclick="logout()">יציאה</button></div>
         </header>
 
         <div id="message" class="message" style="display:none;"></div>
@@ -3234,6 +3234,30 @@
         function kpiRow(cards){ return `<div class="kpi-row">${cards.join('')}</div>`; }
         function versionsBtn(table, id){ return `<button class="btn" onclick="event.stopPropagation();showVersions('${table}',${id})">🕘 גרסאות</button>`; }
         const FIELD_HE={id:'מזהה',comm_date:'תאריך',type:'סוג',customer_name:'שם לקוח',customer_phone:'טלפון',serial_number:'מספר סריאלי',user_id:'משתמש',order_id:'הזמנה',description:'תיאור',classification:'סיווג',initial_response:'מענה ראשוני',resolution:'פתרון',status:'סטטוס',score:'ציון',feedback_topic:'נושא משוב',feedback_scores:'דירוגי משוב',survey_stage:'שלב סקר',capa_id:'CAPA',adverse_event_id:'אירוע חריג',receiving_date:'תאריך',supplier_name:'ספק',shipment_ref:'אסמכתת משלוח',model:'דגם',quantity_declared:'כמות מוצהרת',quantity_received:'כמות שהתקבלה',damage_notes:'נזק/ממצאים',sample_size:'גודל מדגם',sample_findings:'ממצאי מדגם',notes:'הערות',receiving_type:'סוג קליטה',product_id:'מוצר',receiving_id:'קליטה',is_legacy:'ישן',source:'מקור',title:'כותרת',root_cause:'שורש הבעיה',corrective_action:'פעולה מתקנת',verification:'אימות',responsible:'אחראי',due_date:'תאריך יעד',opened_date:'נפתח',closed_date:'נסגר',name:'שם',contact_person:'איש קשר',phone:'טלפון',email:'מייל',approval_status:'סטטוס אישור',criterion:'קריטריון',is_critical:'קריטי',employee_name:'עובד',topic:'נושא',training_date:'תאריך',event_date:'תאריך',severity:'חומרה',reported_to_amar:'דווח לאמ"ר',report_date:'תאריך דיווח',amar_confirmation:'אישור אמ"ר',auditor:'מבקר',scope:'היקף',checklist:'צ\'קליסט',findings:'ממצאים',risk_type:'סוג',probability:'סבירות',impact:'השפעה',treatment:'טיפול',review_date:'תאריך סקירה',participants:'משתתפים',inputs:'קלטים',decisions:'החלטות',nc_date:'תאריך',product_model:'דגם',disposition:'החלטה',change_date:'תאריך',impact_assessment:'הערכת השפעה',approval:'אישור',implementation:'יישום',recall_date:'תאריך',reason:'סיבה',archived:'בארכיון'};
+        const ARCHIVE_MODULES=[['communications','תקשורת/תלונות'],['capa','CAPA'],['suppliers','ספקים'],['training','הדרכות'],['risk_register','סיכונים'],['nonconformities','מוצר לא מתאים'],['adverse_events','אירועים חריגים'],['changes','שינויים'],['audits','מבדקים'],['management_review','סקר הנהלה'],['recalls','ריקול']];
+        function showArchivePicker(){
+            const ov=document.createElement('div'); ov.className='vov';
+            ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:flex;align-items:center;justify-content:center;';
+            ov.onclick=(e)=>{if(e.target===ov)ov.remove();};
+            const btns=ARCHIVE_MODULES.map(([t,l])=>`<button class="btn btn-primary" onclick="loadArchive('${t}','${l}')" style="margin:4px;">${l}</button>`).join('');
+            ov.innerHTML=`<div dir="rtl" style="background:#fff;border-radius:12px;max-width:680px;width:92%;max-height:82vh;overflow:auto;padding:22px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;"><h3 style="margin:0;">📦 ארכיון רשומות QMS</h3><button class="btn" onclick="this.closest('.vov').remove()">✕</button></div><p>בחר מודול לצפייה ברשומות שנמחקו (ניתן לשחזר):</p><div>${btns}</div><div id="archiveList" style="margin-top:14px;"></div></div>`;
+            document.body.appendChild(ov);
+        }
+        async function loadArchive(table,label){
+            const t=localStorage.getItem('adminToken'); const box=document.getElementById('archiveList'); if(box) box.innerHTML='טוען...';
+            let rows=[]; try{const r=await fetch(`${API_URL}/api/admin/archived/${table}`,{headers:{'Authorization':`Bearer ${t}`}}); rows=await r.json();}catch(e){}
+            if(!box) return;
+            if(!Array.isArray(rows)||!rows.length){box.innerHTML=`<p>אין רשומות בארכיון ב${escapeHtml(label)}.</p>`;return;}
+            box.innerHTML=`<h4>${escapeHtml(label)} — ${rows.length} בארכיון</h4>`+rows.map(r=>{
+                const main=r.title||r.customer_name||r.name||r.employee_name||r.description||r.supplier_name||('#'+r.id);
+                return `<div style="border:1px solid #e0e6ed;border-radius:8px;padding:10px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;"><span>#${r.id} · ${escapeHtml(String(main).slice(0,55))}</span><span>${versionsBtn(table,r.id)} <button class="btn btn-success" onclick="restoreRecord('${table}',${r.id},this)">שחזר</button></span></div>`;
+            }).join('');
+        }
+        async function restoreRecord(table,id,btn){
+            if(!confirm('לשחזר רשומה זו מהארכיון?'))return;
+            const t=localStorage.getItem('adminToken');
+            try{const r=await fetch(`${API_URL}/api/admin/restore/${table}/${id}`,{method:'POST',headers:{'Authorization':`Bearer ${t}`}}); if(r.ok){btn.closest('div').remove(); if(typeof showMessage==='function')showMessage('שוחזר','success');}else{alert('שגיאה בשחזור');}}catch(e){alert('שגיאה בשחזור');}
+        }
         async function showVersions(table, id){
             const t=localStorage.getItem('adminToken'); let rows=[];
             try{const r=await fetch(`${API_URL}/api/admin/record-versions/${table}/${id}`,{headers:{'Authorization':`Bearer ${t}`}}); rows=await r.json();}catch(e){}
