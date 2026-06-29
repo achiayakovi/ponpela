@@ -52,6 +52,11 @@
         }
         .stat-number { font-size: 2.5rem; font-weight: 700; color: #667eea; }
         .stat-label { color: #7f8c8d; margin-top: 8px; }
+        .kpi-row { display: flex; flex-wrap: wrap; gap: 14px; margin: 0 0 20px; }
+        .kpi-card { flex: 1; min-width: 190px; background: #fff; border: 1px solid #e0e6ed; border-right: 4px solid #667eea; border-radius: 12px; padding: 16px 18px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+        .kpi-card .kpi-big { font-size: 2rem; font-weight: 800; color: #2c3e50; line-height: 1.1; }
+        .kpi-card .kpi-sub { color: #667eea; font-weight: 600; margin-top: 4px; font-size: .95rem; }
+        .kpi-card .kpi-lbl { color: #7f8c8d; font-size: .85rem; margin-top: 6px; }
         
         /* Tabs */
         .tabs {
@@ -3225,10 +3230,14 @@
             } catch (err) { document.getElementById('receivingListContent').innerHTML = '<p>שגיאה בטעינת קליטות.</p>'; }
         }
 
+        function kpiCardHtml(big, sub, lbl){ return `<div class="kpi-card"><div class="kpi-big">${big}</div><div class="kpi-sub">${sub}</div><div class="kpi-lbl">${escapeHtml(lbl)}</div></div>`; }
+        function kpiRow(cards){ return `<div class="kpi-row">${cards.join('')}</div>`; }
         function renderReceiving() {
             const content = document.getElementById('receivingListContent');
             if (!Array.isArray(receivingData) || receivingData.length === 0) { content.innerHTML = '<p>אין קליטות עדיין.</p>'; return; }
-            let html = '<div class="table-container"><table><thead><tr><th></th><th>סוג</th><th>תאריך</th><th>ספק / מקור</th><th>דגם</th><th>כמות</th><th>סטטוס</th><th>סריאליים</th><th>ע"י</th></tr></thead><tbody>';
+            const _t=receivingData.length, _c=receivingData.filter(r=>!(r.damage_notes&&String(r.damage_notes).trim())).length, _p=_t?Math.round(_c/_t*100):0;
+            let html = kpiRow([kpiCardHtml(_c+' / '+_t, _p+'% ללא אי-התאמה', 'קליטות תקינות (ללא אי-התאמה)')]);
+            html += '<div class="table-container"><table><thead><tr><th></th><th>סוג</th><th>תאריך</th><th>ספק / מקור</th><th>דגם</th><th>כמות</th><th>סטטוס</th><th>סריאליים</th><th>ע"י</th></tr></thead><tbody>';
             receivingData.forEach(r => {
                 if (editingReceivingId === r.id) { html += `<tr><td colspan="9" style="padding:0;">${receivingEditForm(r)}</td></tr>`; return; }
                 const d = r.receiving_date ? new Date(r.receiving_date).toLocaleDateString('he-IL') : '';
