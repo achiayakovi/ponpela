@@ -3235,7 +3235,8 @@
         function renderReceiving() {
             const content = document.getElementById('receivingListContent');
             if (!Array.isArray(receivingData) || receivingData.length === 0) { content.innerHTML = '<p>אין קליטות עדיין.</p>'; return; }
-            const _t=receivingData.length, _c=receivingData.filter(r=>!(r.damage_notes&&String(r.damage_notes).trim())).length, _p=_t?Math.round(_c/_t*100):0;
+            const _rcOk=r=>!(r.damage_notes&&String(r.damage_notes).trim()) && !(r.quantity_declared!=null&&r.quantity_received!=null&&Number(r.quantity_received)!==Number(r.quantity_declared));
+            const _t=receivingData.length, _c=receivingData.filter(_rcOk).length, _p=_t?Math.round(_c/_t*100):0;
             let html = kpiRow([kpiCardHtml(_c+' / '+_t, _p+'% תקינות', 'קליטות תקינות')]);
             html += '<div class="table-container"><table><thead><tr><th></th><th>סוג</th><th>תאריך</th><th>ספק / מקור</th><th>דגם</th><th>כמות</th><th>סטטוס</th><th>סריאליים</th><th>ע"י</th></tr></thead><tbody>';
             receivingData.forEach(r => {
