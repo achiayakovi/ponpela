@@ -367,7 +367,7 @@
                 <h1>🎛️ פאנל ניהול - פונפלה</h1>
                 <p style="color: #7f8c8d; margin-top: 5px;">שלום, <span id="adminName">אדמין</span></p>
             </div>
-            <div style="display:flex;align-items:center;gap:14px;"><label class="arch-toggle"><input type="checkbox" id="archToggle" onchange="toggleArchive(this.checked)"><span class="sw"></span>📦 הצג ארכיון</label><button class="logout" onclick="logout()">יציאה</button></div>
+            <div style="display:flex;align-items:center;gap:14px;"><label class="arch-toggle" id="archToggleWrap" style="display:none;"><input type="checkbox" id="archToggle" onchange="toggleArchive(this.checked)"><span class="sw"></span>📦 הצג ארכיון</label><button class="logout" onclick="logout()">יציאה</button></div>
         </header>
 
         <div id="message" class="message" style="display:none;"></div>
@@ -1348,6 +1348,8 @@
 
         // הסתרת טאבים שאין להם הרשאה + בחירת טאב ראשון מותר
         function applyAreaPermissions() {
+            const _aw = document.getElementById('archToggleWrap');
+            if (_aw) _aw.style.display = (currentAdmin.qms_areas||[]).includes('*') ? 'inline-flex' : 'none';
             const tabs = document.querySelectorAll('.tab[data-area]');
             let firstAllowed = null;
             tabs.forEach(t => {
