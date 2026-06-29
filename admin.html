@@ -57,6 +57,14 @@
         .kpi-card .kpi-big { font-size: 2rem; font-weight: 800; color: #2c3e50; line-height: 1.1; }
         .kpi-card .kpi-sub { color: #667eea; font-weight: 600; margin-top: 4px; font-size: .95rem; }
         .kpi-card .kpi-lbl { color: #7f8c8d; font-size: .85rem; margin-top: 6px; }
+        .arch-toggle { display: inline-flex; align-items: center; gap: 8px; color: #fff; font-size: .9rem; }
+        .arch-toggle input { display: none; }
+        .arch-toggle .sw { width: 42px; height: 22px; background: rgba(255,255,255,.4); border-radius: 22px; position: relative; transition: .2s; }
+        .arch-toggle .sw::after { content: ''; position: absolute; width: 18px; height: 18px; background: #fff; border-radius: 50%; top: 2px; right: 2px; transition: .2s; }
+        .arch-toggle input:checked + .sw { background: #27ae60; }
+        .arch-toggle input:checked + .sw::after { right: 22px; }
+        tr.qms-arch > td { background: #eceff1 !important; color: #607d8b; }
+        tr.qms-arch .arch-tag { background: #b0bec5; color: #fff; border-radius: 4px; padding: 1px 6px; font-size: .75rem; margin-right: 4px; }
         
         /* Tabs */
         .tabs {
@@ -359,7 +367,7 @@
                 <h1>🎛️ פאנל ניהול - פונפלה</h1>
                 <p style="color: #7f8c8d; margin-top: 5px;">שלום, <span id="adminName">אדמין</span></p>
             </div>
-            <div><button class="btn" onclick="showArchivePicker()" style="margin-left:8px;">📦 ארכיון</button><button class="logout" onclick="logout()">יציאה</button></div>
+            <div style="display:flex;align-items:center;gap:14px;"><label class="arch-toggle"><input type="checkbox" id="archToggle" onchange="toggleArchive(this.checked)"><span class="sw"></span>📦 הצג ארכיון</label><button class="logout" onclick="logout()">יציאה</button></div>
         </header>
 
         <div id="message" class="message" style="display:none;"></div>
@@ -1407,6 +1415,7 @@
         // אזורי "צפייה בלבד" שמספיקים כדי להיכנס לטאב (אך לא לערוך)
         const TAB_VIEW_ALIAS = { procedures: 'procedures_view' };
         function switchTab(tab) {
+            window.currentTab = tab;
             // חסימת גישה לאזור לא-מורשה (הגנה גם אם הטאב הוצג בטעות)
             if (!adminHasArea(tab) && !(TAB_VIEW_ALIAS[tab] && adminHasArea(TAB_VIEW_ALIAS[tab]))) return;
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -3233,7 +3242,11 @@
         function kpiCardHtml(big, sub, lbl){ return `<div class="kpi-card"><div class="kpi-big">${big}</div><div class="kpi-sub">${sub}</div><div class="kpi-lbl">${escapeHtml(lbl)}</div></div>`; }
         function kpiRow(cards){ return `<div class="kpi-row">${cards.join('')}</div>`; }
         function versionsBtn(table, id){ return `<button class="btn" onclick="event.stopPropagation();showVersions('${table}',${id})">🕘 גרסאות</button>`; }
+        function restoreBtn(table, id){ return ` <button class="btn btn-success" onclick="event.stopPropagation();restoreRecord('${table}',${id})">↩ שחזר</button>`; }
         const FIELD_HE={id:'מזהה',comm_date:'תאריך',type:'סוג',customer_name:'שם לקוח',customer_phone:'טלפון',serial_number:'מספר סריאלי',user_id:'משתמש',order_id:'הזמנה',description:'תיאור',classification:'סיווג',initial_response:'מענה ראשוני',resolution:'פתרון',status:'סטטוס',score:'ציון',feedback_topic:'נושא משוב',feedback_scores:'דירוגי משוב',survey_stage:'שלב סקר',capa_id:'CAPA',adverse_event_id:'אירוע חריג',receiving_date:'תאריך',supplier_name:'ספק',shipment_ref:'אסמכתת משלוח',model:'דגם',quantity_declared:'כמות מוצהרת',quantity_received:'כמות שהתקבלה',damage_notes:'נזק/ממצאים',sample_size:'גודל מדגם',sample_findings:'ממצאי מדגם',notes:'הערות',receiving_type:'סוג קליטה',product_id:'מוצר',receiving_id:'קליטה',is_legacy:'ישן',source:'מקור',title:'כותרת',root_cause:'שורש הבעיה',corrective_action:'פעולה מתקנת',verification:'אימות',responsible:'אחראי',due_date:'תאריך יעד',opened_date:'נפתח',closed_date:'נסגר',name:'שם',contact_person:'איש קשר',phone:'טלפון',email:'מייל',approval_status:'סטטוס אישור',criterion:'קריטריון',is_critical:'קריטי',employee_name:'עובד',topic:'נושא',training_date:'תאריך',event_date:'תאריך',severity:'חומרה',reported_to_amar:'דווח לאמ"ר',report_date:'תאריך דיווח',amar_confirmation:'אישור אמ"ר',auditor:'מבקר',scope:'היקף',checklist:'צ\'קליסט',findings:'ממצאים',risk_type:'סוג',probability:'סבירות',impact:'השפעה',treatment:'טיפול',review_date:'תאריך סקירה',participants:'משתתפים',inputs:'קלטים',decisions:'החלטות',nc_date:'תאריך',product_model:'דגם',disposition:'החלטה',change_date:'תאריך',impact_assessment:'הערכת השפעה',approval:'אישור',implementation:'יישום',recall_date:'תאריך',reason:'סיבה',archived:'בארכיון'};
+        let SHOW_ARCHIVED=false;
+        (function(){ const _f=window.fetch; window.fetch=function(u,o){ try{ if(SHOW_ARCHIVED && typeof u==='string' && /\/api\/admin\/(communications|capa|suppliers|training|risks|nonconformities|adverse-events|changes|audits|management-review|recalls)(\?|$)/.test(u)){ u += (u.includes('?')?'&':'?')+'showArchived=1'; } }catch(e){} return _f.call(this,u,o); }; })();
+        function toggleArchive(on){ SHOW_ARCHIVED=on; if(window.currentTab) switchTab(window.currentTab); }
         const ARCHIVE_MODULES=[['communications','תקשורת/תלונות'],['capa','CAPA'],['suppliers','ספקים'],['training','הדרכות'],['risk_register','סיכונים'],['nonconformities','מוצר לא מתאים'],['adverse_events','אירועים חריגים'],['changes','שינויים'],['audits','מבדקים'],['management_review','סקר הנהלה'],['recalls','ריקול']];
         function showArchivePicker(){
             const ov=document.createElement('div'); ov.className='vov';
@@ -3256,7 +3269,7 @@
         async function restoreRecord(table,id,btn){
             if(!confirm('לשחזר רשומה זו מהארכיון?'))return;
             const t=localStorage.getItem('adminToken');
-            try{const r=await fetch(`${API_URL}/api/admin/restore/${table}/${id}`,{method:'POST',headers:{'Authorization':`Bearer ${t}`}}); if(r.ok){btn.closest('div').remove(); if(typeof showMessage==='function')showMessage('שוחזר','success');}else{alert('שגיאה בשחזור');}}catch(e){alert('שגיאה בשחזור');}
+            try{const r=await fetch(`${API_URL}/api/admin/restore/${table}/${id}`,{method:'POST',headers:{'Authorization':`Bearer ${t}`}}); if(r.ok){if(typeof showMessage==='function')showMessage('שוחזר','success'); if(window.currentTab)switchTab(window.currentTab);}else{alert('שגיאה בשחזור');}}catch(e){alert('שגיאה בשחזור');}
         }
         async function showVersions(table, id){
             const t=localStorage.getItem('adminToken'); let rows=[];
@@ -3731,7 +3744,7 @@
                 if (editingCommId === c.id) { html += `<tr><td colspan="7" style="padding:0;">${commEditForm(c)}</td></tr>`; return; }
                 const d = c.comm_date ? new Date(c.comm_date).toLocaleDateString('he-IL') : '';
                 const open = expandedCommId === c.id;
-                html += `<tr style="cursor:pointer;" onclick="toggleCommExpand(${c.id})">
+                html += `<tr class="${c.archived?'qms-arch':''}" style="cursor:pointer;" onclick="toggleCommExpand(${c.id})">
                     <td>${open?'▲':'▼'}</td><td>${escapeHtml(d)}</td><td>${escapeHtml(c.type||'')}</td><td>${escapeHtml(c.customer_name||'')}</td>
                     <td>${escapeHtml(c.customer_phone||'')}</td><td>${c.type==='תלונה'?escapeHtml(c.status||''):(c.type==='משוב'&&c.score?'★'+c.score:'')}</td><td>${escapeHtml(c.handled_by_name||'')}</td></tr>`;
                 if (open) {
@@ -3749,7 +3762,7 @@
                           <div style="margin-bottom:8px;"><strong>החלטת סגירה:</strong> ${escapeHtml(c.resolution||'—')}</div>
                           <div style="margin-bottom:8px;"><strong>CAPA:</strong> ${capaBtn}</div>
                           ${c.classification==='אירוע' ? `<div style="margin-bottom:8px;"><strong>אירוע Vigilance:</strong> ${c.adverse_event_id ? 'אירוע #'+c.adverse_event_id : `<button class="btn" onclick="event.stopPropagation();openVigFromComm(${c.id})">פתח אירוע Vigilance</button>`}</div>` : ''}` : ''}
-                        <div><button class="btn btn-primary" onclick="event.stopPropagation();startEditComm(${c.id})">ערוך</button> ${versionsBtn('communications',c.id)}
+                        <div><button class="btn btn-primary" onclick="event.stopPropagation();startEditComm(${c.id})">ערוך</button> ${versionsBtn('communications',c.id)}${c.archived?restoreBtn('communications',c.id):''}
                         <button class="btn btn-danger" onclick="event.stopPropagation();deleteCommunication(${c.id})">מחק</button></div></td></tr>`;
                 }
             });
@@ -3938,7 +3951,7 @@
                 if (editingCapaId === c.id) { html += `<tr><td colspan="8" style="padding:0;">${capaEditForm(c)}</td></tr>`; return; }
                 const due = c.due_date ? new Date(c.due_date).toLocaleDateString('he-IL') : '';
                 const open = expandedCapaId === c.id;
-                html += `<tr style="cursor:pointer;" onclick="toggleCapaExpand(${c.id})">
+                html += `<tr class="${c.archived?'qms-arch':''}" style="cursor:pointer;" onclick="toggleCapaExpand(${c.id})">
                     <td>${open?'▲':'▼'}</td><td>${c.id}</td><td>${escapeHtml(c.source||'')}${c.source_ref?' #'+c.source_ref:''}</td>
                     <td>${escapeHtml(c.title||'')}</td><td>${escapeHtml(c.responsible||'')}</td><td>${escapeHtml(due)}</td>
                     <td>${escapeHtml(c.status||'')}</td><td>${escapeHtml(c.handled_by_name||'')}</td></tr>`;
@@ -3950,7 +3963,7 @@
                         <div style="margin-bottom:8px;"><strong>אימות אפקטיביות:</strong> ${escapeHtml(c.verification||'—')}</div>
                         <div>
                           ${(c.source==='תלונה' && c.source_ref) ? `<button class="btn" onclick="event.stopPropagation();viewSourceComplaint(${c.source_ref})">צפה בתלונה</button>` : ''}
-                          <button class="btn btn-primary" onclick="event.stopPropagation();startEditCapa(${c.id})">ערוך</button> ${versionsBtn('capa',c.id)}
+                          <button class="btn btn-primary" onclick="event.stopPropagation();startEditCapa(${c.id})">ערוך</button> ${versionsBtn('capa',c.id)}${c.archived?restoreBtn('capa',c.id):''}
                           <button class="btn btn-danger" onclick="event.stopPropagation();deleteCapa(${c.id})">מחק</button></div></td></tr>`;
                 }
             });
@@ -4124,7 +4137,7 @@
                 if (editingSupplierId === s.id) { html += `<tr><td colspan="6" style="padding:0;">${supplierEditForm(s)}</td></tr>`; return; }
                 const open = expandedSupplierId === s.id;
                 const expWarn = s.expiring_count > 0 ? ` <span style="color:#c0392b;">(${s.expiring_count} פג/עומד לפוג)</span>` : '';
-                html += `<tr style="cursor:pointer;" onclick="toggleSupplierExpand(${s.id})">
+                html += `<tr class="${s.archived?'qms-arch':''}" style="cursor:pointer;" onclick="toggleSupplierExpand(${s.id})">
                     <td>${open?'▲':'▼'}</td><td>${escapeHtml(s.name)}</td><td>${escapeHtml(s.approval_status||'')}</td>
                     <td>${s.is_critical?'כן':''}</td><td>${s.docs_count}${expWarn}</td><td>${escapeHtml(s.handled_by_name||'')}</td></tr>`;
                 if (open) {
@@ -4132,7 +4145,7 @@
                         <div style="margin-bottom:8px;"><strong>איש קשר:</strong> ${escapeHtml(s.contact_person||'—')} · ${escapeHtml(s.phone||'')} · ${escapeHtml(s.email||'')}</div>
                         <div style="margin-bottom:8px;"><strong>קריטריון אישור:</strong> ${escapeHtml(s.criterion||'—')}</div>
                         <div style="margin-bottom:8px;"><strong>הערות:</strong> ${escapeHtml(s.notes||'—')}</div>
-                        <div><button class="btn btn-primary" onclick="event.stopPropagation();startEditSupplier(${s.id})">ערוך</button> ${versionsBtn('suppliers',s.id)}
+                        <div><button class="btn btn-primary" onclick="event.stopPropagation();startEditSupplier(${s.id})">ערוך</button> ${versionsBtn('suppliers',s.id)}${s.archived?restoreBtn('suppliers',s.id):''}
                         <button class="btn" onclick="event.stopPropagation();openCapaFromSupplier(${s.id})">פתח CAPA</button>
                         <button class="btn btn-danger" onclick="event.stopPropagation();deleteSupplier(${s.id})">מחק</button></div></td></tr>`;
                 }
@@ -4514,7 +4527,7 @@
                 if (editingNcId === n.id) { html += `<tr><td colspan="7" style="padding:0;">${ncEditForm(n)}</td></tr>`; return; }
                 const d = n.nc_date ? new Date(n.nc_date).toLocaleDateString('he-IL') : '';
                 const open = expandedNcId === n.id;
-                html += `<tr style="cursor:pointer;" onclick="toggleNcExpand(${n.id})">
+                html += `<tr class="${n.archived?'qms-arch':''}" style="cursor:pointer;" onclick="toggleNcExpand(${n.id})">
                     <td>${open?'▲':'▼'}</td><td>${escapeHtml(d)}</td><td>${escapeHtml(n.source||'')}</td><td>${escapeHtml(n.product_model||'')}</td>
                     <td>${escapeHtml(n.serial_number||'')}</td><td>${escapeHtml(n.status||'')}</td><td>${escapeHtml(n.handled_by_name||'')}</td></tr>`;
                 if (open) {
@@ -4523,7 +4536,7 @@
                         <div style="margin-bottom:8px;"><strong>החלטה:</strong> ${escapeHtml(n.disposition||'—')}</div>
                         <div style="margin-bottom:8px;"><strong>תיאור:</strong> ${escapeHtml(n.description||'—')}</div>
                         <div style="margin-bottom:8px;"><strong>CAPA:</strong> ${capaBtn}</div>
-                        <div><button class="btn btn-primary" onclick="event.stopPropagation();startEditNc(${n.id})">ערוך</button> ${versionsBtn('nonconformities',n.id)}
+                        <div><button class="btn btn-primary" onclick="event.stopPropagation();startEditNc(${n.id})">ערוך</button> ${versionsBtn('nonconformities',n.id)}${n.archived?restoreBtn('nonconformities',n.id):''}
                         <button class="btn btn-danger" onclick="event.stopPropagation();deleteNc(${n.id})">מחק</button></div></td></tr>`;
                 }
             });
@@ -4657,7 +4670,7 @@
             riskData.forEach(r => {
                 if (editingRiskId === r.id) { html += `<tr><td colspan="6" style="padding:0;">${riskEditForm(r)}</td></tr>`; return; }
                 const open = expandedRiskId === r.id;
-                html += `<tr style="cursor:pointer;" onclick="toggleRiskExpand(${r.id})">
+                html += `<tr class="${r.archived?'qms-arch':''}" style="cursor:pointer;" onclick="toggleRiskExpand(${r.id})">
                     <td>${open?'▲':'▼'}</td><td>${escapeHtml(r.risk_type||'')}</td><td>${escapeHtml(r.description||'')}</td>
                     <td><span style="background:${riskColor(r.score)}; color:#fff; padding:2px 10px; border-radius:12px; font-weight:bold;">${r.score||'-'}</span></td>
                     <td>${escapeHtml(r.status||'')}</td><td>${escapeHtml(r.handled_by_name||'')}</td></tr>`;
@@ -4667,7 +4680,7 @@
                         <div style="margin-bottom:8px;"><strong>סבירות × השפעה:</strong> ${r.probability||'-'} × ${r.impact||'-'} = ${r.score||'-'}</div>
                         <div style="margin-bottom:8px;"><strong>טיפול:</strong> ${escapeHtml(r.treatment||'—')}</div>
                         <div style="margin-bottom:8px;"><strong>תאריך סקירה:</strong> ${escapeHtml(rev)}</div>
-                        <div><button class="btn btn-primary" onclick="event.stopPropagation();startEditRisk(${r.id})">ערוך</button> ${versionsBtn('risk_register',r.id)}
+                        <div><button class="btn btn-primary" onclick="event.stopPropagation();startEditRisk(${r.id})">ערוך</button> ${versionsBtn('risk_register',r.id)}${r.archived?restoreBtn('risk_register',r.id):''}
                         <button class="btn btn-danger" onclick="event.stopPropagation();deleteRisk(${r.id})">מחק</button></div></td></tr>`;
                 }
             });
@@ -4782,14 +4795,14 @@
                 }
                 const d = t.training_date ? new Date(t.training_date).toLocaleDateString('he-IL') : '';
                 const open = expandedTrainingId === t.id;
-                html += `<tr style="cursor:pointer;" onclick="toggleTrainingExpand(${t.id})">
+                html += `<tr class="${t.archived?'qms-arch':''}" style="cursor:pointer;" onclick="toggleTrainingExpand(${t.id})">
                     <td>${open ? '▲' : '▼'}</td><td>${escapeHtml(t.employee_name||'')}</td><td>${escapeHtml(t.topic||'')}</td>
                     <td>${escapeHtml(d)}</td><td>${escapeHtml(t.status||'')}</td><td>${escapeHtml(t.handled_by_name||'')}</td></tr>`;
                 if (open) {
                     html += `<tr><td colspan="6" style="background:#f8f9fa; padding:10px 14px;">
                         <div style="margin-bottom:8px;"><strong>אימות:</strong> ${escapeHtml(t.verification||'—')}</div>
                         <div style="margin-bottom:8px;"><strong>הערות:</strong> ${escapeHtml(t.notes||'—')}</div>
-                        <div><button class="btn btn-primary" onclick="event.stopPropagation();startEditTraining(${t.id})">ערוך</button> ${versionsBtn('training',t.id)}
+                        <div><button class="btn btn-primary" onclick="event.stopPropagation();startEditTraining(${t.id})">ערוך</button> ${versionsBtn('training',t.id)}${t.archived?restoreBtn('training',t.id):''}
                         <button class="btn btn-danger" onclick="event.stopPropagation();deleteTraining(${t.id})">מחק</button></div></td></tr>`;
                 }
             });
@@ -4886,10 +4899,10 @@
             const _rep=vigData.filter(e=>e.reported_to_amar).length; let h=kpiRow([kpiCardHtml(String(vigData.length), _rep+' דווחו לאמ"ר', 'אירועים חריגים')]) + '<div class="table-container"><table><thead><tr><th></th><th>תאריך</th><th>חומרה</th><th>סריאלי</th><th>דווח לאמ"ר</th><th>סטטוס</th><th>ע"י</th></tr></thead><tbody>';
             vigData.forEach(v=>{if(edVig===v.id){h+=`<tr><td colspan="7" style="padding:0;">${vigEditForm(v)}</td></tr>`;return;}
                 const d=v.event_date?new Date(v.event_date).toLocaleDateString('he-IL'):'';const open=expVig===v.id;
-                h+=`<tr style="cursor:pointer;" onclick="toggleVigExpand(${v.id})"><td>${open?'▲':'▼'}</td><td>${escapeHtml(d)}</td><td>${escapeHtml(v.severity||'')}</td><td>${escapeHtml(v.serial_number||'')}</td><td>${v.reported_to_amar?'כן':'<span style=\"color:#c0392b;\">לא</span>'}</td><td>${escapeHtml(v.status||'')}</td><td>${escapeHtml(v.handled_by_name||'')}</td></tr>`;
+                h+=`<tr class="${v.archived?'qms-arch':''}" style="cursor:pointer;" onclick="toggleVigExpand(${v.id})"><td>${open?'▲':'▼'}</td><td>${escapeHtml(d)}</td><td>${escapeHtml(v.severity||'')}</td><td>${escapeHtml(v.serial_number||'')}</td><td>${v.reported_to_amar?'כן':'<span style=\"color:#c0392b;\">לא</span>'}</td><td>${escapeHtml(v.status||'')}</td><td>${escapeHtml(v.handled_by_name||'')}</td></tr>`;
                 if(open){const rd=v.report_date?new Date(v.report_date).toLocaleDateString('he-IL'):'—';
                     const capaBtnV = v.capa_id ? `<strong>CAPA #${v.capa_id}</strong>` : `<button class="btn" onclick="event.stopPropagation();openCapaFromVig(${v.id})">פתח CAPA</button>`;
-                    h+=`<tr><td colspan="7" style="background:#f8f9fa; padding:10px 14px;"><div style="margin-bottom:8px;"><strong>תיאור:</strong> ${escapeHtml(v.description||'—')}</div><div style="margin-bottom:8px;"><strong>תאריך דיווח:</strong> ${escapeHtml(rd)} · <strong>אישור אמ"ר:</strong> ${escapeHtml(v.amar_confirmation||'—')}</div><div style="margin-bottom:8px;"><strong>CAPA:</strong> ${capaBtnV}</div><div><button class="btn btn-primary" onclick="event.stopPropagation();startEditVig(${v.id})">ערוך</button> ${versionsBtn('adverse_events',v.id)} <button class="btn btn-danger" onclick="event.stopPropagation();deleteVig(${v.id})">מחק</button></div></td></tr>`;}});
+                    h+=`<tr><td colspan="7" style="background:#f8f9fa; padding:10px 14px;"><div style="margin-bottom:8px;"><strong>תיאור:</strong> ${escapeHtml(v.description||'—')}</div><div style="margin-bottom:8px;"><strong>תאריך דיווח:</strong> ${escapeHtml(rd)} · <strong>אישור אמ"ר:</strong> ${escapeHtml(v.amar_confirmation||'—')}</div><div style="margin-bottom:8px;"><strong>CAPA:</strong> ${capaBtnV}</div><div><button class="btn btn-primary" onclick="event.stopPropagation();startEditVig(${v.id})">ערוך</button> ${versionsBtn('adverse_events',v.id)}${v.archived?restoreBtn('adverse_events',v.id):''} <button class="btn btn-danger" onclick="event.stopPropagation();deleteVig(${v.id})">מחק</button></div></td></tr>`;}});
             h+='</tbody></table></div>';c.innerHTML=h;}
         function vigEditForm(v){const dt=v.event_date?v.event_date.slice(0,10):'';const rdt=v.report_date?v.report_date.slice(0,10):'';const opt=(x,cur)=>`<option value="${x}" ${cur===x?'selected':''}>${x}</option>`;
             return `<div style="padding:16px; background:#fafbfc;"><div class="form-row"><div class="form-group"><label>תאריך אירוע</label><input type="date" id="evDate_${v.id}" value="${dt}"></div><div class="form-group"><label>סריאלי</label><input type="text" id="evSerial_${v.id}" value="${escapeHtml(v.serial_number||'')}"></div></div>
@@ -4916,7 +4929,7 @@
             const _co=chData.filter(c=>c.status&&c.status!=='הושלם'&&c.status!=='סגור').length; let h=kpiRow([kpiCardHtml(String(chData.length), _co+' פתוחים', 'שינויים מתועדים')]) + '<div class="table-container"><table><thead><tr><th></th><th>תאריך</th><th>תיאור</th><th>סטטוס</th><th>ע"י</th></tr></thead><tbody>';
             chData.forEach(c2=>{if(edCh===c2.id){h+=`<tr><td colspan="5" style="padding:0;">${changeEditForm(c2)}</td></tr>`;return;}
                 const d=c2.change_date?new Date(c2.change_date).toLocaleDateString('he-IL'):'';const open=expCh===c2.id;
-                h+=`<tr style="cursor:pointer;" onclick="toggleChExpand(${c2.id})"><td>${open?'▲':'▼'}</td><td>${escapeHtml(d)}</td><td>${escapeHtml((c2.description||'').slice(0,60))}</td><td>${escapeHtml(c2.status||'')}</td><td>${escapeHtml(c2.handled_by_name||'')}</td></tr>`;
+                h+=`<tr class="${c2.archived?'qms-arch':''}" style="cursor:pointer;" onclick="toggleChExpand(${c2.id})"><td>${open?'▲':'▼'}</td><td>${escapeHtml(d)}</td><td>${escapeHtml((c2.description||'').slice(0,60))}</td><td>${escapeHtml(c2.status||'')}</td><td>${escapeHtml(c2.handled_by_name||'')}</td></tr>`;
                 if(open){h+=`<tr><td colspan="5" style="background:#f8f9fa; padding:10px 14px;"><div style="margin-bottom:8px;"><strong>תיאור:</strong> ${escapeHtml(c2.description||'—')}</div><div style="margin-bottom:8px;"><strong>הערכת השפעה:</strong> ${escapeHtml(c2.impact_assessment||'—')}</div><div style="margin-bottom:8px;"><strong>אישור:</strong> ${escapeHtml(c2.approval||'—')}</div><div style="margin-bottom:8px;"><strong>יישום:</strong> ${escapeHtml(c2.implementation||'—')}</div><div><button class="btn btn-primary" onclick="event.stopPropagation();startEditCh(${c2.id})">ערוך</button> <button class="btn btn-danger" onclick="event.stopPropagation();deleteCh(${c2.id})">מחק</button></div></td></tr>`;}});
             h+='</tbody></table></div>';c.innerHTML=h;}
         function changeEditForm(c2){const dt=c2.change_date?c2.change_date.slice(0,10):'';const opt=(x,cur)=>`<option value="${x}" ${cur===x?'selected':''}>${x}</option>`;
@@ -4973,13 +4986,13 @@
             const _find=auData.reduce((s,a)=>s+((a.checklist||[]).filter(x=>x.result==='ממצא').length),0); let h=kpiRow([kpiCardHtml(String(auData.length), _find+' ממצאים', 'מבדקים פנימיים')]) + '<div class="table-container"><table><thead><tr><th></th><th>תאריך</th><th>מבצע</th><th>סטטוס</th><th>ממצאים</th><th>ע"י</th></tr></thead><tbody>';
             auData.forEach(a=>{if(edAu===a.id){h+=`<tr><td colspan="6" style="padding:0;">${auditEditForm(a)}</td></tr>`;return;}
                 const d=a.audit_date?new Date(a.audit_date).toLocaleDateString('he-IL'):'';const open=expAu===a.id;const nf=auditFindings(a).length;
-                h+=`<tr style="cursor:pointer;" onclick="toggleAuExpand(${a.id})"><td>${open?'▲':'▼'}</td><td>${escapeHtml(d)}</td><td>${escapeHtml(a.auditor||'')}</td><td>${escapeHtml(a.status||'')}</td><td>${nf?'<span style="color:#c0392b; font-weight:bold;">'+nf+'</span>':'0'}</td><td>${escapeHtml(a.handled_by_name||'')}</td></tr>`;
+                h+=`<tr class="${a.archived?'qms-arch':''}" style="cursor:pointer;" onclick="toggleAuExpand(${a.id})"><td>${open?'▲':'▼'}</td><td>${escapeHtml(d)}</td><td>${escapeHtml(a.auditor||'')}</td><td>${escapeHtml(a.status||'')}</td><td>${nf?'<span style="color:#c0392b; font-weight:bold;">'+nf+'</span>':'0'}</td><td>${escapeHtml(a.handled_by_name||'')}</td></tr>`;
                 if(open){const items=(a.checklist||[]).map(x=>`<div style="margin:2px 0;"><strong>${auditMark(x.result)}</strong> ${escapeHtml(x.question)} ${x.note?'— '+escapeHtml(x.note):''}</div>`).join('')||'<span style="color:#888;">צ׳קליסט לא מולא.</span>';
                     const capaBtn=a.capa_id?`<strong>CAPA #${a.capa_id}</strong>`:`<button class="btn btn-primary" onclick="event.stopPropagation();openCapaFromAudit(${a.id})">פתח CAPA מממצאים</button>`;
                     h+=`<tr><td colspan="6" style="background:#f8f9fa; padding:10px 14px;"><div style="margin-bottom:8px;"><strong>היקף:</strong> ${escapeHtml(a.scope||'—')}</div>
                         <div style="margin-bottom:8px;"><strong>צ'קליסט:</strong><div style="margin-top:4px;">${items}</div></div>
                         <div style="margin-bottom:8px;"><strong>סיכום ממצאים:</strong> ${escapeHtml(a.findings||'—')}</div>
-                        <div>${capaBtn} <button class="btn btn-primary" onclick="event.stopPropagation();startEditAu(${a.id})">ערוך</button> ${versionsBtn('audits',a.id)} <button class="btn btn-danger" onclick="event.stopPropagation();deleteAu(${a.id})">מחק</button></div></td></tr>`;}});
+                        <div>${capaBtn} <button class="btn btn-primary" onclick="event.stopPropagation();startEditAu(${a.id})">ערוך</button> ${versionsBtn('audits',a.id)}${a.archived?restoreBtn('audits',a.id):''} <button class="btn btn-danger" onclick="event.stopPropagation();deleteAu(${a.id})">מחק</button></div></td></tr>`;}});
             h+='</tbody></table></div>';c.innerHTML=h;}
         function auditEditForm(a){const dt=a.audit_date?a.audit_date.slice(0,10):'';
             return `<div style="padding:16px; background:#fafbfc;"><div class="form-row"><div class="form-group"><label>תאריך</label><input type="date" id="au_date_${a.id}" value="${dt}"></div>
@@ -5025,12 +5038,12 @@
             const _lastMr=(mrData[0]&&mrData[0].review_date)?new Date(mrData[0].review_date).toLocaleDateString('he-IL'):'—'; let h=kpiRow([kpiCardHtml(String(mrData.length), 'אחרון: '+_lastMr, 'סקרי הנהלה')]) + '<div class="table-container"><table><thead><tr><th></th><th>תאריך</th><th>משתתפים</th><th>סטטוס</th><th>החלטות</th><th>ע"י</th></tr></thead><tbody>';
             mrData.forEach(m=>{if(edMr===m.id){h+=`<tr><td colspan="6" style="padding:0;">${mrEditForm(m)}</td></tr>`;return;}
                 const d=m.review_date?new Date(m.review_date).toLocaleDateString('he-IL'):'';const open=expMr===m.id;const nd=(m.decisions||[]).length;
-                h+=`<tr style="cursor:pointer;" onclick="toggleMrExpand(${m.id})"><td>${open?'▲':'▼'}</td><td>${escapeHtml(d)}</td><td>${escapeHtml(m.participants||'')}</td><td>${escapeHtml(m.status||'')}</td><td>${nd}</td><td>${escapeHtml(m.handled_by_name||'')}</td></tr>`;
+                h+=`<tr class="${m.archived?'qms-arch':''}" style="cursor:pointer;" onclick="toggleMrExpand(${m.id})"><td>${open?'▲':'▼'}</td><td>${escapeHtml(d)}</td><td>${escapeHtml(m.participants||'')}</td><td>${escapeHtml(m.status||'')}</td><td>${nd}</td><td>${escapeHtml(m.handled_by_name||'')}</td></tr>`;
                 if(open){const inputs=(m.inputs||[]).map(x=>`<div style="margin:3px 0;"><strong>${escapeHtml(x.topic)}:</strong> ${escapeHtml(x.data||'—')}</div>`).join('')||'<span style="color:#888;">לא מולא.</span>';
                     const decs=(m.decisions||[]).length?`<table style="width:100%; margin-top:4px;"><thead><tr><th>פעולה</th><th>אחראי</th><th>תאריך יעד</th></tr></thead><tbody>${m.decisions.map(de=>`<tr><td>${escapeHtml(de.action||'')}</td><td>${escapeHtml(de.responsible||'')}</td><td>${escapeHtml(de.due_date?String(de.due_date).slice(0,10):'')}</td></tr>`).join('')}</tbody></table>`:'<span style="color:#888;">אין החלטות.</span>';
                     h+=`<tr><td colspan="6" style="background:#f8f9fa; padding:10px 14px;"><div style="margin-bottom:8px;"><strong>קלטים:</strong><div style="margin-top:4px;">${inputs}</div></div>
                         <div style="margin-bottom:8px;"><strong>החלטות ותפוקות:</strong>${decs}</div>
-                        <div><button class="btn btn-primary" onclick="event.stopPropagation();startEditMr(${m.id})">ערוך</button> ${versionsBtn('management_review',m.id)} <button class="btn btn-danger" onclick="event.stopPropagation();deleteMr(${m.id})">מחק</button></div></td></tr>`;}});
+                        <div><button class="btn btn-primary" onclick="event.stopPropagation();startEditMr(${m.id})">ערוך</button> ${versionsBtn('management_review',m.id)}${m.archived?restoreBtn('management_review',m.id):''} <button class="btn btn-danger" onclick="event.stopPropagation();deleteMr(${m.id})">מחק</button></div></td></tr>`;}});
             h+='</tbody></table></div>';c.innerHTML=h;}
         function mrEditForm(m){const dt=m.review_date?m.review_date.slice(0,10):'';
             const decs=(m.decisions||[]).map(d=>mrDecRowHtml(d)).join('');
@@ -5060,7 +5073,7 @@
             const _ro=rclData.filter(r=>r.status&&r.status!=='סגור').length; let h=kpiRow([kpiCardHtml(String(rclData.length), _ro+' פתוחים', 'קמפייני ריקול')]) + '<div class="table-container"><table><thead><tr><th></th><th>תאריך</th><th>כותרת</th><th>סטטוס</th><th>ע"י</th></tr></thead><tbody>';
             rclData.forEach(r2=>{if(edRcl===r2.id){h+=`<tr><td colspan="5" style="padding:0;">${recallEditForm(r2)}</td></tr>`;return;}
                 const d=r2.recall_date?new Date(r2.recall_date).toLocaleDateString('he-IL'):'';const open=expRcl===r2.id;
-                h+=`<tr style="cursor:pointer;" onclick="toggleRclExpand(${r2.id})"><td>${open?'▲':'▼'}</td><td>${escapeHtml(d)}</td><td>${escapeHtml(r2.title||'')}</td><td>${escapeHtml(r2.status||'')}</td><td>${escapeHtml(r2.handled_by_name||'')}</td></tr>`;
+                h+=`<tr class="${r2.archived?'qms-arch':''}" style="cursor:pointer;" onclick="toggleRclExpand(${r2.id})"><td>${open?'▲':'▼'}</td><td>${escapeHtml(d)}</td><td>${escapeHtml(r2.title||'')}</td><td>${escapeHtml(r2.status||'')}</td><td>${escapeHtml(r2.handled_by_name||'')}</td></tr>`;
                 if(open){h+=`<tr><td colspan="5" style="background:#f8f9fa; padding:10px 14px;"><div style="margin-bottom:8px;"><strong>סיבה:</strong> ${escapeHtml(r2.reason||'—')}</div><div style="margin-bottom:8px;"><strong>היקף (סריאליים):</strong> ${escapeHtml(r2.scope||'—')}</div><div style="margin-bottom:8px;"><strong>הערות:</strong> ${escapeHtml(r2.notes||'—')}</div>
                     <div style="margin:10px 0;"><strong>לקוחות בקמפיין:</strong> <span style="color:#888; font-size:13px;">(נוספים אוטומטית מהיקף הסריאליים — לעריכה לחץ "ערוך")</span><div id="rclItems_${r2.id}" onclick="event.stopPropagation();">טוען...</div></div>
                     <div><button class="btn btn-primary" onclick="event.stopPropagation();startEditRcl(${r2.id})">ערוך</button> <button class="btn btn-danger" onclick="event.stopPropagation();deleteRcl(${r2.id})">מחק</button></div></td></tr>`;}});
