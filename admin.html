@@ -286,10 +286,17 @@
         
         /* Messages */
         .message {
-            padding: 15px;
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 4000;
+            padding: 15px 24px;
             border-radius: 8px;
-            margin-bottom: 20px;
             font-weight: 600;
+            box-shadow: 0 6px 24px rgba(0,0,0,0.2);
+            max-width: 90%;
+            text-align: center;
         }
         .message.success { background: #d4edda; color: #155724; }
         .message.error { background: #f8d7da; color: #721c24; }
