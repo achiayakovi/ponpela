@@ -1222,8 +1222,9 @@
                     <input type="text" id="productImage">
                 </div>
                 
+                <div id="stockCreateNote" style="display:none; color:#888; font-size:0.85rem; margin-bottom:12px;">ℹ️ מוצר חדש נוצר עם מלאי 0. המלאי נכנס דרך קליטה או עדכון מלאי.</div>
                 <div class="form-row">
-                    <div class="form-group">
+                    <div class="form-group" id="stockFieldGroup">
                         <label>כמות במלאי *</label>
                         <input type="number" id="productStockQuantity" value="0" required>
                     </div>
@@ -1875,11 +1876,19 @@
                 document.getElementById('productInStock').value = product.in_stock.toString();
                 document.getElementById('productHasWarranty').value = product.has_warranty.toString();
                 document.getElementById('productSendSurvey').value = (product.send_survey !== false).toString();
+                // עריכה: שדה מלאי החנות מוצג
+                document.getElementById('stockFieldGroup').style.display = '';
+                document.getElementById('productStockQuantity').required = true;
+                document.getElementById('stockCreateNote').style.display = 'none';
             } else {
                 title.textContent = 'הוספת מוצר';
                 document.getElementById('productForm').reset();
                 document.getElementById('productId').value = '';
                 document.getElementById('productStockQuantity').value = '0';
+                // יצירה: שדה המלאי מושמט — מלאי נכנס רק דרך קליטה/עדכון מלאי
+                document.getElementById('stockFieldGroup').style.display = 'none';
+                document.getElementById('productStockQuantity').required = false;
+                document.getElementById('stockCreateNote').style.display = 'block';
             }
 
             loadProductCategoryOptions(product && product.category ? product.category : '');
@@ -2103,7 +2112,7 @@
                     throw new Error(error.error || 'שגיאה');
                 }
 
-                showMessage(id ? 'מוצר עודכן' : 'מוצר נוסף', 'success');
+                showMessage(id ? 'מוצר עודכן' : 'מוצר נוסף — המלאי מתחיל ב-0, הוסף דרך קליטה או עדכון מלאי', 'success');
                 closeProductModal();
                 loadProducts();
             } catch (err) {
