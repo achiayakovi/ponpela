@@ -2292,6 +2292,8 @@
                     return;
                 }
                 showMessage('סטטוס עודכן', 'success');
+                loadDashboard();
+                loadOrders();
             } catch (err) {
                 showMessage('שגיאה', 'error');
             }
