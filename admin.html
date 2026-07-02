@@ -2246,8 +2246,11 @@
             else if (callAt) icon = `📞 שיחה · ${dstr}`;
             else if (state === 'pending') icon = hasEmail ? `📧 מייל · ${dstr}` : `📞 שיחה · ${dstr}`;
             else icon = '⚪ לא נשלח';
+            const suBtnStyle='font-size:11px; padding:2px 7px; border-radius:6px; border:1px solid #5060c0; background:#fff; color:#5060c0; cursor:pointer;';
             const btn = state !== 'done'
-                ? ` <button onclick="event.stopPropagation(); surveyCall(${o.id},'${stage}')" style="font-size:11px; padding:2px 7px; border-radius:6px; border:1px solid #5060c0; background:#fff; color:#5060c0; cursor:pointer;">חייג</button>`
+                ? (hasEmail
+                    ? ` <button onclick="event.stopPropagation(); surveyEmail(${o.id},'${stage}')" style="${suBtnStyle}">שלח אימייל</button>`
+                    : ` <button onclick="event.stopPropagation(); surveyCall(${o.id},'${stage}')" style="${suBtnStyle}">חייג</button>`)
                 : '';
             return `<div style="font-size:12px; white-space:nowrap;"><b>${label}:</b> ${icon}${btn}</div>`;
         }
@@ -2287,6 +2290,20 @@
             if (expandedOrderId) loadOrderDetail(expandedOrderId);
         }
         // חיוג סקר ידני — מפעיל שיחה לשלב; חוסם אם כבר הגיב (מטופל גם בשרת)
+        async function surveyEmail(id, stage) {
+            const label = stage === 'day30' ? '30 יום' : 'רכישה';
+            if (!confirm(`לשלוח סקר ${label} במייל להזמנה #${id}?`)) return;
+            const token = localStorage.getItem('adminToken');
+            try {
+                const res = await fetch(`${API_URL}/api/admin/orders/${id}/survey-email/${stage}`, {
+                    method: 'POST', headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const d = await res.json();
+                if (!res.ok) { alert(d.error || 'שגיאה'); return; }
+                alert('הסקר נשלח במייל');
+                loadOrders();
+            } catch (e) { alert(e.message || 'שגיאה'); }
+        }
         async function surveyCall(id, stage) {
             const label = stage === 'day30' ? '30 יום' : 'רכישה';
             if (!confirm(`לחייג סקר ${label} להזמנה #${id}?`)) return;

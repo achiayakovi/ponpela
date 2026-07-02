@@ -1319,7 +1319,6 @@
         async function submitForgotPassword(event) {
             event.preventDefault();
             const email = document.getElementById('forgotEmail').value;
-            const msg = document.getElementById('forgotMessage');
             try {
                 const response = await fetch(`${API_URL}/api/auth/forgot-password`, {
                     method: 'POST',
@@ -1327,13 +1326,10 @@
                     body: JSON.stringify({ email })
                 });
                 const data = await response.json().catch(() => ({}));
-                msg.textContent = data.message || 'אם האימייל קיים במערכת, נשלח אליו קישור לאיפוס סיסמה';
-                msg.style.background = '#e8f5e9'; msg.style.color = '#256029';
-                msg.style.display = 'block';
+                showToast(data.message || 'אם האימייל קיים במערכת, נשלח אליו קישור לאיפוס סיסמה', 'success', 5000);
+                showLoginForm();
             } catch (e) {
-                msg.textContent = 'שגיאה בשליחה, נסו שוב מאוחר יותר';
-                msg.style.background = '#fdecea'; msg.style.color = '#a33';
-                msg.style.display = 'block';
+                showToast('שגיאה בשליחה, נסו שוב מאוחר יותר', 'error');
             }
         }
 
