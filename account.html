@@ -633,7 +633,7 @@
         }
 
         /* Change Password Modal */
-        #changePasswordModal, #forgotPasswordModal {
+        #changePasswordModal {
             display: none;
             position: fixed;
             top: 0;
@@ -729,7 +729,7 @@
                             </div>
                             <button type="submit" class="btn">התחבר</button>
                             <div style="text-align:center;margin-top:12px;">
-                                <a href="#" onclick="openForgotPasswordModal(); return false;" style="color:#5060c0;font-size:0.9rem;">שכחתי סיסמה?</a>
+                                <a href="#" onclick="showForgotForm(); return false;" style="color:#5060c0;font-size:0.9rem;">שכחתי סיסמה?</a>
                             </div>
                         </form>
                         <div class="toggle-form">
@@ -765,6 +765,23 @@
                         </form>
                         <div class="toggle-form">
                             יש לך כבר חשבון? <a href="#" onclick="toggleForm('login')">התחבר כאן</a>
+                        </div>
+                    </div>
+
+                    <!-- Forgot Password Form -->
+                    <div id="forgotForm" style="display: none;">
+                        <h2>איפוס סיסמה</h2>
+                        <form onsubmit="submitForgotPassword(event)">
+                            <p style="margin-bottom:15px;color:#555;">הזינו את האימייל שלכם ונשלח אליכם קישור לאיפוס הסיסמה.</p>
+                            <div class="form-group">
+                                <label for="forgotEmail">אימייל</label>
+                                <input type="email" id="forgotEmail" required>
+                            </div>
+                            <div id="forgotMessage" style="display:none;padding:10px;border-radius:8px;margin-bottom:15px;"></div>
+                            <button type="submit" class="btn">שלח קישור איפוס</button>
+                        </form>
+                        <div class="toggle-form">
+                            <a href="#" onclick="showLoginForm(); return false;">חזרה להתחברות</a>
                         </div>
                     </div>
 
@@ -861,25 +878,6 @@
         </div>
     </div>
 
-    <!-- Forgot Password Modal -->
-    <div id="forgotPasswordModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>איפוס סיסמה</h3>
-                <button onclick="closeForgotPasswordModal()" class="modal-close">×</button>
-            </div>
-            <form id="forgotPasswordForm" onsubmit="submitForgotPassword(event)">
-                <p style="margin-bottom:15px;color:#555;">הזינו את האימייל שלכם ונשלח אליכם קישור לאיפוס הסיסמה.</p>
-                <div class="form-group">
-                    <label for="forgotEmail">אימייל</label>
-                    <input type="email" id="forgotEmail" required>
-                </div>
-                <div id="forgotMessage" style="display:none;padding:10px;border-radius:8px;margin-bottom:15px;"></div>
-                <button type="submit" class="btn">שלח קישור איפוס</button>
-            </form>
-        </div>
-    </div>
-
     <div class="bottom-nav">
         <a href="/">בית</a>
         <a href="shop.html">חנות</a>
@@ -951,6 +949,7 @@
         }
 
         function toggleForm(form) {
+            document.getElementById('forgotForm').style.display = 'none';
             if (form === 'register') {
                 document.getElementById('loginForm').style.display = 'none';
                 document.getElementById('registerForm').style.display = 'block';
@@ -973,8 +972,8 @@
                 });
 
                 if (!response.ok) {
-                    const errorData = await response.json().catch(() => ({ message: 'התחברות נכשלה' }));
-                    throw new Error(errorData.message || 'התחברות נכשלה');
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.error || errorData.message || 'התחברות נכשלה');
                 }
 
                 const data = await response.json();
@@ -983,7 +982,7 @@
                 setTimeout(() => checkAuth(), 1000);
             } catch (error) {
                 console.error('Login error:', error);
-                showToast('שגיאה בהתחברות: ' + (error.message || 'בדוק את הפרטים ונסה שוב'), 'error');
+                showToast(error.message || 'שגיאה בהתחברות, בדוק את הפרטים ונסה שוב', 'error');
             }
         }
 
@@ -1005,8 +1004,8 @@
                 });
 
                 if (!response.ok) {
-                    const errorData = await response.json().catch(() => ({ message: 'הרשמה נכשלה' }));
-                    throw new Error(errorData.message || 'הרשמה נכשלה');
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.error || errorData.message || 'הרשמה נכשלה');
                 }
 
                 const data = await response.json();
@@ -1277,13 +1276,17 @@
             }
         }
 
-        function openForgotPasswordModal() {
-            document.getElementById('forgotPasswordModal').style.display = 'flex';
-            document.getElementById('forgotPasswordForm').reset();
+        function showForgotForm() {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'none';
+            document.getElementById('forgotForm').style.display = 'block';
             document.getElementById('forgotMessage').style.display = 'none';
+            document.getElementById('forgotEmail').value = '';
         }
-        function closeForgotPasswordModal() {
-            document.getElementById('forgotPasswordModal').style.display = 'none';
+        function showLoginForm() {
+            document.getElementById('forgotForm').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'none';
+            document.getElementById('loginForm').style.display = 'block';
         }
         async function submitForgotPassword(event) {
             event.preventDefault();
