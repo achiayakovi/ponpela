@@ -633,7 +633,7 @@
         }
 
         /* Change Password Modal */
-        #changePasswordModal {
+        #changePasswordModal, #changeEmailModal {
             display: none;
             position: fixed;
             top: 0;
@@ -830,6 +830,10 @@
                     <div id="profileTab" class="tab-content">
                         <form onsubmit="updateProfile(event)">
                             <div class="form-group">
+                                <label for="profileEmailDisplay">אימייל</label>
+                                <input type="email" id="profileEmailDisplay" readonly style="background:#f3f4f6;color:#555;">
+                            </div>
+                            <div class="form-group">
                                 <label for="profileFullName">שם מלא</label>
                                 <input type="text" id="profileFullName" required>
                             </div>
@@ -844,6 +848,7 @@
                             <button type="submit" class="btn">עדכן פרטים</button>
                         </form>
                         <button class="btn" onclick="openChangePasswordModal()" style="margin-top: 20px; background: #3498db;">שנה סיסמה</button>
+                        <button class="btn" onclick="openChangeEmailModal()" style="margin-top: 12px; background: #5060c0;">שנה אימייל</button>
                     </div>
 
                     <button class="btn btn-logout" onclick="logout()">התנתק</button>
@@ -874,6 +879,28 @@
                 </div>
                 <div id="passwordMessage"></div>
                 <button type="submit" class="btn">שנה סיסמה</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Change Email Modal -->
+    <div id="changeEmailModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>שינוי אימייל</h3>
+                <button onclick="closeChangeEmailModal()" class="modal-close">×</button>
+            </div>
+            <form id="changeEmailForm" onsubmit="changeEmail(event)">
+                <div class="form-group">
+                    <label for="newEmail">אימייל חדש *</label>
+                    <input type="email" id="newEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="emailCurrentPassword">סיסמה נוכחית *</label>
+                    <input type="password" id="emailCurrentPassword" required minlength="6" autocomplete="current-password">
+                </div>
+                <div id="emailMessage" style="display:none;padding:10px;border-radius:8px;margin-bottom:15px;"></div>
+                <button type="submit" class="btn">עדכן אימייל</button>
             </form>
         </div>
     </div>
@@ -1048,6 +1075,7 @@
                 document.getElementById('profileFullName').value = user.full_name;
                 document.getElementById('profilePhone').value = user.phone || '';
                 document.getElementById('profileAddress').value = user.address || '';
+                document.getElementById('profileEmailDisplay').value = user.email || '';
 
                 loadOrders();
                 loadWarranties();
@@ -1306,6 +1334,37 @@
                 msg.textContent = 'שגיאה בשליחה, נסו שוב מאוחר יותר';
                 msg.style.background = '#fdecea'; msg.style.color = '#a33';
                 msg.style.display = 'block';
+            }
+        }
+
+        function openChangeEmailModal() {
+            document.getElementById('changeEmailModal').style.display = 'flex';
+            document.getElementById('changeEmailForm').reset();
+            document.getElementById('emailMessage').style.display = 'none';
+        }
+        function closeChangeEmailModal() {
+            document.getElementById('changeEmailModal').style.display = 'none';
+        }
+        async function changeEmail(event) {
+            event.preventDefault();
+            const new_email = document.getElementById('newEmail').value;
+            const current_password = document.getElementById('emailCurrentPassword').value;
+            const msg = document.getElementById('emailMessage');
+            const token = localStorage.getItem('token');
+            try {
+                const response = await fetch(`${API_URL}/api/user/email`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ current_password, new_email })
+                });
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok) throw new Error(data.error || 'שינוי האימייל נכשל');
+                showToast('האימייל עודכן בהצלחה', 'success');
+                closeChangeEmailModal();
+                if (data.user && data.user.email) document.getElementById('profileEmailDisplay').value = data.user.email;
+            } catch (e) {
+                msg.textContent = e.message || 'שגיאה בשינוי אימייל';
+                msg.style.background = '#fdecea'; msg.style.color = '#a33'; msg.style.display = 'block';
             }
         }
 

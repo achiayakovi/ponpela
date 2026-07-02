@@ -2648,6 +2648,7 @@
         }
         function userEditForm(u){
             return `<div style="padding:16px; background:#fafbfc;">
+                <div class="form-group"><label>אימייל</label><input type="email" id="eu_email_${u.id}" value="${escapeHtml(u.email||'')}"></div>
                 <div class="form-row"><div class="form-group"><label>שם מלא</label><input type="text" id="eu_name_${u.id}" value="${escapeHtml(u.full_name||'')}"></div>
                 <div class="form-group"><label>טלפון</label><input type="text" id="eu_phone_${u.id}" value="${escapeHtml(u.phone||'')}"></div></div>
                 <div class="form-group"><label>כתובת</label><input type="text" id="eu_address_${u.id}" value="${escapeHtml(u.address||'')}"></div>
@@ -2660,6 +2661,7 @@
         async function saveUserInline(id){
             const token = localStorage.getItem('adminToken');
             const body = {
+                email: document.getElementById('eu_email_'+id).value.trim(),
                 full_name: document.getElementById('eu_name_'+id).value.trim(),
                 phone: document.getElementById('eu_phone_'+id).value.trim(),
                 address: document.getElementById('eu_address_'+id).value.trim(),
