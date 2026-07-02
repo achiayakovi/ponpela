@@ -633,7 +633,7 @@
         }
 
         /* Change Password Modal */
-        #changePasswordModal {
+        #changePasswordModal, #forgotPasswordModal {
             display: none;
             position: fixed;
             top: 0;
@@ -728,6 +728,9 @@
                                 <input type="password" id="loginPassword" required>
                             </div>
                             <button type="submit" class="btn">התחבר</button>
+                            <div style="text-align:center;margin-top:12px;">
+                                <a href="#" onclick="openForgotPasswordModal(); return false;" style="color:#5060c0;font-size:0.9rem;">שכחתי סיסמה?</a>
+                            </div>
                         </form>
                         <div class="toggle-form">
                             עדיין אין לך חשבון? <a href="#" onclick="toggleForm('register')">הירשם כאן</a>
@@ -762,6 +765,26 @@
                         </form>
                         <div class="toggle-form">
                             יש לך כבר חשבון? <a href="#" onclick="toggleForm('login')">התחבר כאן</a>
+                        </div>
+                    </div>
+
+                    <!-- Reset Password Form -->
+                    <div id="resetPasswordForm" style="display: none;">
+                        <h2>בחירת סיסמה חדשה</h2>
+                        <form onsubmit="submitReset(event)">
+                            <div class="form-group">
+                                <label for="resetNewPassword">סיסמה חדשה</label>
+                                <input type="password" id="resetNewPassword" required minlength="6" autocomplete="new-password">
+                            </div>
+                            <div class="form-group">
+                                <label for="resetConfirmPassword">אישור סיסמה חדשה</label>
+                                <input type="password" id="resetConfirmPassword" required minlength="6" autocomplete="new-password">
+                            </div>
+                            <div id="resetMessage" style="display:none;padding:10px;border-radius:8px;margin-bottom:15px;"></div>
+                            <button type="submit" class="btn">אפס סיסמה</button>
+                        </form>
+                        <div class="toggle-form">
+                            <a href="account.html">חזרה להתחברות</a>
                         </div>
                     </div>
                 </div>
@@ -838,6 +861,25 @@
         </div>
     </div>
 
+    <!-- Forgot Password Modal -->
+    <div id="forgotPasswordModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>איפוס סיסמה</h3>
+                <button onclick="closeForgotPasswordModal()" class="modal-close">×</button>
+            </div>
+            <form id="forgotPasswordForm" onsubmit="submitForgotPassword(event)">
+                <p style="margin-bottom:15px;color:#555;">הזינו את האימייל שלכם ונשלח אליכם קישור לאיפוס הסיסמה.</p>
+                <div class="form-group">
+                    <label for="forgotEmail">אימייל</label>
+                    <input type="email" id="forgotEmail" required>
+                </div>
+                <div id="forgotMessage" style="display:none;padding:10px;border-radius:8px;margin-bottom:15px;"></div>
+                <button type="submit" class="btn">שלח קישור איפוס</button>
+            </form>
+        </div>
+    </div>
+
     <div class="bottom-nav">
         <a href="/">בית</a>
         <a href="shop.html">חנות</a>
@@ -888,6 +930,15 @@
         }
 
         function checkAuth() {
+            const resetToken = new URLSearchParams(window.location.search).get('reset');
+            if (resetToken) {
+                document.getElementById('authContainer').style.display = 'block';
+                document.getElementById('dashboardContainer').style.display = 'none';
+                document.getElementById('loginForm').style.display = 'none';
+                document.getElementById('registerForm').style.display = 'none';
+                document.getElementById('resetPasswordForm').style.display = 'block';
+                return;
+            }
             const token = localStorage.getItem('token');
             if (token) {
                 document.getElementById('authContainer').style.display = 'none';
@@ -1203,6 +1254,58 @@
         }
 
         // Change Password Modal Functions
+        async function submitReset(event) {
+            event.preventDefault();
+            const resetToken = new URLSearchParams(window.location.search).get('reset');
+            const newPassword = document.getElementById('resetNewPassword').value;
+            const confirmPassword = document.getElementById('resetConfirmPassword').value;
+            const msg = document.getElementById('resetMessage');
+            const fail = (t) => { msg.textContent = t; msg.style.background = '#fdecea'; msg.style.color = '#a33'; msg.style.display = 'block'; };
+            if (newPassword !== confirmPassword) { fail('הסיסמאות אינן תואמות'); return; }
+            try {
+                const response = await fetch(`${API_URL}/api/auth/reset-password`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token: resetToken, new_password: newPassword })
+                });
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok) throw new Error(data.error || 'איפוס הסיסמה נכשל');
+                showToast('הסיסמה אופסה בהצלחה! אפשר להתחבר', 'success');
+                setTimeout(() => { window.location.href = 'account.html'; }, 2000);
+            } catch (e) {
+                fail(e.message || 'הקישור פג תוקף, בקשו קישור חדש');
+            }
+        }
+
+        function openForgotPasswordModal() {
+            document.getElementById('forgotPasswordModal').style.display = 'flex';
+            document.getElementById('forgotPasswordForm').reset();
+            document.getElementById('forgotMessage').style.display = 'none';
+        }
+        function closeForgotPasswordModal() {
+            document.getElementById('forgotPasswordModal').style.display = 'none';
+        }
+        async function submitForgotPassword(event) {
+            event.preventDefault();
+            const email = document.getElementById('forgotEmail').value;
+            const msg = document.getElementById('forgotMessage');
+            try {
+                const response = await fetch(`${API_URL}/api/auth/forgot-password`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                const data = await response.json().catch(() => ({}));
+                msg.textContent = data.message || 'אם האימייל קיים במערכת, נשלח אליו קישור לאיפוס סיסמה';
+                msg.style.background = '#e8f5e9'; msg.style.color = '#256029';
+                msg.style.display = 'block';
+            } catch (e) {
+                msg.textContent = 'שגיאה בשליחה, נסו שוב מאוחר יותר';
+                msg.style.background = '#fdecea'; msg.style.color = '#a33';
+                msg.style.display = 'block';
+            }
+        }
+
         function openChangePasswordModal() {
             document.getElementById('changePasswordModal').style.display = 'flex';
             document.getElementById('changePasswordForm').reset();
