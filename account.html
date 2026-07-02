@@ -1111,9 +1111,9 @@
                             <span class="order-id">הזמנה #${order.id} <span class="acc-chevron">▾</span></span>
                             <span class="order-status status-${order.status}">${({pending:'ממתין', preparing:'הכנת הזמנה', dispatched:(order.delivery_method==='איסוף'?'מוכן לאיסוף':'נשלח'), completed:'הושלם', cancelled:'בוטל'}[order.status] || order.status)}</span>
                         </div>
+                        <div><strong>תאריך:</strong> ${new Date(order.created_at).toLocaleDateString('he-IL')}</div>
+                        <div><strong>סה"כ:</strong> ₪${order.total_amount}</div>
                         <div class="acc-body">
-                            <div><strong>תאריך:</strong> ${new Date(order.created_at).toLocaleDateString('he-IL')}</div>
-                            <div><strong>סה"כ:</strong> ₪${order.total_amount}</div>
                             <div class="order-items">
                                 ${order.items.map(item => `
                                     <div class="order-item">${item.product_name} x${item.quantity}</div>
@@ -1145,7 +1145,10 @@
 
                 container.innerHTML = warranties.map(w => `
                     <div class="warranty-card" onclick="this.classList.toggle('open')" style="cursor:pointer;">
-                        <h3>מספר מכשיר: ${w.machine_number} <span class="acc-chevron">▾</span></h3>
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <h3 style="margin:0;">מספר מכשיר: ${w.machine_number} <span class="acc-chevron">▾</span></h3>
+                            <span style="color: ${w.status === 'בתוקף' ? '#27ae60' : w.status === 'ממתין לאישור' ? '#f39c12' : '#e74c3c'}; font-weight:600;">${w.status}</span>
+                        </div>
                         <div class="warranty-info acc-body">
                             <div class="warranty-field">
                                 <strong>תאריך רכישה:</strong>
@@ -1154,12 +1157,6 @@
                             <div class="warranty-field">
                                 <strong>תוקף עד:</strong>
                                 ${new Date(w.expiry_date).toLocaleDateString('he-IL')}
-                            </div>
-                            <div class="warranty-field">
-                                <strong>סטטוס:</strong>
-                                <span style="color: ${w.status === 'בתוקף' ? '#27ae60' : w.status === 'ממתין לאישור' ? '#f39c12' : '#e74c3c'};">
-                                    ${w.status}
-                                </span>
                             </div>
                         </div>
                     </div>
