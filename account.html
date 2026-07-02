@@ -464,8 +464,9 @@
             margin-bottom: 20px;
             border-right: 5px solid #5060c0;
         }
-        .acc-body { display: none; }
-        .order-card.open .acc-body, .warranty-card.open .acc-body { display: block; }
+        .order-card .acc-body, .warranty-card .acc-body { display: none; }
+        .order-card.open .acc-body { display: block; }
+        .warranty-card.open .acc-body { display: grid; }
         .acc-chevron { display: inline-block; transition: transform .2s; font-size: .8em; color: #9aa; }
         .order-card.open .acc-chevron, .warranty-card.open .acc-chevron { transform: rotate(180deg); }
 
